@@ -8,8 +8,8 @@
 #   - (macOS) /bin/bash --login
 #   - (Linux/BSD) user login shell
 #   - (Windows) powershell
-shell:
-  program: ubuntu
+# shell:
+#   program: /bin/zsh
 #  args:
 #    - --login
 
@@ -89,7 +89,7 @@ hints:
     - regex: "(ipfs:|ipns:|magnet:|mailto:|gemini:|gopher:|https:|http:|news:|file:|git:|ssh:|ftp:)\
             [^\u0000-\u001F\u007F-\u009F<>\"\\s{-}\\^⟨⟩`]+"
       hyperlinks: true
-      command: "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+      command: "google-chrome"
       post_processing: true
       mouse:
         enabled: true

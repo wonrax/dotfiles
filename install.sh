@@ -20,6 +20,9 @@ npm i -g zsh-history-enquirer
 
 ln -sf $HOME/dotfiles/zshrc $HOME/.zshrc
 
+mkdir -R $HOME/.config/alacritty
+ln -sf $HOME/dotfiles/alacritty.yml $HOME/.config/alacritty/alacritty.yml
+
 # AstroNvim
 git clone --depth 1 https://github.com/AstroNvim/AstroNvim $HOME/.config/nvim || true
 ln -sf $HOME/dotfiles/astronvim.config $HOME/.config/nvim/lua/user
