@@ -80,6 +80,8 @@ ZSH_THEME="refined"
 plugins=(
   zsh-history-enquirer
 
+
+
   git
   npm
   zsh-autosuggestions
