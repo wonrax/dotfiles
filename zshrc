@@ -125,7 +125,9 @@ export XDG_CONFIG_HOME="$HOME/.config"
 # tab - history completion
 # shift+tab - autosuggest completion
 # https://github.com/zsh-users/zsh-autosuggestions/issues/532#issuecomment-637381889
-bindkey '^I'      autosuggest-accept
+bindkey '^I'   complete-word       # tab          | complete
+bindkey '^[[Z' autosuggest-accept  # shift + tab  | autosuggest
+
 ZSH_AUTOSUGGEST_STRATEGY=(history completion)
 ZSH_AUTOSUGGEST_CLEAR_WIDGETS+=(buffer-empty bracketed-paste accept-line push-line-or-edit)
 ZSH_AUTOSUGGEST_USE_ASYNC=true
@@ -134,8 +136,6 @@ ZSH_AUTOSUGGEST_USE_ASYNC=true
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-
-eval $(thefuck --alias fuck)
 
 # If you come from bash you might have to change your $PATH.
 export PATH=$HOME/bin:/usr/local/bin:$PATH
@@ -156,5 +156,8 @@ echo $job
     wait $job
 done
 
-source .local.zshrc
+if [[ -a ~/.localrc ]]
+then
+  source ~/.localrc
+fi
 
