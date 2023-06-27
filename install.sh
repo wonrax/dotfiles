@@ -14,11 +14,11 @@ export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || pr
 nvm install --lts
 nvm use default
 
-ln -sf $HOME/dotfiles/zshrc $HOME/.zshrc
-
 # install zsh plugins
 git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting || true
 npm i -g zsh-history-enquirer
+
+ln -sf $HOME/dotfiles/zshrc $HOME/.zshrc
 
 # AstroNvim
 git clone --depth 1 https://github.com/AstroNvim/AstroNvim $HOME/.config/nvim || true
