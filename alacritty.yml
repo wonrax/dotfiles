@@ -53,8 +53,8 @@ window:
   decorations: full
   opacity: 1.0
   dimensions:
-    columns: 128
-    lines: 40
+    columns: 100
+    lines: 35
   position:
     x: 48
     y: 48
@@ -76,7 +76,7 @@ font:
   # spacing.
   offset:
    x: 0
-   y: 3
+   y: 1
 
 bell:
   animation: EaseOut
