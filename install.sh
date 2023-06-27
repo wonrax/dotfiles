@@ -24,3 +24,5 @@ ln -sf $HOME/dotfiles/zshrc $HOME/.zshrc
 git clone --depth 1 https://github.com/AstroNvim/AstroNvim $HOME/.config/nvim || true
 ln -sf $HOME/dotfiles/astronvim.config $HOME/.config/nvim/lua/user
 
+zsh
+
