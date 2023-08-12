@@ -14,18 +14,21 @@ export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || pr
 nvm install --lts
 nvm use default
 
-# install zsh plugins
-git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting || true
-npm i -g zsh-history-enquirer
-
 ln -sf $HOME/dotfiles/zshrc $HOME/.zshrc
 
-mkdir -R $HOME/.config/alacritty
+mkdir -p $HOME/.config/alacritty
 ln -sf $HOME/dotfiles/alacritty.yml $HOME/.config/alacritty/alacritty.yml
 
 # AstroNvim
 git clone --depth 1 https://github.com/AstroNvim/AstroNvim $HOME/.config/nvim || true
 ln -sf $HOME/dotfiles/astronvim.config $HOME/.config/nvim/lua/user
 
-zsh
+# install oh my zsh
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 
+# install zsh plugins
+git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting || true
+npm i -g zsh-history-enquirer
+git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+
+zsh
