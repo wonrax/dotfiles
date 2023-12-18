@@ -8,6 +8,7 @@ return {
     signcolumn = "auto", -- sets vim.opt.signcolumn to auto
     wrap = false, -- sets vim.opt.wrap
     clipboard = "", -- Revert to default nvim yanking behavior
+    scrolloff = 999,
   },
   g = {
     mapleader = " ", -- sets vim.g.mapleader
