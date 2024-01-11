@@ -76,6 +76,8 @@ ZSH_THEME="refined"
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(
   zsh-history-enquirer
+
+  tmux
   git
   npm
   zsh-autosuggestions
@@ -116,6 +118,10 @@ alias vi="nvim"
 alias ls="exa"
 alias cat="bat"
 
+alias la="ls -la"
+alias l="ls"
+alias cdd="cd .."
+
 export XDG_CONFIG_HOME="$HOME/.config"
 
 # tab - history completion
@@ -139,6 +145,9 @@ export PATH=$HOME/.local/bin:$PATH
 
 # Golang
 export PATH=$PATH:/usr/local/go/bin:~/go/bin
+
+# Swift
+export PATH=$PATH:/opt/swift/usr/bin
 
 export SYSTEMD_EDITOR=nvim
 export EDITOR=/usr/bin/nvim
