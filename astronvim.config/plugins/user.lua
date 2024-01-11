@@ -32,35 +32,6 @@ return {
     end,
   },
   {
-    "ggandor/leap.nvim",
-    config = function()
-      require("leap").setup {
-        -- max_phase_one_targets = nil,
-        -- highlight_unlabeled_phase_one_targets = false,
-        -- max_highlighted_traversal_targets = 10,
-        -- case_sensitive = false,
-        -- equivalence_classes = { ' \t\r\n', },
-        -- substitute_chars = {},
-        -- safe_labels = { 's', 'f', 'n', 'u', 't' },
-        -- labels = { 's', 'f', 'n', 'j', 'k' },
-        -- special_keys = {
-        --   repeat_search = '<enter>',
-        --   next_phase_one_target = '<enter>',
-        --   next_target = { '<enter>', ';' },
-        --   prev_target = { '<tab>', ',' },
-        --   next_group = '<space>',
-        --   prev_group = '<tab>',
-        --   multi_accept = '<enter>',
-        --   multi_revert = '<backspace>',
-        -- }
-      }
-    end,
-    init = function()
-      require('leap').add_default_mappings()
-      require('leap').init_highlight(true)
-    end,
-  },
-  {
     'github/copilot.vim',
     lazy = false
   },
@@ -90,5 +61,32 @@ return {
       })
     end,
     lazy = false
-  }
+  },
+  {
+    "folke/flash.nvim",
+    event = "VeryLazy",
+    ---@type Flash.Config
+    opts = {
+      search = {
+        mode = "search",
+      },
+      modes = {
+        char = {
+          keys = { "F", "t", "T", ";", "," },
+        }
+      }
+    },
+    -- stylua: ignore
+    keys = {
+      { "f", mode = { "n", "x", "o" }, function() require("flash").jump() end, desc = "Flash" },
+      { "S", mode = { "n", "x", "o" }, function() require("flash").treesitter() end, desc = "Flash Treesitter" },
+      { "r", mode = "o", function() require("flash").remote() end, desc = "Remote Flash" },
+      { "R", mode = { "o", "x" }, function() require("flash").treesitter_search() end, desc = "Treesitter Search" },
+      { "<c-s>", mode = { "c" }, function() require("flash").toggle() end, desc = "Toggle Flash Search" },
+    },
+  },
+  {
+    "tpope/vim-surround",
+    lazy = false
+  },
 }
