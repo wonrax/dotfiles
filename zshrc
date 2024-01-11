@@ -76,7 +76,6 @@ ZSH_THEME="refined"
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(
   zsh-history-enquirer
-
   tmux
   git
   npm
