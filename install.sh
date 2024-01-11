@@ -2,7 +2,7 @@
 
 # install packages
 # https://unix.stackexchange.com/a/571192
-packagesNeeded='zsh bat exa fzf'
+packagesNeeded='zsh bat exa fzf git-delta'
 if [ -x "$(command -v apk)" ];       then sudo apk add --no-cache $packagesNeeded
 elif [ -x "$(command -v apt-get)" ]; then sudo apt-get install $packagesNeeded
 elif [ -x "$(command -v dnf)" ];     then sudo dnf install $packagesNeeded
@@ -40,6 +40,15 @@ git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-m
 if ! which zsh-history-enquirer > /dev/null; then
   npm i -g zsh-history-enquirer
 fi
+
+# change git diff to use delta
+echo "Configuring git delta"
+git config --global core.pager delta
+git config --global interactive.diffFilter "delta --color-only"
+git config --global delta.navigate true
+git config --global delta.line-numbers true
+git config --global merge.conflictstyle diff3
+git config --global diff.colorMoved default
 
 zsh
 
