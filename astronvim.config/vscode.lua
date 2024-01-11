@@ -1,5 +1,6 @@
 local vscode = require('vscode-neovim')
 
+vim.keymap.set("v", "<C-c>", [["+y]], { noremap = true, silent = true })
 vim.keymap.set("n", "j", "gj", { remap = true })
 vim.keymap.set("n", "k", "gk", { remap = true })
 vim.keymap.set("n", "gH", function()
