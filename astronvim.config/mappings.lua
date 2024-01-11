@@ -29,4 +29,7 @@ return {
     -- setting a mapping to false will disable it
     -- ["<esc>"] = false,
   },
+  i = {
+    ["<C-l>"] = { 'copilot#Accept("<CR>")', expr = true, script = true, noremap = true, replace_keycodes = false }
+  }
 }

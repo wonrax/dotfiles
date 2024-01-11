@@ -79,6 +79,6 @@ return {
   -- anything that doesn't fit in the normal config locations above can go here
   polish = function()
     vim.cmd('set colorcolumn=82')
-    vim.cmd('highlight ColorColumn guibg=LightGray')
+    vim.cmd('highlight ColorColumn guibg=#eeeeee')
   end,
 }

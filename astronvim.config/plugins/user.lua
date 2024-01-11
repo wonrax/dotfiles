@@ -61,6 +61,11 @@ return {
     end,
   },
   {
+    'github/copilot.vim',
+    event = "InsertEnter",
+    init = function() end,
+  },
+  {
     'rcarriga/nvim-notify',
     config = function(plugin, opts)
       require("notify").setup({
