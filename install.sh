@@ -21,7 +21,7 @@ nvm use default
 ln -sf $HOME/.dotfiles/zshrc $HOME/.zshrc
 
 mkdir -p $HOME/.config/alacritty
-ln -sf $HOME/.dotfiles/alacritty.yml $HOME/.config/alacritty/alacritty.yml
+ln -sf $HOME/.dotfiles/alacritty.toml $HOME/.config/alacritty/alacritty.toml
 
 # AstroNvim
 if [[ -d "$HOME/.config/nvim" ]]; then
