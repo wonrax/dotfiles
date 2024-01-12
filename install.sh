@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# The .dotfiles absolute path where you cloned the repo
+DOTFILES="$HOME/.dotfiles"
+
 # install packages
 # https://unix.stackexchange.com/a/571192
 packagesNeeded='zsh bat exa fzf git-delta'
@@ -18,16 +21,19 @@ export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || pr
 nvm install --lts
 nvm use default
 
-ln -sf $HOME/.dotfiles/zshrc $HOME/.zshrc
+ln -sf $DOTFILES/zshrc $HOME/.zshrc
 
 mkdir -p $HOME/.config/alacritty
-ln -sf $HOME/.dotfiles/alacritty.toml $HOME/.config/alacritty/alacritty.toml
+ln -sf $DOTFILES/alacritty/alacritty.toml $HOME/.config/alacritty/alacritty.toml
+ln -sf $DOTFILES/alacritty/alacritty-light.toml $HOME/.config/alacritty/alacritty-light.toml
+ln -sf $DOTFILES/alacritty/alacritty-dark.toml $HOME/.config/alacritty/alacritty-dark.toml
+cp $DOTFILES/alacritty/alacritty.local.toml $HOME/.config/alacritty/
 
 # AstroNvim
 if [[ -d "$HOME/.config/nvim" ]]; then
   echo "Installing AstroNvim..."
   git clone --depth 1 https://github.com/AstroNvim/AstroNvim $HOME/.config/nvim || true
-  ln -sfn $HOME/.dotfiles/astronvim.config $HOME/.config/nvim/lua/user
+  ln -sfn $DOTFILES/astronvim.config $HOME/.config/nvim/lua/user
 fi
 
 # install oh my zsh
