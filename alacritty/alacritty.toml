@@ -6,7 +6,7 @@ color = "#c5c0b9"
 duration = 200
 
 [font]
-size = 14
+size = 11
 
 [font.bold]
 family = "CaskaydiaCove Nerd Font"
@@ -47,8 +47,8 @@ decorations = "full"
 opacity = 1.0
 
 [window.dimensions]
-columns = 120
-lines = 40
+columns = 100
+lines = 30
 
 [window.padding]
 x = 16

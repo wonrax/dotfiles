@@ -1,3 +1,5 @@
+export DOTFILES="$HOME/.dotfiles"
+
 ($HOME/.dotfiles/bin/alacritty-toggle-theme.sh &)
 
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
@@ -156,6 +158,8 @@ export EDITOR=/usr/bin/nvim
 
 # Bat (cat alternative)
 export BAT_THEME='GitHub'
+
+export PATH=$PATH:$DOTFILES/bin
 
 if [[ -a ~/.localrc ]]
 then
