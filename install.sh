@@ -41,20 +41,21 @@ fi
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 # Alacritty config
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+# We're not replacing local config if existed
+if [[ ! -f "$DOTFILES/alacritty/alacritty.toml" ]]; then
+	echo "Creating a local alacritty config: alacritty.toml"
+	cp $DOTFILES/alacritty/alacritty.toml.template \
+		$DOTFILES/alacritty/alacritty.toml
+fi
 mkdir -p $HOME/.config/alacritty
-ln -sf $DOTFILES/alacritty/alacritty.toml $HOME/.config/alacritty/alacritty.toml
+ln -sf $DOTFILES/alacritty/alacritty.toml \
+	$HOME/.config/alacritty/alacritty.toml
+ln -sf $DOTFILES/alacritty/alacritty.base.toml \
+	$HOME/.config/alacritty/alacritty.base.toml
 ln -sf $DOTFILES/alacritty/alacritty-light.toml \
 	$HOME/.config/alacritty/alacritty-light.toml
 ln -sf $DOTFILES/alacritty/alacritty-dark.toml \
 	$HOME/.config/alacritty/alacritty-dark.toml
-# We're not replacing local config if existed
-if [[ ! "$DOTFILES/alacritty/alacritty.local.toml" ]]; then
-	echo "Creating a local alacritty config: alacritty.local.toml"
-	cp $DOTFILES/alacritty/alacritty.local.toml.template \
-		$DOTFILES/alacritty/alacritty.local.toml
-fi
-ln -sf $DOTFILES/alacritty/alacritty.local.toml \
-	$HOME/.config/alacritty/alacritty.local.toml
 
 # AstroNvim
 if [[ ! -d "$HOME/.config/nvim" ]]; then
