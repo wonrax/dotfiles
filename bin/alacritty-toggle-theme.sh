@@ -25,17 +25,22 @@ linux_is_dark() {
 	test "$preference" = "'prefer-dark'"
 }
 
-alias testDark=linux_is_dark
-if [[ $OS = "Mac" ]]; then
-	alias testDark=macos_is_dark
-fi
-
 function setTheme() {
-	CONFIG_PATH="$HOME/.config/alacritty/alacritty.local.toml"
+	isDark=false
+
+	if [[ $OS = "Mac" ]]; then
+		if macos_is_dark; then isDark=true; fi
+	else
+		if linux_is_dark; then isDark=true; fi
+	fi
+
+	echo $testDark
+
+	CONFIG_PATH="$HOME/.config/alacritty/alacritty.toml"
 	LIGHT="alacritty-light"
 	DARK="alacritty-dark"
 
-	if testDark; then
+	if [[ $isDark == true ]]; then
 		if grep "$LIGHT" "$CONFIG_PATH" >/dev/null; then
 			sed -i.backup "s/$LIGHT/$DARK/" "$CONFIG_PATH"
 		fi
