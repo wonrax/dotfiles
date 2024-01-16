@@ -119,7 +119,7 @@ alias python="python3"
 alias py="python3"
 alias vim="nvim"
 alias vi="nvim"
-alias ls="exa"
+alias ls="eza"
 alias cat="bat"
 
 alias la="ls -la"
