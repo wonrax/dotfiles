@@ -1,0 +1,6 @@
+#!/bin/bash
+
+if output=$(git status --short | awk '{print $2}' | fzf -m); then
+  git diff $output
+fi
+
