@@ -7,7 +7,7 @@ DOTFILES="$HOME/.dotfiles"
 # Install essential packages
 # https://unix.stackexchange.com/a/571192
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-packagesNeeded='zsh bat exa fzf git-delta ripgrep'
+packagesNeeded='zsh bat eza fzf git-delta ripgrep'
 if [ -x "$(command -v apk)" ]; then
 	sudo apk add --no-cache $packagesNeeded
 elif [ -x "$(command -v apt-get)" ]; then

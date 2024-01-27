@@ -1,3 +1,16 @@
+echo "
+█▒▒██▒▒▒▒██████▒▒▒▒▒▒████░░░░▓▓▓▓░░░░░░░░░░██▒▒██▒▒██
+▒██▒▒▒▒██░░░░██▒▒▒▒██░░██████░░░░▓▓      ▓▓████▒▒██
+▒▒▒██▒▒██░░░░▓▓░░▒▒████████▓▓██░░░░    ▓▓░░░░████
+▒░░██▒▒██░░▓▓▒▒▒▒░░██  ▒▒██  ░░▓▓      ░░▓▓▓▓██
+░██▒▒▒▒██░░██▒▒▒▒▒▒██  ▒▒▒▒▒▒          ████░░██
+░██▒▒▒▒▒▒████▒▒▒▒▒▒██                    ▒▒  ██
+███▒▒▒▒▒▒▓▓██▒▒▒▒▒▒██  ░░░░                ████
+▒▒▒▒▒▒▒▒▒▒▒██▒▒▒▒▒▒██              ░░██  ░░████
+▒▒▒▒▒▒▒▒▒▒▒▒▒██▒▒▒▒██░░                  ██▒▒██
+▒▒▒▒▒▒▒▒▒▒▒▒▒██▒▒▒▒██░░        ░░░░    ▓▓▓▓▒▒██
+"
+
 export DOTFILES="$HOME/.dotfiles"
 
 ($HOME/.dotfiles/bin/alacritty-toggle-theme.sh &)
@@ -107,25 +120,6 @@ source $ZSH/oh-my-zsh.sh
 # Compilation flags
 # export ARCHFLAGS="-arch x86_64"
 
-# Set personal aliases, overriding those provided by oh-my-zsh libs,
-# plugins, and themes. Aliases can be placed here, though oh-my-zsh
-# users are encouraged to define aliases within the ZSH_CUSTOM folder.
-# For a full list of active aliases, run `alias`.
-#
-# Example aliases
-# alias zshconfig="mate ~/.zshrc"
-# alias ohmyzsh="mate ~/.oh-my-zsh"
-alias python="python3"
-alias py="python3"
-alias vim="nvim"
-alias vi="nvim"
-alias ls="exa"
-alias cat="bat"
-
-alias la="ls -la"
-alias l="ls"
-alias cdd="cd .."
-
 export XDG_CONFIG_HOME="$HOME/.config"
 
 # tab - history completion
@@ -160,6 +154,8 @@ export EDITOR=/usr/bin/nvim
 export BAT_THEME='GitHub'
 
 export PATH=$PATH:$DOTFILES/bin
+
+source $DOTFILES/alias
 
 if [[ -a ~/.localrc ]]
 then
