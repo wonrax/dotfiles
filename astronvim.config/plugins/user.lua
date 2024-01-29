@@ -89,4 +89,8 @@ return {
     "tpope/vim-surround",
     lazy = false
   },
+  {
+    "andweeb/presence.nvim",
+    lazy = false
+  },
 }
