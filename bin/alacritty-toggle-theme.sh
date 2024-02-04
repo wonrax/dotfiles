@@ -36,17 +36,17 @@ function setTheme() {
 
 	echo $testDark
 
-	CONFIG_PATH="$HOME/.config/alacritty/alacritty.toml"
+	CONFIG_PATH="$HOME/.dotfiles/alacritty/alacritty.toml"
 	LIGHT="alacritty-light"
 	DARK="alacritty-dark"
 
 	if [[ $isDark == true ]]; then
 		if grep "$LIGHT" "$CONFIG_PATH" >/dev/null; then
-			sed -i "s/$LIGHT/$DARK/" "$CONFIG_PATH"
+			sed -i "" "s/$LIGHT/$DARK/" "$CONFIG_PATH"
 		fi
 	else
 		if grep "$DARK" "$CONFIG_PATH" >/dev/null; then
-			sed -i "s/$DARK/$LIGHT/" "$CONFIG_PATH"
+			sed -i "" "s/$DARK/$LIGHT/" "$CONFIG_PATH"
 		fi
 	fi
 }
