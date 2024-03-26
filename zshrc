@@ -99,6 +99,7 @@ plugins=(
   zsh-autosuggestions
   zsh-syntax-highlighting
   z
+  forgit
 )
 
 source $ZSH/oh-my-zsh.sh
@@ -154,6 +155,9 @@ export EDITOR=/usr/bin/nvim
 export BAT_THEME='GitHub'
 
 export PATH=$PATH:$DOTFILES/bin
+
+# diffstatic
+export DFT_DISPLAY=inline
 
 source $DOTFILES/alias
 

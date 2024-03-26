@@ -78,12 +78,14 @@ fi
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 # Install omz plugins
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-[[ ! "${ZSH_CUSTOM:-~/.oh-my-zsh/custom/zsh-syntax-highlighting}" ]] &&
+[[ ! "${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting" ]] &&
 	git clone https://github.com/zsh-users/zsh-syntax-highlighting.git \
 		${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
-[[ ! "${ZSH_CUSTOM:-~/.oh-my-zsh/custom/zsh-autosuggestions}" ]] &&
+[[ ! "${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions" ]] &&
 	git clone https://github.com/zsh-users/zsh-autosuggestions \
 		${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+[[ ! "${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/forgit" ]] &&
+	git clone https://github.com/wfxr/forgit.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/forgit
 if ! which zsh-history-enquirer >/dev/null; then
 	npm i -g zsh-history-enquirer
 fi
@@ -98,5 +100,12 @@ git config --global delta.navigate true
 git config --global delta.line-numbers true
 git config --global merge.conflictstyle diff3
 git config --global diff.colorMoved default
+
+echo "Configuring difftastic"
+git config --global diff.tool difftastic
+git config --global difftool.prompt false
+git config --global difftool.difftastic.cmd 'difft "$LOCAL" "$REMOTE"'
+git config --global pager.difftool true
+git config --global alias.dft difftool
 
 zsh
