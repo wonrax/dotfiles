@@ -8,7 +8,7 @@ return {
       indent = {
         char = '│',
       },
-      scope = { enabled = true, show_start = false, show_end = false },
+      scope = { enabled = true, show_start = false, show_end = false, highlight = 'Special' },
     },
   },
 }

@@ -176,11 +176,10 @@ vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next [D]iagn
 vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Show diagnostic [E]rror messages' })
 -- vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 
--- Quit all
+-- Quit
 vim.keymap.set('n', '<leader>qa', function()
   vim.cmd 'qa'
 end, { desc = 'Quit [a]ll' })
-
 vim.keymap.set('n', '<leader>qq', function()
   vim.cmd 'q'
 end, { desc = '[Q]uit' })
@@ -190,10 +189,11 @@ vim.keymap.set('n', '<leader>w', function()
   vim.cmd 'w'
 end, { desc = '[W]rite current buffer' })
 
--- Open Neotree
-vim.keymap.set('n', '<leader>n', function()
-  vim.cmd 'Neotree'
-end, { desc = '[N]eotree' })
+-- Map gj gk
+vim.keymap.set('n', 'j', 'gj', { silent = true })
+vim.keymap.set('n', 'k', 'gk', { silent = true })
+vim.keymap.set('v', 'j', 'gj', { silent = true })
+vim.keymap.set('v', 'k', 'gk', { silent = true })
 
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
 -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
@@ -897,16 +897,9 @@ require('lazy').setup({
             floats = true,
             sidebars = {
               enabled = true,
-              list = {}, -- Apply dark background to specific windows
             },
           },
-          modules = { -- List of various plugins and additional options
-            -- ...
-          },
         },
-        palettes = {},
-        specs = {},
-        groups = {},
       }
 
       -- TODO: maybe choose theme according the the `background` option set below
