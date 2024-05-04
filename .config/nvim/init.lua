@@ -499,7 +499,13 @@ require('lazy').setup({
 
       -- Useful status updates for LSP.
       -- NOTE: `opts = {}` is the same as calling `require('fidget').setup({})`
-      { 'j-hui/fidget.nvim', opts = {} },
+      { 'j-hui/fidget.nvim', opts = {
+        notification = {
+          window = {
+            winblend = 0,
+          },
+        },
+      } },
 
       -- `neodev` configures Lua LSP for your Neovim config, runtime and plugins
       -- used for completion, annotations and signatures of Neovim apis
@@ -866,7 +872,7 @@ require('lazy').setup({
           -- Compiled file's destination location
           hide_end_of_buffer = true, -- Hide the '~' character at the end of the buffer for a cleaner look
           hide_nc_statusline = true, -- Override the underline style for non-active statuslines
-          transparent = false, -- Disable setting background
+          transparent = true, -- Disable setting background
           terminal_colors = true, -- Set terminal colors (vim.g.terminal_color_*) used in `:terminal`
           dim_inactive = true, -- Non focused panes set to alternative background
           module_default = true, -- Default enable value for modules
@@ -905,7 +911,7 @@ require('lazy').setup({
 
       -- TODO: maybe choose theme according the the `background` option set below
       -- to avoid color flashing at startup
-      vim.cmd 'colorscheme github_light'
+      -- vim.cmd 'colorscheme github_light'
     end,
   },
 
