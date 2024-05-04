@@ -46,19 +46,19 @@ fi
 # Alacritty config
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 # We're not replacing local config if existed
-if [[ ! -f "$DOTFILES/alacritty/alacritty.toml" ]]; then
+if [[ ! -f "$DOTFILES/.config/alacritty/alacritty.toml" ]]; then
 	echo "Creating a local alacritty config: alacritty.toml"
-	cp $DOTFILES/alacritty/alacritty.toml.template \
-		$DOTFILES/alacritty/alacritty.toml
+	cp $DOTFILES/.config/alacritty/alacritty.toml.template \
+		$DOTFILES/.config/alacritty/alacritty.toml
 fi
 mkdir -p $HOME/.config/alacritty
-ln -sf $DOTFILES/alacritty/alacritty.toml \
+ln -sf $DOTFILES/.config/alacritty/alacritty.toml \
 	$HOME/.config/alacritty/alacritty.toml
-ln -sf $DOTFILES/alacritty/alacritty.base.toml \
+ln -sf $DOTFILES/.config/alacritty/alacritty.base.toml \
 	$HOME/.config/alacritty/alacritty.base.toml
-ln -sf $DOTFILES/alacritty/alacritty-light.toml \
+ln -sf $DOTFILES/.config/alacritty/alacritty-light.toml \
 	$HOME/.config/alacritty/alacritty-light.toml
-ln -sf $DOTFILES/alacritty/alacritty-dark.toml \
+ln -sf $DOTFILES/.config/alacritty/alacritty-dark.toml \
 	$HOME/.config/alacritty/alacritty-dark.toml
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
