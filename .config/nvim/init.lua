@@ -191,6 +191,16 @@ vim.keymap.set('n', '<leader>w', function()
   vim.cmd 'w'
 end, { desc = '[W]rite current buffer' })
 
+-- Document symbols
+vim.keymap.set('n', '<leader>lo', function()
+  vim.cmd 'Telescope lsp_document_symbols'
+end, { desc = 'Search document symbols' })
+
+-- Document symbols
+vim.keymap.set('n', '<leader>lO', function()
+  vim.cmd 'Telescope lsp_dynamic_workspace_symbols'
+end, { desc = 'Search workspace symbols' })
+
 -- Map gj gk
 vim.keymap.set('n', 'j', 'gj', { silent = true })
 vim.keymap.set('n', 'k', 'gk', { silent = true })
