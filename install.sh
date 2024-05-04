@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# The installation script to setup the dotfiles on a machine. The script is
+# designed to be idempotent, meaning it can be run multiple times without
+# causing any issues.
+
 # The .dotfiles absolute path where you cloned the repo
 DOTFILES="$HOME/.dotfiles"
 
@@ -60,7 +64,12 @@ ln -sf $DOTFILES/alacritty/alacritty-dark.toml \
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 # Neovim config
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-ln -sf $DOTFILES/.config/nvim $HOME/.config/nvim
+# We're not replacing local config if the nvim folder existed otherwise the ln
+# -sf will create a symlink inside the nvim folder instead
+if [[ ! -d "$DOTFILES/.config/nvim" ]]; then
+	echo "Creating a local nvim config"
+	ln -sf $DOTFILES/.config/nvim $HOME/.config/nvim
+fi
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 # Install and config Oh My Zsh
