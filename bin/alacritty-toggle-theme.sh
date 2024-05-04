@@ -6,14 +6,14 @@ fi
 
 unameOut=$(uname -a)
 case "${unameOut}" in
-*Microsoft*) OS="WSL" ;;  #must be first since Windows subsystem for linux will have Linux in the name too
-*microsoft*) OS="WSL2" ;; #WARNING: My v2 uses ubuntu 20.4 at the moment slightly different name may not always work
-Linux*) OS="Linux" ;;
-Darwin*) OS="Mac" ;;
-CYGWIN*) OS="Cygwin" ;;
-MINGW*) OS="Windows" ;;
-*Msys) OS="Windows" ;;
-*) OS="UNKNOWN:${unameOut}" ;;
+	*Microsoft*) OS="WSL" ;;  #must be first since Windows subsystem for linux will have Linux in the name too
+	*microsoft*) OS="WSL2" ;; #WARNING: My v2 uses ubuntu 20.4 at the moment slightly different name may not always work
+	Linux*) OS="Linux" ;;
+	Darwin*) OS="Mac" ;;
+	CYGWIN*) OS="Cygwin" ;;
+	MINGW*) OS="Windows" ;;
+	*Msys) OS="Windows" ;;
+	*) OS="UNKNOWN:${unameOut}" ;;
 esac
 
 macos_is_dark() {
@@ -23,6 +23,15 @@ macos_is_dark() {
 linux_is_dark() {
 	preference=$(gsettings get org.gnome.desktop.interface color-scheme)
 	test "$preference" = "'prefer-dark'"
+}
+
+change_theme() {
+	# Because sed is different on Mac and Linux
+	if [[ $OS = "Mac" ]]; then
+		sed -i '' -e "s/$1/$2/" "$3"
+	else
+		sed -i "s/$1/$2/" "$3"
+	fi
 }
 
 function setTheme() {
@@ -42,11 +51,11 @@ function setTheme() {
 
 	if [[ $isDark == true ]]; then
 		if grep "$LIGHT" "$CONFIG_PATH" >/dev/null; then
-			sed -i "s/$LIGHT/$DARK/" "$CONFIG_PATH"
+			change_theme $LIGHT $DARK $CONFIG_PATH
 		fi
 	else
 		if grep "$DARK" "$CONFIG_PATH" >/dev/null; then
-			sed -i "s/$DARK/$LIGHT/" "$CONFIG_PATH"
+			change_theme $DARK $LIGHT $CONFIG_PATH
 		fi
 	fi
 }
