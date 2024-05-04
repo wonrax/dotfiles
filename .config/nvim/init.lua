@@ -191,16 +191,6 @@ vim.keymap.set('n', '<leader>w', function()
   vim.cmd 'w'
 end, { desc = '[W]rite current buffer' })
 
--- Document symbols
-vim.keymap.set('n', '<leader>lo', function()
-  vim.cmd 'Telescope lsp_document_symbols'
-end, { desc = 'Search document symbols' })
-
--- Document symbols
-vim.keymap.set('n', '<leader>lO', function()
-  vim.cmd 'Telescope lsp_dynamic_workspace_symbols'
-end, { desc = 'Search workspace symbols' })
-
 -- Map gj gk
 vim.keymap.set('n', 'j', 'gj', { silent = true })
 vim.keymap.set('n', 'k', 'gk', { silent = true })
@@ -475,6 +465,8 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]esume' })
       vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
       vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
+      vim.keymap.set('n', '<leader>lo', builtin.lsp_document_symbols, { desc = 'Search document symbols' })
+      vim.keymap.set('n', '<leader>lO', builtin.lsp_dynamic_workspace_symbols, { desc = 'Search workspace symbols' })
 
       -- Slightly advanced example of overriding default behavior and theme
       vim.keymap.set('n', '<leader>/', function()
@@ -980,9 +972,9 @@ require('lazy').setup({
     'nvim-treesitter/nvim-treesitter',
     build = ':TSUpdate',
     opts = {
-      ensure_installed = { 'bash', 'c', 'html', 'lua', 'luadoc', 'markdown', 'vim', 'vimdoc' },
+      ensure_installed = { 'bash', 'html', 'lua', 'luadoc', 'vim', 'vimdoc' },
       -- Autoinstall languages that are not installed
-      auto_install = true,
+      auto_install = false,
       highlight = {
         enable = true,
         -- Some languages depend on vim's regex highlighting system (such as Ruby) for indent rules.
@@ -991,6 +983,13 @@ require('lazy').setup({
         additional_vim_regex_highlighting = { 'ruby' },
       },
       indent = { enable = true, disable = { 'ruby' } },
+      incremental_selection = {
+        enable = true,
+        keymaps = {
+          node_incremental = 'v',
+          node_decremental = 'V',
+        },
+      },
     },
     config = function(_, opts)
       -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
