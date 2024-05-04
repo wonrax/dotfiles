@@ -57,12 +57,10 @@ ln -sf $DOTFILES/alacritty/alacritty-light.toml \
 ln -sf $DOTFILES/alacritty/alacritty-dark.toml \
 	$HOME/.config/alacritty/alacritty-dark.toml
 
-# AstroNvim
-if [[ ! -d "$HOME/.config/nvim" ]]; then
-	echo "Installing AstroNvim..."
-	git clone --depth 1 https://github.com/AstroNvim/AstroNvim $HOME/.config/nvim
-	ln -sfn $DOTFILES/astronvim.config $HOME/.config/nvim/lua/user
-fi
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+# Neovim config
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+ln -sf $DOTFILES/.config/nvim $HOME/.config/nvim
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 # Install and config Oh My Zsh

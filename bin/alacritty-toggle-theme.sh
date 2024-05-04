@@ -42,11 +42,11 @@ function setTheme() {
 
 	if [[ $isDark == true ]]; then
 		if grep "$LIGHT" "$CONFIG_PATH" >/dev/null; then
-			sed -i "" "s/$LIGHT/$DARK/" "$CONFIG_PATH"
+			sed -i "s/$LIGHT/$DARK/" "$CONFIG_PATH"
 		fi
 	else
 		if grep "$DARK" "$CONFIG_PATH" >/dev/null; then
-			sed -i "" "s/$DARK/$LIGHT/" "$CONFIG_PATH"
+			sed -i "s/$DARK/$LIGHT/" "$CONFIG_PATH"
 		fi
 	fi
 }

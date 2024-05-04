@@ -37,7 +37,7 @@ mods = "None"
 [[keyboard.bindings]]
 action = "CreateNewWindow"
 key = "N"
-mods = "Control"
+mods = "Control | Shift"
 
 [window]
 decorations = "full"
