@@ -45,7 +45,7 @@ function setTheme() {
 
 	echo $testDark
 
-	CONFIG_PATH="$HOME/.dotfiles/alacritty/alacritty.toml"
+	CONFIG_PATH="$HOME/.dotfiles/.config/alacritty/alacritty.toml"
 	LIGHT="alacritty-light"
 	DARK="alacritty-dark"
 
