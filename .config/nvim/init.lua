@@ -469,12 +469,69 @@ require('lazy').setup({
 
       -- See `:help telescope.builtin`
       local builtin = require 'telescope.builtin'
+
+      -- We cache the results of "git rev-parse"
+      -- Process creation is expensive in Windows, so this reduces latency
+      local is_inside_work_tree = {}
+
+      local find_project_files = function(opts)
+        opts = opts or {}
+
+        local cwd = vim.fn.getcwd()
+        if is_inside_work_tree[cwd] == nil then
+          vim.fn.system 'git rev-parse --is-inside-work-tree'
+          is_inside_work_tree[cwd] = vim.v.shell_error == 0
+        end
+
+        if is_inside_work_tree[cwd] then
+          builtin.git_files(opts)
+        else
+          builtin.find_files(opts)
+        end
+      end
+
+      local live_grep_from_project_git_root = function()
+        local function is_git_repo()
+          vim.fn.system 'git rev-parse --is-inside-work-tree'
+
+          return vim.v.shell_error == 0
+        end
+
+        local function get_git_root()
+          local dot_git_path = vim.fn.finddir('.git', '.;')
+          return vim.fn.fnamemodify(dot_git_path, ':h')
+        end
+
+        local opts = {
+          hidden = true,
+        }
+
+        if is_git_repo() then
+          opts = {
+            cwd = get_git_root(),
+          }
+        end
+
+        local vimgrep_arguments = { unpack(require('telescope.config').values.vimgrep_arguments) }
+        -- I want to search in hidden/dot files.
+        table.insert(vimgrep_arguments, '--hidden')
+        -- I don't want to search in the `.git` directory.
+        table.insert(vimgrep_arguments, '--glob')
+        table.insert(vimgrep_arguments, '!**/.git/*')
+
+        builtin.live_grep {
+          prompt_title = 'Live Grep (from project git root)',
+          vimgrep_arguments = vimgrep_arguments,
+          opts = opts,
+        }
+      end
+
       vim.keymap.set('n', '<leader>fh', builtin.help_tags, { desc = '[F]ind [H]elp' })
       vim.keymap.set('n', '<leader>fk', builtin.keymaps, { desc = '[F]ind [K]eymaps' })
-      vim.keymap.set('n', '<leader>ff', builtin.find_files, { desc = '[F]ind [F]iles' })
+      vim.keymap.set('n', '<leader>ff', find_project_files, { desc = '[F]ind [F]iles' })
       vim.keymap.set('n', '<leader>fs', builtin.builtin, { desc = '[F]ind [S]elect Telescope' })
       vim.keymap.set('n', '<leader>fw', builtin.grep_string, { desc = '[F]ind current [W]ord' })
-      vim.keymap.set('n', '<leader>fg', builtin.live_grep, { desc = '[F]ind by [G]rep' })
+      vim.keymap.set('n', '<leader>fg', live_grep_from_project_git_root, { desc = '[F]ind by [G]rep' })
       vim.keymap.set('n', '<leader>fd', builtin.diagnostics, { desc = '[F]ind [D]iagnostics' })
       vim.keymap.set('n', '<leader>fr', builtin.resume, { desc = '[F]ind [R]esume' })
       vim.keymap.set('n', '<leader>f.', builtin.oldfiles, { desc = '[F]ind Recent Files ("." for repeat)' })
@@ -728,7 +785,7 @@ require('lazy').setup({
     lazy = false,
     keys = {
       {
-        '<leader>f',
+        '<leader>lf',
         function()
           require('conform').format { async = true, lsp_fallback = true }
         end,
@@ -1073,6 +1130,7 @@ require('lazy').setup({
       -- Only one of these is needed, not both.
       'nvim-telescope/telescope.nvim', -- optional
     },
+    lazy = true,
     config = true,
   },
 
