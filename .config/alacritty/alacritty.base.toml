@@ -6,11 +6,11 @@ color = "#c5c0b9"
 duration = 200
 
 [font.bold]
-family = "CaskaydiaCove Nerd Font"
+family = "Cascadia Code NF"
 style = "Bold"
 
 [font.normal]
-family = "CaskaydiaCove Nerd Font"
+family = "Cascadia Code NF"
 style = "Regular"
 
 [font.offset]
