@@ -197,6 +197,20 @@ vim.keymap.set('n', 'k', 'gk', { silent = true })
 vim.keymap.set('v', 'j', 'gj', { silent = true })
 vim.keymap.set('v', 'k', 'gk', { silent = true })
 
+vim.keymap.set('n', '<Tab>', function()
+  vim.cmd 'bnext'
+end, { desc = 'Next tab' })
+
+vim.keymap.set('n', '<S-Tab>', function()
+  vim.cmd 'bprev'
+end, { desc = 'Previous tab' })
+
+vim.keymap.set('n', '<leader>tc', function()
+  vim.cmd 'tabclose'
+end, { desc = 'Close current tabpage' })
+
+vim.keymap.set('n', '<leader>bd', ':bn<cr>:bd#<cr>', { desc = 'Close current buffer without closing the window' })
+
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
 -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
 -- is not what someone will guess without a bit more experience.
@@ -1060,6 +1074,31 @@ require('lazy').setup({
       'nvim-telescope/telescope.nvim', -- optional
     },
     config = true,
+  },
+
+  {
+    'akinsho/bufferline.nvim',
+    dependencies = 'nvim-tree/nvim-web-devicons',
+    -- config = function()
+    --   require('bufferline').setup {}
+    -- end,
+    opts = {
+      options = {
+        offsets = {
+          {
+            filetype = 'neo-tree',
+            text = 'NeoTree',
+            text_align = 'left',
+            separator = true,
+          },
+        },
+        indicator = {
+          icon = ' 👀 ',
+          style = 'icon',
+        },
+      },
+    },
+    lazy = false,
   },
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
