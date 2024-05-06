@@ -66,7 +66,7 @@ ln -sf $DOTFILES/.config/alacritty/alacritty-dark.toml \
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 # We're not replacing local config if the nvim folder existed otherwise the ln
 # -sf will create a symlink inside the nvim folder instead
-if [[ ! -d "$DOTFILES/.config/nvim" ]]; then
+if [[ ! -d "$HOME/.config/nvim" ]]; then
 	echo "Creating a local nvim config"
 	ln -sf $DOTFILES/.config/nvim $HOME/.config/nvim
 fi

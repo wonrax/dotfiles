@@ -1,6 +1,3 @@
--- TODO: Fix the following issues:
--- - [ ] Fix ESC not clearing floating windows
-
 -- Set <space> as the leader key
 -- See `:help mapleader`
 --  NOTE: Must happen before plugins are loaded (otherwise wrong leader will be used)
@@ -86,9 +83,8 @@ vim.diagnostic.config {
 --  See `:help vim.keymap.set()`
 require 'keymaps'
 
--- Set highlight on search, but clear on pressing <Esc> in normal mode
+-- Set highlight on search
 vim.opt.hlsearch = true
-vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`

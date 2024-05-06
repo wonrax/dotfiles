@@ -45,15 +45,18 @@ end, { desc = 'Switch to previous tabpage' })
 
 vim.keymap.set('n', '<leader>bd', ':bn<cr>:bd#<cr>', { desc = 'Close current buffer without closing the window' })
 
--- Close every floating window, this is helpful when for example you want to
--- quit the focused hover window without having to press `q`
 vim.keymap.set('n', '<Esc>', function()
+  -- Close every floating window, this is helpful when for example you want to
+  -- quit the focused hover window without having to press `q`
   -- https://github.com/mawkler/nvim/blob/fc218645433f03995916f9e1c032bda7956fcb6e/lua/utils.lua#L56-L63
   for _, win in pairs(vim.api.nvim_list_wins()) do
     if vim.api.nvim_win_get_config(win).relative == 'win' then
       vim.api.nvim_win_close(win, false)
     end
   end
+
+  -- Clear the search highlight
+  vim.cmd 'nohlsearch'
 end, { desc = 'Close every floating window' })
 
 vim.keymap.set('n', '<leader>tt', vim.cmd.terminal, { desc = 'Open Neovim terminal simulator' })
