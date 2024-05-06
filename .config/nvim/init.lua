@@ -219,6 +219,15 @@ end, { desc = 'Switch to previous tabpage' })
 
 vim.keymap.set('n', '<leader>bd', ':bn<cr>:bd#<cr>', { desc = 'Close current buffer without closing the window' })
 
+vim.keymap.set('n', '<Esc>', function()
+  -- https://github.com/mawkler/nvim/blob/fc218645433f03995916f9e1c032bda7956fcb6e/lua/utils.lua#L56-L63
+  for _, win in pairs(vim.api.nvim_list_wins()) do
+    if vim.api.nvim_win_get_config(win).relative == 'win' then
+      vim.api.nvim_win_close(win, false)
+    end
+  end
+end, { desc = 'Close every floating window' })
+
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
 -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
 -- is not what someone will guess without a bit more experience.
