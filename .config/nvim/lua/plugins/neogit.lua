@@ -36,6 +36,8 @@ return {
 
       vim.api.nvim_set_hl(0, 'NeogitHunkHeader', { fg = palette.orange.base, bg = palette.bg0 }) -- Header
       vim.api.nvim_set_hl(0, 'NeogitHunkHeaderHighlight', { fg = palette.orange.base, bg = palette.bg0 }) -- Header highlighted
+      vim.api.nvim_set_hl(0, 'NeogitDiffContextHighlight', { fg = palette.black.base, bg = palette.bg1 }) -- Header highlighted
+      vim.api.nvim_set_hl(0, 'NeogitDiffContext', { fg = palette.black.base, bg = palette.bg0 }) -- Header highlighted
     end,
   },
 }
