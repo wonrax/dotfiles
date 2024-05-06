@@ -12,7 +12,7 @@ return {
   cmd = 'Neotree',
   lazy = false,
   keys = {
-    { '\\', ':Neotree reveal<CR>', { desc = 'NeoTree reveal' } },
+    { '<leader>e', ':Neotree reveal<CR>', { desc = 'NeoTree reveal' } },
   },
   opts = {
     close_if_last_window = true,
@@ -35,7 +35,7 @@ return {
       },
       window = {
         mappings = {
-          ['\\'] = 'close_window',
+          ['<leader>e'] = 'close_window',
           ['<space>'] = false, -- disable space until we figure out which-key disabling
           o = 'open',
         },
