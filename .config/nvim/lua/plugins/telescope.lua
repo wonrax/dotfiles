@@ -45,21 +45,20 @@ return {
       -- [[ Configure Telescope ]]
       -- See `:help telescope` and `:help telescope.setup()`
       require('telescope').setup {
-        -- You can put your default mappings / updates / etc. in here
-        --  All the info you're looking for is in `:help telescope.setup()`
-        --
-        -- defaults = {
-        --   mappings = {
-        --     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
-        --   },
-        -- },
-        -- pickers = {}
         extensions = {
           ['ui-select'] = {
             require('telescope.themes').get_dropdown(),
           },
         },
+        -- You can put your default mappings / updates / etc. in here
+        --  All the info you're looking for is in `:help telescope.setup()`
+        --
         defaults = {
+          mappings = {
+            i = {
+              ['<esc>'] = require('telescope.actions').close,
+            },
+          },
           path_display = { 'filename_first' },
           -- Fix Telescope live grep always navigate to the begining of the file
           -- https://github.com/nvim-neo-tree/neo-tree.nvim/issues/958#issuecomment-1753449242
