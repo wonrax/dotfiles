@@ -1215,7 +1215,7 @@ require('lazy').setup({
             filetype = 'neo-tree',
             text = 'NeoTree',
             text_align = 'left',
-            separator = true,
+            separator = false,
           },
         },
         indicator = {
