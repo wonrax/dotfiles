@@ -348,7 +348,11 @@ require('lazy').setup({
     'folke/which-key.nvim',
     event = 'VimEnter', -- Sets the loading event to 'VimEnter'
     config = function() -- This is the function that runs, AFTER loading
-      require('which-key').setup()
+      require('which-key').setup {
+        window = {
+          border = 'double',
+        },
+      }
 
       -- Document existing key chains
       require('which-key').register {
@@ -1216,6 +1220,7 @@ require('lazy').setup({
   -- { import = 'custom.plugins' },
 }, {
   ui = {
+    border = 'rounded',
     -- If you are using a Nerd Font: set icons to an empty table which will use the
     -- default lazy.nvim defined Nerd Font icons, otherwise define a unicode icons table
     icons = vim.g.have_nerd_font and {} or {
