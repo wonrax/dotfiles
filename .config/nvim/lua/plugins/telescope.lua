@@ -57,6 +57,8 @@ return {
           mappings = {
             i = {
               ['<esc>'] = require('telescope.actions').close,
+              ['<c-j>'] = require('telescope.actions').move_selection_next,
+              ['<c-k>'] = require('telescope.actions').move_selection_previous,
             },
           },
           path_display = { 'filename_first' },
