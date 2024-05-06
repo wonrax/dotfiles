@@ -947,8 +947,27 @@ require('lazy').setup({
   },
 
   {
-    'projekt0n/github-nvim-theme',
+    'EdenEast/nightfox.nvim',
+    opts = {
+      options = {
+        transparent = true,
+      },
+      palettes = {
+        dayfox = {
+          -- BG color for hover popup etc., this is intentionally set to match the
+          -- value configured in Alacritty BG color so that the popup feels
+          -- more integrated
+          bg0 = '#fafafa',
+          -- BG color for current line selection etc.
+          bg3 = '#dddddd',
+        },
+      },
+    },
     lazy = false, -- make sure we load this during startup if it is your main colorscheme
+  },
+
+  {
+    'projekt0n/github-nvim-theme',
     priority = 1000, -- make sure to load this before all the other start plugins
     config = function()
       require('github-theme').setup {
@@ -984,6 +1003,7 @@ require('lazy').setup({
             },
           },
         },
+        palettes = {},
       }
 
       -- NOTE: We don't need to set the colorscheme here, as it is done automatically
@@ -999,10 +1019,10 @@ require('lazy').setup({
       require('auto-dark-mode').setup {
         update_interval = 1000,
         set_dark_mode = function()
-          vim.cmd 'colorscheme github_dark'
+          vim.cmd 'colorscheme nightfox'
         end,
         set_light_mode = function()
-          vim.cmd 'colorscheme github_light'
+          vim.cmd 'colorscheme dayfox'
         end,
       }
     end,
