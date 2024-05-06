@@ -13,7 +13,7 @@ return {
           bg0 = '#fafafa',
           -- BG color for current line selection etc. since it's a bit too
           -- dimmed when using the transparent window bg
-          bg3 = '#dddddd',
+          bg3 = '#ececec',
         },
         nightfox = {
           bg0 = '#24292e',

@@ -1,3 +1,6 @@
+-- TODO: Fix the following issues:
+-- - [ ] Fix ESC not clearing floating windows
+
 -- Set <space> as the leader key
 -- See `:help mapleader`
 --  NOTE: Must happen before plugins are loaded (otherwise wrong leader will be used)
