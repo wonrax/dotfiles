@@ -973,8 +973,12 @@ require('lazy').setup({
           -- value configured in Alacritty BG color so that the popup feels
           -- more integrated
           bg0 = '#fafafa',
-          -- BG color for current line selection etc.
+          -- BG color for current line selection etc. since it's a bit too
+          -- dimmed when using the transparent window bg
           bg3 = '#dddddd',
+        },
+        nightfox = {
+          bg0 = '#24292e',
         },
       },
     },
