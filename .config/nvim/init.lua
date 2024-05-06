@@ -209,6 +209,14 @@ vim.keymap.set('n', '<leader>tc', function()
   vim.cmd 'tabclose'
 end, { desc = 'Close current tabpage' })
 
+vim.keymap.set('n', '<leader>tn', function()
+  vim.cmd 'tabnext'
+end, { desc = 'Switch to next tabpage' })
+
+vim.keymap.set('n', '<leader>tp', function()
+  vim.cmd 'tabprev'
+end, { desc = 'Switch to previous tabpage' })
+
 vim.keymap.set('n', '<leader>bd', ':bn<cr>:bd#<cr>', { desc = 'Close current buffer without closing the window' })
 
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
