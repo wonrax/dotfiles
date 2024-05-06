@@ -2,7 +2,6 @@ return {
   { -- Fuzzy Finder (files, lsp, etc)
     'nvim-telescope/telescope.nvim',
     event = 'VimEnter',
-    branch = '0.1.x',
     dependencies = {
       'nvim-lua/plenary.nvim',
       { -- If encountering errors, see telescope-fzf-native README for installation instructions
@@ -61,6 +60,7 @@ return {
           },
         },
         defaults = {
+          path_display = { 'filename_first' },
           -- Fix Telescope live grep always navigate to the begining of the file
           -- https://github.com/nvim-neo-tree/neo-tree.nvim/issues/958#issuecomment-1753449242
           -- open files in the first window that is an actual file.
