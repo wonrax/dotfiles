@@ -13,7 +13,8 @@ vim.g.have_nerd_font = true
 --  For more options, you can see `:help option-list`
 
 -- So there won't be no [No name] file when VimEnter
-vim.cmd 'set nohidden'
+-- but this will not permit switching buffers while dirty
+-- vim.cmd 'set nohidden'
 
 -- Make line numbers default
 vim.opt.number = true
