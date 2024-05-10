@@ -1,0 +1,17 @@
+return {
+  {
+    'nvim-telescope/telescope-frecency.nvim',
+    config = function()
+      -- This extension may conflict with the auto-session plugin when it tries
+      -- to prompt a 'Delete n entries from the database' by opening a new
+      -- telescope window, but the auto-session may have already remove the
+      -- window by the time the prompt is shown. The workaround is to disable
+      -- restore on startup in auto-session plugin config.
+      require('telescope').load_extension 'frecency'
+
+      vim.keymap.set('n', '<leader>ff', function()
+        require('telescope').extensions.frecency.frecency { workspace = 'CWD' }
+      end, { desc = '[F]ind [F]iles by frecency' })
+    end,
+  },
+}

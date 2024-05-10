@@ -49,6 +49,11 @@ return {
           ['ui-select'] = {
             require('telescope.themes').get_dropdown(),
           },
+          frecency = {
+            -- do not show confirmation dialog when deleting entries because it
+            -- may conflict with auto-session
+            db_safe_mode = false,
+          },
         },
         -- You can put your default mappings / updates / etc. in here
         --  All the info you're looking for is in `:help telescope.setup()`
