@@ -1,7 +1,9 @@
 -- TODO: Fix neo-tree and auto-session confliction
--- TODO: Implement vscode like file search with frecency:
---          - telescope-frecency
---          - mini.visits
+-- TODO: there's currently a bug where a single buffer out of many buffers is
+-- not being highlighted unless running :e on auto-session restoration
+-- maybe related:
+-- https://www.reddit.com/r/neovim/comments/rzoy2w/automatically_starting_lsp/
+-- TODO: fix todo comments colors since it's currently unreadable
 
 -- Set <space> as the leader key
 -- See `:help mapleader`
