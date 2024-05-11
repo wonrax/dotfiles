@@ -7,16 +7,20 @@ return {
       },
       palettes = {
         dayfox = {
-          -- BG color for hover popup etc., this is intentionally set to match the
-          -- value configured in Alacritty BG color so that the popup feels
-          -- more integrated
-          bg0 = '#fafafa',
           -- BG color for current line selection etc. since it's a bit too
           -- dimmed when using the transparent window bg
           bg3 = '#ececec',
         },
         nightfox = {
           bg0 = '#24292e',
+        },
+      },
+      groups = {
+        all = {
+          -- The two below set the bg color for the floating windows to be
+          -- transparent
+          NormalFloat = { link = 'Normal' },
+          FloatBorder = { bg = 'None' },
         },
       },
     },
