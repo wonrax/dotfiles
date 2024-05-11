@@ -43,6 +43,11 @@ mods = "Control | Shift"
 action = "ToggleFullScreen"
 key = "F11"
 
+[[keyboard.bindings]]
+action = "ToggleFullScreen"
+key = "F11"
+mods = "Command"
+
 [window]
 decorations = "full"
 opacity = 1.0
