@@ -19,8 +19,32 @@ return {
 
       vim.api.nvim_create_autocmd('VimEnter', {
         callback = function()
-          local current_dir = vim.fn.getcwd()
-          require('auto-session').RestoreSessionFromFile(current_dir)
+          local args = vim.fn.argv()
+
+          -- don't do anything if either argc > 1 or argc == 0 because
+          -- auto-session will restore the last session by default
+          if #args > 1 or #args == 0 then
+            return
+          end
+
+          local arg = args[1]
+
+          -- check if the arg is file or directory
+          local stat = vim.loop.fs_stat(arg)
+
+          if stat then
+            if stat.type == 'directory' then
+              -- expand to absolute path
+              arg = vim.fn.expand(vim.fn.fnamemodify(arg, ':p'))
+
+              -- Remove trailing slash if it exists
+              if arg:sub(-1) == '/' then
+                arg = arg:sub(1, -2)
+              end
+
+              require('auto-session').RestoreSessionFromFile(arg)
+            end
+          end
         end,
       })
 
