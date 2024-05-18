@@ -64,12 +64,25 @@ ln -sf $DOTFILES/.config/alacritty/alacritty-dark.toml \
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 # Neovim config
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-# We're not replacing local config if the nvim folder existed otherwise the ln
-# -sf will create a symlink inside the nvim folder instead
+# We're not replacing the neovim config if the nvim folder existed otherwise
+# the ln -sf will create a symlink inside the nvim folder instead
 if [[ ! -d "$HOME/.config/nvim" ]]; then
 	echo "Creating a local nvim config"
 	ln -sf $DOTFILES/.config/nvim $HOME/.config/nvim
 fi
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+# Tmux config
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+# We're not replacing tmux config if the tmux folder existed otherwise the ln
+# -sf will create a symlink inside the tmux folder instead
+if [[ ! -d "$HOME/.config/tmux" ]]; then
+	echo "Creating a local tmux config"
+	ln -sf $DOTFILES/.config/tmux $HOME/.config/tmux
+fi
+# Link the tmux.conf file to home directory because macOS doesn't support
+# symlinks in the ~/.config folder
+ln -sf $DOTFILES/.config/tmux/tmux.conf $HOME/.tmux.conf
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 # Install and config Oh My Zsh

@@ -25,6 +25,10 @@ return {
       },
     },
     lazy = false, -- make sure we load this during startup if it is your main colorscheme
+    config = function(_, opts)
+      require('nightfox').setup(opts)
+      vim.cmd 'colorscheme dayfox'
+    end,
   },
 
   {
