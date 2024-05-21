@@ -1,6 +1,7 @@
 return {
   {
     'NeogitOrg/neogit',
+    version = '0.*',
     keys = {
       {
         '<leader>g',
@@ -18,13 +19,10 @@ return {
       -- Only one of these is needed, not both.
       'nvim-telescope/telescope.nvim', -- optional
     },
-    config = function()
-      require('neogit').setup {}
+    config = function(_, opts)
+      require('neogit').setup(opts)
 
-      require('fidget').notify(vim.g.colors_name)
       local palette = require('nightfox.palette').load(vim.g.colors_name)
-
-      require('fidget').notify(palette.green.base)
 
       vim.api.nvim_set_hl(0, 'NeogitStagedchanges', { fg = palette.base, bg = palette.bg0 }) -- Unstaged changespalette
       vim.api.nvim_set_hl(0, 'NeogitUnstagedchanges', { fg = palette.blue.base, bg = palette.bg0 }) -- Unstaged changespalette
