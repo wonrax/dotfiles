@@ -41,8 +41,8 @@ return {
         },
       },
       follow_current_file = { enabled = true, leave_dirs_open = true },
-      hijack_netrw_behavior = 'open_default',
       use_libuv_file_watcher = true,
+      hijack_netrw_behavior = 'open_default',
     },
   },
   config = function(_, opts)

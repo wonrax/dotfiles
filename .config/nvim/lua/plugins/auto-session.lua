@@ -13,8 +13,8 @@ return {
         auto_session_use_git_branch = nil,
         -- the configs below are lua only
         bypass_session_save_file_types = nil,
-        pre_save_cmds = { 'Neotree close' },
-        -- post_restore_cmds = { 'Neotree filesystem show' },
+        -- pre_save_cmds = { 'Neotree close' },
+        -- post_restore_cmds = { 'Neotree show position=left' },
       }
 
       vim.api.nvim_create_autocmd('VimEnter', {
@@ -51,6 +51,7 @@ return {
       -- currently auto save doesn't work so we need to save the session manually
       vim.api.nvim_create_autocmd('ExitPre', {
         callback = function()
+          require('neo-tree.command').execute { action = 'close' }
           require('auto-session').SaveSession(nil, false)
         end,
       })
