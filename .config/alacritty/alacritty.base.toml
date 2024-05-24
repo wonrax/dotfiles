@@ -13,6 +13,14 @@ style = "Bold"
 family = "Cascadia Code NF"
 style = "Regular"
 
+[font.italic]
+family = "Cascadia Code NF"
+style = "Italic"
+
+[font.bold_italic]
+family = "Cascadia Code NF"
+style = "Bold Italic"
+
 [font.offset]
 x = 0
 y = 2

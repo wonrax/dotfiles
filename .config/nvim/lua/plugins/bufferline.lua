@@ -16,7 +16,7 @@ return {
           },
         },
         indicator = {
-          icon = ' 👀 ',
+          icon = ' ▶️ ',
           style = 'icon',
         },
       },

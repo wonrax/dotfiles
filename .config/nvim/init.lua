@@ -7,6 +7,8 @@
 -- TODO: currently there's a bug where neovim insert keys even in normal mode
 -- after select a file to edit using telescope. Could be related to our custom
 -- telescope open buffer behavior.
+-- TODO: bufferline highlights not working (e.g. font bold in active buffer),
+-- consider using other bufferline plugin
 
 -- Set <space> as the leader key
 -- See `:help mapleader`
