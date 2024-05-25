@@ -3,12 +3,10 @@
 -- not being highlighted unless running :e on auto-session restoration
 -- maybe related:
 -- https://www.reddit.com/r/neovim/comments/rzoy2w/automatically_starting_lsp/
--- TODO: fix todo comments colors since it's currently unreadable
--- TODO: currently there's a bug where neovim insert keys even in normal mode
--- after select a file to edit using telescope. Could be related to our custom
--- telescope open buffer behavior.
+-- TODO: fix todo comments colors somehow showing different colors on linux,
+-- especially the this: FIXME:
 -- TODO: bufferline highlights not working (e.g. font bold in active buffer),
--- consider using other bufferline plugin
+-- consider using other bufferline plugins
 
 -- Set <space> as the leader key
 -- See `:help mapleader`
