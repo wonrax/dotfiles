@@ -58,6 +58,7 @@ return {
 
       vim.keymap.set('n', '<leader>s', require('auto-session.session-lens').search_session, {
         noremap = true,
+        desc = 'Search sessions',
       })
     end,
     lazy = false,
