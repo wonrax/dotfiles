@@ -43,6 +43,10 @@ return {
               end
 
               require('auto-session').RestoreSessionFromFile(arg)
+
+              vim.api.nvim_exec_autocmds('User', {
+                pattern = 'AutoSession::SessionRestored',
+              })
             end
           end
         end,
