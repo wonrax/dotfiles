@@ -97,6 +97,10 @@ return {
         },
       }
 
+      for i = 1, 9 do
+        vim.keymap.set('n', ('<Leader>%s'):format(i), ('<Plug>(cokeline-focus-%s)'):format(i), { silent = true })
+      end
+
       -- FIXME: currently not working
       vim.api.nvim_create_autocmd('User', {
         pattern = 'AutoSession::SessionRestored',
