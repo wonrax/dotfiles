@@ -28,20 +28,6 @@ y = 2
 [hints]
 alphabet = "jfkdls;ahgurieowpq"
 
-[[hints.enabled]]
-command = "google-chrome"
-hyperlinks = true
-post_processing = true
-regex = "(ipfs:|ipns:|magnet:|mailto:|gemini:|gopher:|https:|http:|news:|file:|git:|ssh:|ftp:)[^\u0000-\u001F\u007F-<>\"\\s{-}\\^⟨⟩`]+"
-
-[hints.enabled.binding]
-key = "U"
-mods = "Control|Shift"
-
-[hints.enabled.mouse]
-enabled = true
-mods = "None"
-
 [[keyboard.bindings]]
 action = "CreateNewWindow"
 key = "N"
@@ -69,6 +55,6 @@ x = 16
 y = 16
 
 [window.position]
-x = 256
-y = 256
+x = 512
+y = 512
 
