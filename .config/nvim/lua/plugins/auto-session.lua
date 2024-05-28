@@ -70,7 +70,7 @@ return {
       })
 
       -- currently auto save doesn't work so we need to save the session manually
-      vim.api.nvim_create_autocmd('ExitPre', {
+      vim.api.nvim_create_autocmd('VimLeavePre', {
         callback = function()
           require('neo-tree.command').execute { action = 'close' }
           require('auto-session').SaveSession(nil, false)
