@@ -2,6 +2,11 @@ return {
   {
     'rmagatti/auto-session',
     config = function()
+      -- Fix a bug where a single buffer out of many buffers is not being
+      -- highlighted unless running :e on auto-session restoration
+      -- https://stackoverflow.com/a/60875369/11129119
+      vim.cmd 'set sessionoptions+=localoptions'
+
       require('auto-session').setup {
         log_level = vim.log.levels.WARN,
         auto_session_enable_last_session = true,
@@ -13,7 +18,15 @@ return {
         auto_session_use_git_branch = nil,
         -- the configs below are lua only
         bypass_session_save_file_types = nil,
-        -- pre_save_cmds = { 'Neotree close' },
+        pre_save_cmds = {
+          -- 'Neotree close'
+          function()
+            vim.api.nvim_exec_autocmds('User', {
+              -- TODO: move the user events to shared global variables
+              pattern = 'AutoSession::PreSessionSave',
+            })
+          end,
+        },
         post_restore_cmds = {
           -- 'Neotree show position=left'
           function()

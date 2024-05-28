@@ -1,8 +1,4 @@
 -- TODO: Fix neo-tree and auto-session confliction
--- TODO: there's currently a bug where a single buffer out of many buffers is
--- not being highlighted unless running :e on auto-session restoration
--- maybe related:
--- https://www.reddit.com/r/neovim/comments/rzoy2w/automatically_starting_lsp/
 -- TODO: fix todo comments colors somehow showing different colors on linux,
 -- especially the this: FIXME:
 -- TODO: bufferline highlights not working (e.g. font bold in active buffer),
