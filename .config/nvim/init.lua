@@ -1,6 +1,8 @@
--- TODO: Fix neo-tree and auto-session confliction
--- TODO: fix todo comments colors somehow showing different colors on linux,
--- especially the this: FIXME:
+-- TODO: Fix neo-tree and auto-session confliction where when opening a
+-- directory in neovim, neo-tree hijacks the file system so it won't focus on
+-- the last buffer
+-- TODO: fix todo comments colors somehow showing different colors on different
+-- file type, (e.g. FIXME: on tmux.conf)
 -- TODO: bufferline highlights not working (e.g. font bold in active buffer),
 -- consider using other bufferline plugins
 
