@@ -14,7 +14,15 @@ return {
         -- the configs below are lua only
         bypass_session_save_file_types = nil,
         -- pre_save_cmds = { 'Neotree close' },
-        -- post_restore_cmds = { 'Neotree show position=left' },
+        post_restore_cmds = {
+          -- 'Neotree show position=left'
+          function()
+            vim.api.nvim_exec_autocmds('User', {
+              -- TODO: move the user events to shared global variables
+              pattern = 'AutoSession::SessionRestored',
+            })
+          end,
+        },
       }
 
       vim.api.nvim_create_autocmd('VimEnter', {
@@ -43,10 +51,6 @@ return {
               end
 
               require('auto-session').RestoreSessionFromFile(arg)
-
-              vim.api.nvim_exec_autocmds('User', {
-                pattern = 'AutoSession::SessionRestored',
-              })
             end
           end
         end,
