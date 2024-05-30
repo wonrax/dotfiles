@@ -3,7 +3,7 @@
 
 return {
   'nvim-neo-tree/neo-tree.nvim',
-  version = '*',
+  version = '3.*',
   dependencies = {
     'nvim-lua/plenary.nvim',
     'nvim-tree/nvim-web-devicons', -- not strictly required, but recommended
@@ -12,7 +12,7 @@ return {
   cmd = 'Neotree',
   lazy = false,
   keys = {
-    { '<leader>e', ':Neotree reveal<CR>', { desc = 'NeoTree reveal' } },
+    { '<leader>e', ':Neotree reveal position=left<CR>', { desc = 'NeoTree reveal' } },
   },
   opts = {
     close_if_last_window = true,
@@ -43,6 +43,7 @@ return {
       follow_current_file = { enabled = true, leave_dirs_open = true },
       use_libuv_file_watcher = true,
       hijack_netrw_behavior = 'open_default',
+      hijack_netrw_behavior = 'open_current',
     },
   },
   config = function(_, opts)

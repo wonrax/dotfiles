@@ -14,6 +14,7 @@ return {
         callback = function()
           require('close_buffers').delete { type = 'nameless' }
         end,
+        once = true,
       })
     end,
   },

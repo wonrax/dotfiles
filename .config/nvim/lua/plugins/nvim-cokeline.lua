@@ -117,6 +117,7 @@ return {
             last_buffer:focus()
           end
         end,
+        once = true,
       })
     end,
   },
