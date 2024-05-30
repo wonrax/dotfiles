@@ -1,6 +1,7 @@
 -- TODO: Fix neo-tree and auto-session confliction where when opening a
 -- directory in neovim, neo-tree hijacks the file system so it won't focus on
--- the last buffer
+-- the last buffer, find a way to stop netrw hijack behavior when session
+-- restored, but keep it when opening a new directory
 -- TODO: fix todo comments colors somehow showing different colors on different
 -- file type, (e.g. FIXME: on tmux.conf)
 -- TODO: bufferline highlights not working (e.g. font bold in active buffer),
