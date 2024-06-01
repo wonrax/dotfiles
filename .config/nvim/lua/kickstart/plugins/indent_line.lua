@@ -5,13 +5,13 @@ return {
     -- Enable `lukas-reineke/indent-blankline.nvim`
     -- See `:help ibl`
     main = 'ibl',
-    opts = {
-      indent = {
-        -- char = '│',
-        char = '',
-        highlight = 'Conceal',
-      },
-      scope = { enabled = true, show_start = false, show_end = false, highlight = 'Special' },
-    },
+    config = function()
+      require('ibl').setup {
+        indent = {
+          char = '┊',
+        },
+        scope = { enabled = true, show_start = false, show_end = false, char = '│' },
+      }
+    end,
   },
 }
