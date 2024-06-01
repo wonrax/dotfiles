@@ -83,6 +83,8 @@ fi
 # Link the tmux.conf file to home directory because macOS doesn't support
 # symlinks in the ~/.config folder
 ln -sf $DOTFILES/.config/tmux/tmux.conf $HOME/.tmux.conf
+# TPM
+git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 # Install and config Oh My Zsh
