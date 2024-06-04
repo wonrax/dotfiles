@@ -6,7 +6,7 @@
 -- file type, (e.g. FIXME: on tmux.conf)
 -- TODO: bufferline highlights not working (e.g. font bold in active buffer),
 -- consider using other bufferline plugins
--- TODO: add dirty status to cokeline, maybe LSP and git status too
+-- TODO: maybe add LSP and git status to nvim cokeline
 -- TODO: persist light/dark theme preference so that it won't flash on startup.
 -- save flag to stdpath 'data' every time auto-dark-mode is toggled and load it
 -- on startup

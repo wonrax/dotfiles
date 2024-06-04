@@ -13,6 +13,10 @@ return {
       local green = vim.g.terminal_color_2
       local yellow = vim.g.terminal_color_3
 
+      local focused_bg = function(buffer)
+        return buffer.is_focused and get_hex('WinSeparator', 'fg') or get_hex('None', 'bg')
+      end
+
       require('cokeline').setup {
         default_hl = {
           fg = function(buffer)
@@ -25,23 +29,26 @@ return {
         fill_hl = 'None',
         components = {
           {
-            text = ' ',
+            text = '  ',
             fg = function(buffer)
               return buffer.is_modified and yellow or green
             end,
+            bg = focused_bg,
           },
           {
             text = function(buffer)
-              return buffer.devicon.icon .. ' '
+              return buffer.devicon.icon
             end,
             fg = function(buffer)
               return buffer.devicon.color
             end,
+            bg = focused_bg,
           },
           {
             text = function(buffer)
-              return buffer.index .. ': '
+              return buffer.index .. ':'
             end,
+            bg = focused_bg,
           },
           {
             text = function(buffer)
@@ -49,6 +56,7 @@ return {
             end,
             fg = get_hex('Comment', 'fg'),
             italic = true,
+            bg = focused_bg,
           },
           {
             text = function(buffer)
@@ -57,9 +65,20 @@ return {
             bold = function(buffer)
               return buffer.is_focused
             end,
+            bg = focused_bg,
+          },
+          { -- dirty status
+            text = function(buffer)
+              return buffer.is_modified and '●' or ' '
+            end,
+            fg = function(buffer)
+              return buffer.is_modified and yellow or green
+            end,
+            bg = focused_bg,
           },
           {
             text = ' ',
+            bg = focused_bg,
           },
         },
         tabs = {
