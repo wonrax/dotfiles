@@ -17,16 +17,6 @@ return {
   opts = {
     close_if_last_window = true,
     sources = { 'filesystem', 'buffers', 'git_status' },
-    source_selector = {
-      winbar = true,
-      content_layout = 'center',
-      sources = {
-        { source = 'filesystem', display_name = 'File' },
-        { source = 'buffers', display_name = 'Bufs' },
-        { source = 'git_status', display_name = 'Git' },
-        { source = 'diagnostics', display_name = 'Diagnostic' },
-      },
-    },
     filesystem = {
       filtered_items = {
         visible = true, -- This is what you want: If you set this to `true`, all "hide" just mean "dimmed out"
