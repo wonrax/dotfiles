@@ -18,7 +18,16 @@ return {
         ['<leader>q'] = { name = '[Q]uit', _ = 'which_key_ignore' },
         ['<leader>t'] = { name = '[T]oggle', _ = 'which_key_ignore' },
         ['<leader>h'] = { name = 'Git [H]unk', _ = 'which_key_ignore' },
+        ['<leader>*'] = { name = 'Switch to buffer [number]', _ = 'which_key_ignore' },
       }
+
+      -- Hide <leader>[number] keybinds
+      for i = 1, 9 do
+        require('which-key').register({
+          ['<leader>' .. i] = 'which_key_ignore',
+        }, { mode = 'n' })
+      end
+
       -- visual mode
       require('which-key').register({
         ['<leader>h'] = { 'Git [H]unk' },

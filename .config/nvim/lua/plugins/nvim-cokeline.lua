@@ -117,7 +117,7 @@ return {
       }
 
       for i = 1, 9 do
-        vim.keymap.set('n', ('<Leader>%s'):format(i), ('<Plug>(cokeline-focus-%s)'):format(i), { silent = true })
+        vim.keymap.set('n', ('<Leader>%s'):format(i), ('<Plug>(cokeline-focus-%s)'):format(i), { silent = true, desc = nil })
       end
 
       vim.api.nvim_create_autocmd('User', {

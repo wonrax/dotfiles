@@ -9,9 +9,11 @@ return {
       -- restore on startup in auto-session plugin config.
       require('telescope').load_extension 'frecency'
 
-      vim.keymap.set('n', '<leader>ff', function()
-        require('telescope').extensions.frecency.frecency { workspace = 'CWD' }
-      end, { desc = '[F]ind [F]iles by frecency' })
+      -- Temporarily disable this so my muscle memory doesn't get confused
+      -- with the new smart-open keybind.
+      -- vim.keymap.set('n', '<leader>ff', function()
+      --   require('telescope').extensions.frecency.frecency { workspace = 'CWD' }
+      -- end, { desc = '[F]ind [F]iles by frecency' })
     end,
   },
 }

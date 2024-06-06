@@ -94,4 +94,6 @@ vim.keymap.set('n', '<leader>H', function()
   else
     vim.lsp.inlay_hint.enable(true, { bufnr = 0 })
   end
-end)
+end, {
+  desc = 'Toggle inlay hints',
+})
