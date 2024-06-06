@@ -13,7 +13,7 @@ return {
         auto_session_root_dir = vim.fn.stdpath 'data' .. '/sessions/',
         auto_session_enabled = true,
         auto_save_enabled = true,
-        auto_restore_enabled = true,
+        auto_restore_enabled = false,
         auto_session_suppress_dirs = nil,
         auto_session_use_git_branch = nil,
         -- the configs below are lua only
@@ -42,9 +42,15 @@ return {
         callback = function()
           local args = vim.fn.argv()
 
-          -- don't do anything if either argc > 1 or argc == 0 because
-          -- auto-session will restore the last session by default
-          if #args > 1 or #args == 0 then
+          -- if there are more than one argument, then we don't want to restore
+          -- the session
+          if #args > 1 then
+            return
+          end
+
+          -- show the session picker if no arg is provided
+          if #args == 0 then
+            require('auto-session.session-lens').search_session()
             return
           end
 
