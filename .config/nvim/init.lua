@@ -367,3 +367,5 @@ vim.filetype.add {
     mdx = 'mdx',
   },
 }
+
+require 'usercmds'
