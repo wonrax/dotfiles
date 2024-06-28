@@ -119,25 +119,6 @@ return {
       for i = 1, 9 do
         vim.keymap.set('n', ('<Leader>%s'):format(i), ('<Plug>(cokeline-focus-%s)'):format(i), { silent = true, desc = nil })
       end
-
-      vim.api.nvim_create_autocmd('User', {
-        pattern = 'AutoSession::PreSessionSave',
-        callback = function()
-          require('cokeline.history'):push(require('cokeline.buffers'):get_current().index)
-        end,
-      })
-
-      -- FIXME: currently not working
-      vim.api.nvim_create_autocmd('User', {
-        pattern = 'AutoSession::SessionRestored',
-        callback = function()
-          local last_buffer = require('cokeline.history'):last()
-          if last_buffer then
-            last_buffer:focus()
-          end
-        end,
-        once = true,
-      })
     end,
   },
 }
