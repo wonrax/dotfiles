@@ -119,6 +119,39 @@ return {
       for i = 1, 9 do
         vim.keymap.set('n', ('<Leader>%s'):format(i), ('<Plug>(cokeline-focus-%s)'):format(i), { silent = true, desc = nil })
       end
+
+      vim.keymap.set('n', '<Tab>', function()
+        local len = #require('cokeline.buffers').get_valid_buffers()
+        local current = require('cokeline.buffers').get_current().number
+        local is_last = require('cokeline.buffers').get_valid_buffers()[len].number == current
+
+        if len == 0 then
+          return
+        end
+
+        if is_last then
+          require('cokeline.buffers').get_valid_buffers()[1]:focus()
+          return
+        end
+
+        require('cokeline.buffers').get_buffer(current + 1):focus()
+      end, { desc = 'Next tab' })
+
+      vim.keymap.set('n', '<S-Tab>', function()
+        local len = #require('cokeline.buffers').get_valid_buffers()
+        local current = require('cokeline.buffers').get_current().number
+        local is_first = require('cokeline.buffers').get_valid_buffers()[1].number == current
+
+        if len == 0 then
+          return
+        end
+
+        if is_first then
+          require('cokeline.buffers').get_valid_buffers()[len]:focus()
+          return
+        end
+        require('cokeline.buffers').get_buffer(current - 1):focus()
+      end, { desc = 'Previous tab' })
     end,
   },
 }
