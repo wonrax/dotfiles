@@ -120,7 +120,7 @@ return {
         vim.keymap.set('n', ('<Leader>%s'):format(i), ('<Plug>(cokeline-focus-%s)'):format(i), { silent = true, desc = nil })
       end
 
-      vim.keymap.set('n', '<Tab>', function()
+      vim.keymap.set('n', '<M-Right>', function()
         local len = #require('cokeline.buffers').get_valid_buffers()
         local current = require('cokeline.buffers').get_current().number
         local is_last = require('cokeline.buffers').get_valid_buffers()[len].number == current
@@ -137,7 +137,7 @@ return {
         require('cokeline.buffers').get_buffer(current + 1):focus()
       end, { desc = 'Next tab' })
 
-      vim.keymap.set('n', '<S-Tab>', function()
+      vim.keymap.set('n', '<M-Left>', function()
         local len = #require('cokeline.buffers').get_valid_buffers()
         local current = require('cokeline.buffers').get_current().number
         local is_first = require('cokeline.buffers').get_valid_buffers()[1].number == current

@@ -23,13 +23,13 @@ vim.keymap.set('n', 'k', 'gk', { silent = true })
 vim.keymap.set('v', 'j', 'gj', { silent = true })
 vim.keymap.set('v', 'k', 'gk', { silent = true })
 
-vim.keymap.set('n', '<Tab>', function()
+vim.keymap.set('n', '<C-Right>', function()
   -- TODO: check if there are any open buffers before running this otherwise it
   -- will throw an error
   vim.cmd 'bnext'
 end, { desc = 'Next tab' })
 
-vim.keymap.set('n', '<S-Tab>', function()
+vim.keymap.set('n', '<M-Left>', function()
   -- TODO: check if there are any open buffers before running this otherwise it
   -- will throw an error
   vim.cmd 'bprev'
