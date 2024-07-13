@@ -1,7 +1,6 @@
 return {
   {
     'NeogitOrg/neogit',
-    version = '0.*',
     keys = {
       {
         '<leader>g',
