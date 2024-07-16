@@ -10,12 +10,13 @@ return {
       -- Document existing key chains
       require('which-key').add {
         { '<leader>*', group = 'Switch to buffer [number]' },
-        { '<leader>f', group = '[F]ind' },
+        { '<leader>f', group = '[F]ind', icon = { icon = '', color = 'grey' } },
         { '<leader>h', group = 'Git [H]unk' },
-        { '<leader>l', group = '[L]sp' },
-        { '<leader>q', group = '[Q]uit' },
-        { '<leader>r', group = '[R]ename' },
-        { '<leader>t', group = '[T]oggle/[T]abpage/[T]erminal' },
+        { '<leader>l', group = '[L]sp', icon = '' },
+        { '<leader>q', group = '[Q]uit', icon = { icon = '󰈆', color = 'red' } },
+        { '<leader>r', group = '[R]ename', icon = '' },
+        { '<leader>t', group = '[T]oggle/[T]abpage/[T]erminal', icon = '' },
+        { '<leader>b', group = '[B]uffer', icon = '󰈔' },
       }
 
       -- Hide <leader>[number] keybinds
