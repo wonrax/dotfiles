@@ -84,7 +84,8 @@ fi
 # symlinks in the ~/.config folder
 ln -sf $DOTFILES/.config/tmux/tmux.conf $HOME/.tmux.conf
 # TPM
-git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+[[ ! -d "$HOME/.tmux/plugins/tpm" ]] &&
+	git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 # Install and config Oh My Zsh
@@ -100,14 +101,19 @@ fi
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 # Install omz plugins
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-[[ ! "${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting" ]] &&
+ZSH_CUSTOM_PLUGINS=${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins
+
+# Create the custom plugins directory if it does not exist
+mkdir -p $ZSH_CUSTOM_PLUGINS
+
+[[ ! -d "$ZSH_CUSTOM_PLUGINS/zsh-syntax-highlighting" ]] &&
 	git clone https://github.com/zsh-users/zsh-syntax-highlighting.git \
-		${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
-[[ ! "${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions" ]] &&
+		$ZSH_CUSTOM_PLUGINS/zsh-syntax-highlighting
+[[ ! -d "$ZSH_CUSTOM_PLUGINS/zsh-autosuggestions" ]] &&
 	git clone https://github.com/zsh-users/zsh-autosuggestions \
-		${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
-[[ ! "${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/forgit" ]] &&
-	git clone https://github.com/wfxr/forgit.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/forgit
+		$ZSH_CUSTOM_PLUGINS/zsh-autosuggestions
+[[ ! -d "$ZSH_CUSTOM_PLUGINS/forgit" ]] &&
+	git clone https://github.com/wfxr/forgit.git $ZSH_CUSTOM_PLUGINS/forgit
 if ! which zsh-history-enquirer >/dev/null; then
 	npm i -g zsh-history-enquirer
 fi
