@@ -3,14 +3,6 @@
 -- TODO: currently the custom user commands are not included in telescope
 -- search.
 
-local prompts = {
-  -- Text related prompts
-  Summarize = 'Summarize the following text.',
-  Spelling = '/COPILOT_GENERATE Correct any grammar and spelling errors in the following text.',
-  Wording = '/COPILOT_GENERATE Improve the grammar and wording of the following text.',
-  Concise = '/COPILOT_GENERATE Rewrite the following text to make it more concise.',
-}
-
 return {
   {
     'CopilotC-Nvim/CopilotChat.nvim',
@@ -21,7 +13,6 @@ return {
       { 'nvim-telescope/telescope.nvim' },
     },
     opts = {
-      prompts = prompts,
       mappings = {
         -- Disable to use nvim-cmp
         complete = {
@@ -93,9 +84,9 @@ return {
         desc = 'Prompt actions',
       },
       -- Code related commands
-      { '<leader>ce', '<cmd>CopilotChatExplain<cr>', desc = 'Explain code', mode = { 'n', 'v' } },
+      { '<leader>ce', '<cmd>CopilotChatExplain<cr>', desc = 'Explain code', mode = { 'v' } },
       { '<leader>ct', '<cmd>CopilotChatTests<cr>', desc = 'Generate tests', mode = { 'n', 'v' } },
-      { '<leader>cr', '<cmd>CopilotChatReview<cr>', desc = 'Review code', mode = { 'n', 'v' } },
+      { '<leader>cr', '<cmd>CopilotChatReview<cr>', desc = 'Review code', mode = { 'v' } },
       { '<leader>cR', '<cmd>CopilotChatRefactor<cr>', desc = 'Refactor code', mode = { 'v' } },
       { '<leader>cn', '<cmd>CopilotChatRename>', desc = 'Rename identifier', mode = { 'v' } },
       -- Chat with Copilot in visual mode
@@ -109,7 +100,7 @@ return {
         '<leader>cx',
         ':CopilotChatInline<cr>',
         mode = 'x',
-        desc = 'Inline chat',
+        desc = 'Inline chat with selected text',
       },
       -- Custom input for CopilotChat
       {
@@ -157,46 +148,63 @@ return {
       local chat = require 'CopilotChat'
       local select = require 'CopilotChat.select'
 
-      chat.setup(opts)
+      chat.setup(vim.tbl_deep_extend('force', opts, {
+        prompts = {
+          -- Code related prompts
+          ChatRename = {
+            selection = select.visual,
+            prompt = 'Rename the selected identifier to be more concise, readable, understandable and maintainable.',
+            description = 'Rename the identifier',
+            context = 'buffer',
+          },
+          ChatRefactor = {
+            selection = select.visual,
+            prompt = '/COPILOT_GENERATE Refactor the following code to improve its clarity, readability and maintainability.',
+            description = 'Refactor the code',
+            context = 'buffer',
+          },
+          ChatWithVisual = {
+            selection = select.visual,
+            description = 'Ask Copilot to help with the selected code.',
+            context = 'buffer',
+          },
+          ChatInline = {
+            selection = select.visual,
+            window = {
+              layout = 'float',
+              relative = 'cursor',
+              width = 1,
+              height = 0.4,
+              row = 1,
+            },
+            description = 'Ask Copilot to help with the selected code in a floating window.',
+            context = 'buffer',
+          },
+          -- Text related prompts
+          Summarize = {
+            prompt = 'Summarize the following text.',
+            description = 'Summarize the text',
+            context = 'buffer',
+          },
+          Spelling = {
+            prompt = '/COPILOT_GENERATE Correct any grammar and spelling errors in the following text.',
+            description = 'Correct spelling and grammar',
+            context = 'buffer',
+          },
+          Wording = {
+            prompt = '/COPILOT_GENERATE Improve the grammar and wording of the following text.',
+            description = 'Improve grammar and wording',
+            context = 'buffer',
+          },
+          Concise = {
+            prompt = '/COPILOT_GENERATE Rewrite the following text to make it more concise.',
+            description = 'Make the text more concise',
+            context = 'buffer',
+          },
+        },
+      }))
       -- Setup the CMP integration
       require('CopilotChat.integrations.cmp').setup()
-
-      vim.api.nvim_create_user_command('CopilotChatVisual', function(args)
-        chat.ask(args.args, { selection = select.visual })
-      end, { nargs = '*', range = true })
-
-      -- Inline chat with Copilot
-      vim.api.nvim_create_user_command('CopilotChatInline', function(args)
-        chat.ask(args.args, {
-          selection = select.visual,
-          window = {
-            layout = 'float',
-            relative = 'cursor',
-            width = 1,
-            height = 0.4,
-            row = 1,
-          },
-        })
-      end, { nargs = '*', range = true })
-
-      vim.api.nvim_create_user_command('CopilotChatRename', function()
-        chat.ask('Rename the selected identifier to be more concise, readable, understandable and maintainable', {
-          selection = select.visual,
-          context = 'buffer',
-        })
-      end, { nargs = '*', range = true })
-
-      vim.api.nvim_create_user_command('CopilotChatRefactor', function()
-        chat.ask('/COPILOT_GENERATE Refactor the following code to improve its clarity, readability and maintainability.', {
-          selection = select.visual,
-          context = 'buffer',
-        })
-      end, { nargs = '*', range = true })
-
-      -- Restore CopilotChatBuffer
-      vim.api.nvim_create_user_command('CopilotChatBuffer', function(args)
-        chat.ask(args.args, { selection = select.buffer })
-      end, { nargs = '*', range = true })
 
       -- Custom buffer for CopilotChat
       vim.api.nvim_create_autocmd('BufEnter', {
