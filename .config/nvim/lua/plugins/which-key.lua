@@ -17,6 +17,7 @@ return {
         { '<leader>r', group = '[R]ename', icon = '' },
         { '<leader>t', group = '[T]oggle/[T]abpage/[T]erminal', icon = '' },
         { '<leader>b', group = '[B]uffer', icon = '󰈔' },
+        { '<leader>c', group = '[C]opilot', icon = '', mode = { 'v', 'n' } },
       }
 
       -- Hide <leader>[number] keybinds
