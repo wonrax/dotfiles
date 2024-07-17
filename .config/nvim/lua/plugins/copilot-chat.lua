@@ -1,7 +1,6 @@
 -- Yanked and improved from
 -- https://github.com/jellydn/lazy-nvim-ide/blob/a4e259de5e466367683a7e89fa943366fb0e8af5/lua/plugins/extras/copilot-chat-v2.lua
--- TODO: currently the custom user commands are not included in telescope
--- search.
+-- TODO: not all copilot chat prompts are available in which-key
 
 return {
   {
