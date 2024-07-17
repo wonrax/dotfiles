@@ -12,6 +12,9 @@ return {
       { 'nvim-telescope/telescope.nvim' },
     },
     opts = {
+      show_help = true,
+      auto_follow_cursor = false,
+      clear_chat_on_new_prompt = true,
       mappings = {
         -- Disable to use nvim-cmp
         complete = {
@@ -172,9 +175,9 @@ return {
             window = {
               layout = 'float',
               relative = 'cursor',
-              width = 1,
+              width = 125,
               height = 0.4,
-              row = 1,
+              col = 1,
             },
             description = 'Ask Copilot to help with the selected code in a floating window.',
             context = 'buffer',
