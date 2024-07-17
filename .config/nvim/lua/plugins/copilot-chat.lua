@@ -23,7 +23,7 @@ local prompts = {
 return {
   {
     'CopilotC-Nvim/CopilotChat.nvim',
-    version = '2.10.*',
+    branch = 'canary',
     dependencies = {
       { 'github/copilot.vim' }, -- or github/copilot.vim
       { 'nvim-lua/plenary.nvim' }, -- for curl, log wrapper
