@@ -1,10 +1,9 @@
--- Mostly yanked from
+-- Yanked and improved from
 -- https://github.com/jellydn/lazy-nvim-ide/blob/a4e259de5e466367683a7e89fa943366fb0e8af5/lua/plugins/extras/copilot-chat-v2.lua
+-- TODO: currently the custom user commands are not included in telescope
+-- search.
 
 local prompts = {
-  -- Code related prompts
-  Refactor = '/COPILOT_GENERATE Refactor the following code to improve its clarity, readability and maintainability.',
-  BetterNamings = '/COPILOT_REVIEW Provide better names for the following variables or functions.',
   -- Text related prompts
   Summarize = 'Summarize the following text.',
   Spelling = '/COPILOT_GENERATE Correct any grammar and spelling errors in the following text.',
@@ -97,8 +96,8 @@ return {
       { '<leader>ce', '<cmd>CopilotChatExplain<cr>', desc = 'Explain code', mode = { 'n', 'v' } },
       { '<leader>ct', '<cmd>CopilotChatTests<cr>', desc = 'Generate tests', mode = { 'n', 'v' } },
       { '<leader>cr', '<cmd>CopilotChatReview<cr>', desc = 'Review code', mode = { 'n', 'v' } },
-      { '<leader>cR', '<cmd>CopilotChatRefactor<cr>', desc = 'Refactor code', mode = { 'n', 'v' } },
-      { '<leader>cn', '<cmd>CopilotChatBetterNamings<cr>', desc = 'Better Naming', mode = { 'n', 'v' } },
+      { '<leader>cR', '<cmd>CopilotChatRefactor<cr>', desc = 'Refactor code', mode = { 'v' } },
+      { '<leader>cn', '<cmd>CopilotChatRename>', desc = 'Rename identifier', mode = { 'v' } },
       -- Chat with Copilot in visual mode
       {
         '<leader>cv',
@@ -177,6 +176,20 @@ return {
             height = 0.4,
             row = 1,
           },
+        })
+      end, { nargs = '*', range = true })
+
+      vim.api.nvim_create_user_command('CopilotChatRename', function()
+        chat.ask('Rename the selected identifier to be more concise, readable, understandable and maintainable', {
+          selection = select.visual,
+          context = 'buffer',
+        })
+      end, { nargs = '*', range = true })
+
+      vim.api.nvim_create_user_command('CopilotChatRefactor', function()
+        chat.ask('/COPILOT_GENERATE Refactor the following code to improve its clarity, readability and maintainability.', {
+          selection = select.visual,
+          context = 'buffer',
         })
       end, { nargs = '*', range = true })
 
