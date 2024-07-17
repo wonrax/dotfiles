@@ -149,6 +149,13 @@ return {
     config = function(_, opts)
       local chat = require 'CopilotChat'
       local select = require 'CopilotChat.select'
+      local windowopts = {
+        layout = 'float',
+        relative = 'cursor',
+        width = 125,
+        height = 0.4,
+        col = 1,
+      }
 
       chat.setup(vim.tbl_deep_extend('force', opts, {
         prompts = {
@@ -172,15 +179,21 @@ return {
           },
           ChatInline = {
             selection = select.visual,
-            window = {
-              layout = 'float',
-              relative = 'cursor',
-              width = 125,
-              height = 0.4,
-              col = 1,
-            },
+            window = windowopts,
             description = 'Ask Copilot to help with the selected code in a floating window.',
             context = 'buffer',
+          },
+          Commit = {
+            prompt = 'Write commit message for the change with commitizen convention. Make sure the title has maximum 50 characters and message is wrapped at 72 characters. Wrap the whole message in code block with language gitcommit.',
+            selection = select.gitdiff,
+            window = windowopts,
+          },
+          CommitStaged = {
+            prompt = 'Write commit message for the change with commitizen convention. Make sure the title has maximum 50 characters and message is wrapped at 72 characters. Wrap the whole message in code block with language gitcommit.',
+            selection = function(source)
+              return select.gitdiff(source, true)
+            end,
+            window = windowopts,
           },
           -- Text related prompts
           Summarize = {
