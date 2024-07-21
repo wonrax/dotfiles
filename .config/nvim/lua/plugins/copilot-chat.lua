@@ -14,7 +14,7 @@ return {
     opts = {
       show_help = true,
       auto_follow_cursor = false,
-      clear_chat_on_new_prompt = true,
+      clear_chat_on_new_prompt = false,
       mappings = {
         -- Disable to use nvim-cmp
         complete = {
