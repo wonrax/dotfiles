@@ -17,8 +17,11 @@ return {
       if file ~= nil then
         -- Iterate over each line in the file
         for line in file:lines() do
-          -- Remove the newline character and add the line to the blacklist table
-          table.insert(blacklist, (line:gsub('\n', '')))
+          line = line:gsub('\n', '')
+          -- must check for empty string otherwise it will match everything
+          if line ~= '' then
+            table.insert(blacklist, line)
+          end
         end
 
         -- Close the file
