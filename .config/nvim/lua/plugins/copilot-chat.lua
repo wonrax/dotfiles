@@ -81,7 +81,10 @@ return {
       },
       {
         '<leader>cp',
-        ":lua require('CopilotChat.integrations.telescope').pick(require('CopilotChat.actions').prompt_actions({selection = require('CopilotChat.select').visual}))<CR>",
+        function()
+          local actions = require 'CopilotChat.actions'
+          require('CopilotChat.integrations.telescope').pick(actions.prompt_actions { selection = require('CopilotChat.select').visual })
+        end,
         mode = 'x',
         desc = 'Prompt actions',
       },
