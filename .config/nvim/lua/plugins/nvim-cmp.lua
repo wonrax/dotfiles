@@ -129,6 +129,18 @@ return {
             }(entry, vim_item)
           end,
         },
+        window = {
+          completion = { -- rounded border; thin-style scrollbar
+            border = 'rounded',
+            scrollbar = true,
+            winhighlight = 'Normal:None',
+          },
+          documentation = { -- no border; native-style scrollbar
+            border = 'rounded',
+            scrollbar = true,
+            -- other options
+          },
+        },
       }
     end,
   },
