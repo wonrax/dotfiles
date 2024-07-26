@@ -48,9 +48,11 @@ return {
             return
           end
 
-          -- show the session picker if no arg is provided
           if #args == 0 then
-            require('auto-session.session-lens').search_session()
+            local latest_session = require('auto-session').get_latest_session()
+            if latest_session then
+              require('auto-session').RestoreSession(latest_session)
+            end
             return
           end
 
