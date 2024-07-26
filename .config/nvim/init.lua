@@ -4,12 +4,13 @@
 -- restored, but keep it when opening a new directory
 -- TODO: fix todo comments colors somehow showing different colors on different
 -- file type, (e.g. FIXME: on tmux.conf)
--- TODO: bufferline highlights not working (e.g. font bold in active buffer),
--- consider using other bufferline plugins
 -- TODO: maybe add LSP and git status to nvim cokeline
 -- TODO: persist light/dark theme preference so that it won't flash on startup.
 -- save flag to stdpath 'data' every time auto-dark-mode is toggled and load it
 -- on startup
+-- TODO: shift-k currently shows the documentation of the word under the cursor
+-- and <leader>le shows the diagnostics of the word under the cursor, implement
+-- a way to show both at the same time
 
 -- Set <space> as the leader key
 -- See `:help mapleader`
