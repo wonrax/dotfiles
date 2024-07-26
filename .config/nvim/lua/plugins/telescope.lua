@@ -22,6 +22,7 @@ return {
 
       -- Useful for getting pretty icons, but requires a Nerd Font.
       { 'nvim-tree/nvim-web-devicons', enabled = vim.g.have_nerd_font },
+      'nvim-telescope/telescope-live-grep-args.nvim',
     },
     config = function()
       -- Telescope is a fuzzy finder that comes with a lot of different things that
@@ -43,6 +44,8 @@ return {
       -- Telescope picker. This is really useful to discover what Telescope can
       -- do as well as how to actually do it!
 
+      local lga_actions = require 'telescope-live-grep-args.actions'
+
       -- [[ Configure Telescope ]]
       -- See `:help telescope` and `:help telescope.setup()`
       require('telescope').setup {
@@ -54,6 +57,22 @@ return {
             -- do not show confirmation dialog when deleting entries because it
             -- may conflict with auto-session
             db_safe_mode = false,
+          },
+          live_grep_args = {
+            auto_quoting = true, -- enable/disable auto-quoting
+            -- define mappings, e.g.
+            mappings = { -- extend mappings
+              i = {
+                ['<C-a>'] = lga_actions.quote_prompt(),
+                ['<C-i>'] = lga_actions.quote_prompt { postfix = ' --iglob ' },
+                -- freeze the current list and start a fuzzy search in the frozen list
+                ['<C-space>'] = require('telescope.actions').to_fuzzy_refine,
+              },
+            },
+            -- ... also accepts theme settings, for example:
+            -- theme = "dropdown", -- use dropdown theme
+            -- theme = { }, -- use own theme spec
+            -- layout_config = { mirror=true }, -- mirror preview pane
           },
         },
         -- You can put your default mappings / updates / etc. in here
@@ -282,6 +301,7 @@ return {
       -- Enable Telescope extensions if they are installed
       pcall(require('telescope').load_extension, 'fzf')
       pcall(require('telescope').load_extension, 'ui-select')
+      pcall(require('telescope').load_extension, 'live_grep_args')
 
       -- See `:help telescope.builtin`
       local builtin = require 'telescope.builtin'
@@ -309,7 +329,7 @@ return {
       end
 
       -- https://github.com/nvim-telescope/telescope.nvim/wiki/Configuration-Recipes#live-grep-from-project-git-root-with-fallback
-      local live_grep_from_project_git_root = function()
+      local live_grep_from_project_git_root = function(grep_handler)
         local function is_git_repo()
           vim.fn.system 'git rev-parse --is-inside-work-tree'
 
@@ -338,7 +358,11 @@ return {
         table.insert(vimgrep_arguments, '--glob')
         table.insert(vimgrep_arguments, '!**/.git/*')
 
-        builtin.live_grep {
+        if grep_handler == nil then
+          grep_handler = builtin.live_grep
+        end
+
+        grep_handler {
           prompt_title = 'Live Grep (from project git root)',
           vimgrep_arguments = vimgrep_arguments,
           opts = opts,
@@ -349,7 +373,9 @@ return {
       vim.keymap.set('n', '<leader>fk', builtin.keymaps, { desc = '[F]ind [K]eymaps' })
       vim.keymap.set('n', '<leader>fs', builtin.builtin, { desc = '[F]ind [S]elect Telescope' })
       vim.keymap.set('n', '<leader>fw', builtin.grep_string, { desc = '[F]ind current [W]ord' })
-      vim.keymap.set('n', '<leader>fg', live_grep_from_project_git_root, { desc = '[F]ind by [G]rep' })
+      vim.keymap.set('n', '<leader>fg', function()
+        live_grep_from_project_git_root(require('telescope').extensions.live_grep_args.live_grep_args)
+      end, { desc = '[F]ind by [G]rep' })
       vim.keymap.set('n', '<leader>fd', builtin.diagnostics, { desc = '[F]ind [D]iagnostics' })
       vim.keymap.set('n', '<leader>fr', builtin.resume, { desc = '[F]ind [R]esume' })
       vim.keymap.set('n', '<leader>f.', builtin.oldfiles, { desc = '[F]ind Recent Files ("." for repeat)' })
