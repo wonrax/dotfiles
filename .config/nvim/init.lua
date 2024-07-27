@@ -13,7 +13,8 @@
 -- a way to show both at the same time
 -- TODO: auto-session somehow saves a buffer named a directory, so every time
 -- neovim is opened, it opens an empty directory buffer, find a way to stop this
--- probably by configuring the sessionoptions global
+-- probably by configuring the sessionoptions global, or creating a autocmd to
+-- close all buffers that are directories
 
 -- Set <space> as the leader key
 -- See `:help mapleader`
