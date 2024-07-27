@@ -11,6 +11,9 @@
 -- TODO: shift-k currently shows the documentation of the word under the cursor
 -- and <leader>le shows the diagnostics of the word under the cursor, implement
 -- a way to show both at the same time
+-- TODO: auto-session somehow saves a buffer named a directory, so every time
+-- neovim is opened, it opens an empty directory buffer, find a way to stop this
+-- probably by configuring the sessionoptions global
 
 -- Set <space> as the leader key
 -- See `:help mapleader`

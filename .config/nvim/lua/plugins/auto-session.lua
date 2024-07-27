@@ -1,6 +1,11 @@
 return {
   {
     'rmagatti/auto-session',
+    dependencies = {
+      -- so that autocmd are registered before the auto-session events are
+      -- fired
+      'nvim-neo-tree/neo-tree.nvim',
+    },
     config = function()
       -- Fix a bug where a single buffer out of many buffers is not being
       -- highlighted unless running :e on auto-session restoration
@@ -52,6 +57,11 @@ return {
             local latest_session = require('auto-session').get_latest_session()
             if latest_session then
               require('auto-session').RestoreSession(latest_session)
+            else
+              vim.api.nvim_exec_autocmds('User', {
+                -- TODO: move the user events to shared global variables
+                pattern = 'AutoSession::NoSessionRestored',
+              })
             end
             return
           end
@@ -71,9 +81,18 @@ return {
                 arg = arg:sub(1, -2)
               end
 
-              require('auto-session').RestoreSessionFromFile(arg)
+              vim.api.nvim_set_current_dir(arg)
+              if require('auto-session').session_exists_for_cwd() then
+                require('auto-session').RestoreSessionFromFile(arg)
+                return
+              end
             end
           end
+
+          vim.api.nvim_exec_autocmds('User', {
+            -- TODO: move the user events to shared global variables
+            pattern = 'AutoSession::NoSessionRestored',
+          })
         end,
       })
 
@@ -88,6 +107,40 @@ return {
       vim.keymap.set('n', '<leader>s', require('auto-session.session-lens').search_session, {
         noremap = true,
         desc = 'Search sessions',
+      })
+
+      vim.api.nvim_create_autocmd('User', {
+        pattern = 'AutoSession::SessionRestored',
+        desc = 'Close empty buffers',
+        callback = function()
+          -- Get a list of all buffers
+          local buffers = vim.api.nvim_list_bufs()
+
+          -- Iterate over each buffer
+          for _, bufnr in ipairs(buffers) do
+            print('buf name', vim.api.nvim_buf_get_name(bufnr))
+            -- Check if the buffer is empty and doesn't have a name
+            if vim.api.nvim_buf_is_loaded(bufnr) and vim.api.nvim_buf_get_name(bufnr) == '' and vim.api.nvim_buf_get_option(bufnr, 'buftype') == '' then
+              -- Get all lines in the buffer
+              local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+
+              -- Initialize a variable to store the total number of characters
+              local total_characters = 0
+
+              -- Iterate over each line and calculate the number of characters
+              for _, line in ipairs(lines) do
+                total_characters = total_characters + #line
+              end
+
+              -- Close the buffer if it's empty:
+              if total_characters == 0 then
+                vim.api.nvim_buf_delete(bufnr, {
+                  force = true,
+                })
+              end
+            end
+          end
+        end,
       })
     end,
     lazy = false,
