@@ -42,6 +42,26 @@ action = "ToggleFullScreen"
 key = "F11"
 mods = "Command"
 
+[[keyboard.bindings]]
+key = "L"
+mods = "Alt"
+chars = "\u001bl"
+
+[[keyboard.bindings]]
+key = "["
+mods = "Alt"
+chars = "\u001b["
+
+[[keyboard.bindings]]
+key = "]"
+mods = "Alt"
+chars = "\u001b]"
+
+[[keyboard.bindings]]
+key = "0"
+mods = "Alt"
+chars = "\u001b0"
+
 [window]
 decorations = "full"
 opacity = 1.0

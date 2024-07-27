@@ -11,14 +11,20 @@ return {
         'zbirenbaum/copilot.lua',
         lazy = false,
         opts = {
-          suggestion = { enabled = false },
-          panel = { enabled = false },
+          suggestion = {
+            auto_trigger = true,
+            keymap = {
+              accept = '<M-l>',
+              accept_word = false,
+              accept_line = false,
+              next = '<M-]>',
+              prev = '<M-[',
+              dismiss = '<M-0>',
+            },
+          },
         },
-      },
-      {
-        'zbirenbaum/copilot-cmp',
-        config = function()
-          require('copilot_cmp').setup()
+        config = function(_, opts)
+          require('copilot').setup(opts)
         end,
       },
       { 'nvim-lua/plenary.nvim' }, -- for curl, log wrapper
