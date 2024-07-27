@@ -6,8 +6,16 @@ return {
     },
     config = function()
       local theme = require 'lualine.themes.nightfox'
-      theme.normal.b.bg = 'None'
-      theme.normal.b.fg = 'Normal'
+
+      local b_bg = 'None'
+      local b_fg = 'Normal'
+
+      theme.normal.b.bg = b_bg
+      theme.normal.b.fg = b_fg
+      theme.insert.b.bg = b_bg
+      theme.insert.b.fg = b_fg
+      theme.visual.b.bg = b_bg
+      theme.visual.b.fg = b_fg
       theme.normal.a.bg = '#7AA2F7'
       require('lualine').setup {
         options = {

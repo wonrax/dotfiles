@@ -7,7 +7,20 @@ return {
     'CopilotC-Nvim/CopilotChat.nvim',
     branch = 'canary',
     dependencies = {
-      { 'github/copilot.vim' }, -- or github/copilot.vim
+      {
+        'zbirenbaum/copilot.lua',
+        lazy = false,
+        opts = {
+          suggestion = { enabled = false },
+          panel = { enabled = false },
+        },
+      },
+      {
+        'zbirenbaum/copilot-cmp',
+        config = function()
+          require('copilot_cmp').setup()
+        end,
+      },
       { 'nvim-lua/plenary.nvim' }, -- for curl, log wrapper
       { 'nvim-telescope/telescope.nvim' },
     },

@@ -109,6 +109,7 @@ return {
         desc = 'Search sessions',
       })
 
+      -- https://vi.stackexchange.com/a/44625/51174
       vim.api.nvim_create_autocmd('User', {
         pattern = 'AutoSession::SessionRestored',
         desc = 'Close empty buffers',
