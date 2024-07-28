@@ -27,9 +27,6 @@ return {
         components = {
           {
             text = '  ',
-            fg = function(buffer)
-              return buffer.is_modified and yellow or green
-            end,
             bg = focused_bg,
           },
           {
