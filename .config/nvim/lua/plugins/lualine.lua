@@ -85,6 +85,16 @@ return {
                 },
               },
               'filetype',
+              {
+                function()
+                  if not require('copilot.client').is_disabled() then
+                    return ''
+                  end
+                  return ''
+                end,
+                color = { gui = 'bold' },
+                padding = 0,
+              },
             },
           },
         }
