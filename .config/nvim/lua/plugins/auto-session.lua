@@ -119,7 +119,6 @@ return {
 
           -- Iterate over each buffer
           for _, bufnr in ipairs(buffers) do
-            print('buf name', vim.api.nvim_buf_get_name(bufnr))
             -- Check if the buffer is empty and doesn't have a name
             if vim.api.nvim_buf_is_loaded(bufnr) and vim.api.nvim_buf_get_name(bufnr) == '' and vim.api.nvim_buf_get_option(bufnr, 'buftype') == '' then
               -- Get all lines in the buffer

@@ -5,65 +5,99 @@ return {
       'nvim-tree/nvim-web-devicons',
     },
     config = function()
-      local theme = require 'lualine.themes.nightfox'
+      local function get_opts()
+        local theme = require('lualine.themes.' .. (vim.g.colors_name or 'ayu'))
 
-      local b_bg = 'None'
-      local b_fg = 'Normal'
+        local fox = require('nightfox.palette.' .. (vim.g.colors_name or 'dayfox'))
 
-      theme.normal.b.bg = b_bg
-      theme.normal.b.fg = b_fg
-      theme.insert.b.bg = b_bg
-      theme.insert.b.fg = b_fg
-      theme.visual.b.bg = b_bg
-      theme.visual.b.fg = b_fg
-      theme.normal.a.bg = '#7AA2F7'
+        local b_bg = fox.palette.bg0
+        local b_fg = fox.palette.fg
+        local inactive_bg = fox.palette.bg0
+        local inactive_fg = fox.palette.fg2
 
-      require('lualine').setup {
-        options = {
-          theme = theme,
-          component_separators = { left = '', right = '' },
-          section_separators = { left = '', right = '' },
-        },
-        extensions = {
-          'neo-tree',
-        },
-        sections = {
-          lualine_b = { 'diff', 'diagnostics' },
-          lualine_c = {
-            {
-              'filename',
-              file_status = true, -- Displays file status (readonly status, modified status)
-              newfile_status = true, -- Display new file status (new file means no write after created)
-              path = 1, -- 0: Just the filename
-              -- 1: Relative path
-              -- 2: Absolute path
-              -- 3: Absolute path, with tilde as the home directory
-              -- 4: Filename and parent dir, with tilde as the home directory
+        theme.normal.b.bg = b_bg
+        theme.normal.b.fg = b_fg
+        theme.insert.b.bg = b_bg
+        theme.insert.b.fg = b_fg
+        theme.visual.b.bg = b_bg
+        theme.visual.b.fg = b_fg
+        theme.normal.c.bg = b_bg
 
-              -- shorting_target = 40, -- Shortens path to leave 40 spaces in the window
-              -- for other components. (terrible name, any suggestions?)
-              symbols = {
-                modified = '[+]', -- Text to show when the file is modified.
-                readonly = '[]', -- Text to show when the file is non-modifiable or readonly.
-                unnamed = '[No Name]', -- Text to show for unnamed buffers.
-                newfile = '[New]', -- Text to show for newly created file before first write
+        theme.normal.c.bg = b_bg
+        theme.inactive.c.bg = inactive_bg
+        theme.inactive.c.fg = inactive_fg
+
+        local function get_short_cwd()
+          return vim.fn.fnamemodify(vim.fn.getcwd(), ':~')
+        end
+
+        local neotree = require 'lualine.extensions.neo-tree'
+        local my_neotree = {
+          sections = {
+            lualine_a = { { get_short_cwd, color = { bg = fox.palette.blue.base, fg = b_bg } } },
+          },
+          inactive_sections = {
+            lualine_a = { { get_short_cwd, color = { bg = b_bg } } },
+          },
+          filetypes = neotree.filetypes,
+        }
+
+        return {
+          options = {
+            theme = theme,
+            component_separators = { left = '', right = '' },
+            section_separators = { left = '', right = '' },
+          },
+          extensions = {
+            my_neotree,
+          },
+          sections = {
+            lualine_b = { 'diff', 'diagnostics' },
+            lualine_c = {
+              {
+                'filename',
+                file_status = true, -- Displays file status (readonly status, modified status)
+                newfile_status = true, -- Display new file status (new file means no write after created)
+                path = 1, -- 0: Just the filename
+                -- 1: Relative path
+                -- 2: Absolute path
+                -- 3: Absolute path, with tilde as the home directory
+                -- 4: Filename and parent dir, with tilde as the home directory
+
+                -- shorting_target = 40, -- Shortens path to leave 40 spaces in the window
+                -- for other components. (terrible name, any suggestions?)
+                symbols = {
+                  modified = '[+]', -- Text to show when the file is modified.
+                  readonly = '[]', -- Text to show when the file is non-modifiable or readonly.
+                  unnamed = '[No Name]', -- Text to show for unnamed buffers.
+                  newfile = '[New]', -- Text to show for newly created file before first write
+                },
               },
             },
-          },
-          lualine_x = {
-            'encoding',
-            {
-              'fileformat',
-              symbols = {
-                unix = '',
-                dos = '',
-                mac = '',
+            lualine_x = {
+              'encoding',
+              {
+                'fileformat',
+                symbols = {
+                  unix = '',
+                  dos = '',
+                  mac = '',
+                },
               },
+              'filetype',
             },
-            'filetype',
           },
-        },
-      }
+        }
+      end
+
+      -- Reload lualine on colorscheme change, mainly dark/light mode toggle
+      vim.api.nvim_create_autocmd('ColorScheme', {
+        callback = function()
+          require('lualine').setup(get_opts())
+        end,
+      })
+
+      require('lualine').setup(get_opts())
     end,
   },
 }
