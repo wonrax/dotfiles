@@ -54,7 +54,7 @@ return {
           end
 
           if #args == 0 then
-            local latest_session = require('auto-session').get_latest_session()
+            local latest_session = require('auto-session.lib').get_latest_session(require('auto-session').get_root_dir())
             if latest_session then
               require('auto-session').RestoreSession(latest_session)
             else
@@ -83,7 +83,7 @@ return {
 
               vim.api.nvim_set_current_dir(arg)
               if require('auto-session').session_exists_for_cwd() then
-                require('auto-session').RestoreSessionFromFile(arg)
+                require('auto-session').RestoreSession(arg)
                 return
               end
             end
