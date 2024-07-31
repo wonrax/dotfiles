@@ -6,6 +6,10 @@ return {
     },
     config = function()
       local function get_opts()
+        -- TODO: there are cases where the colorscheme is set before our config
+        -- is loaded, for example when the Lazy install window is opened on
+        -- startup, it will set the colorscheme to Lazy's default colorscheme,
+        -- which is not what we have, thus erroring out.
         local theme = require('lualine.themes.' .. (vim.g.colors_name or 'ayu'))
 
         local fox = require('nightfox.palette.' .. (vim.g.colors_name or 'dayfox'))
