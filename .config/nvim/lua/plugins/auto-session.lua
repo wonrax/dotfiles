@@ -14,7 +14,7 @@ return {
 
       require('auto-session').setup {
         log_level = vim.log.levels.WARN,
-        auto_session_enable_last_session = true,
+        auto_session_enable_last_session = false,
         auto_session_root_dir = vim.fn.stdpath 'data' .. '/sessions/',
         auto_session_enabled = true,
         auto_save_enabled = true,
@@ -46,10 +46,17 @@ return {
       vim.api.nvim_create_autocmd('VimEnter', {
         callback = function()
           local args = vim.fn.argv()
+          local current_file = vim.fn.expand '%'
 
           -- if there are more than one argument, then we don't want to restore
           -- the session
           if #args > 1 then
+            return
+          end
+
+          -- If there's a file specified (either existing or new), don't restore the session
+          if current_file ~= '' then
+            print('Current file is ' .. current_file)
             return
           end
 
