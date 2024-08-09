@@ -27,6 +27,7 @@ return {
         typescript = { 'prettier' },
         json = { 'prettier' },
         jsonc = { 'prettier' },
+        graphql = { 'prettier' },
         -- Conform can also run multiple formatters sequentially
         -- python = { "isort", "black" },
         --
