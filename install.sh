@@ -136,4 +136,25 @@ git config --global difftool.difftastic.cmd 'difft "$LOCAL" "$REMOTE"'
 git config --global pager.difftool true
 git config --global alias.dft difftool
 
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+# Platform specific configurations
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+unameOut=$(uname -a)
+case "${unameOut}" in
+	*Microsoft*) OS="WSL" ;;  #must be first since Windows subsystem for linux will have Linux in the name too
+	*microsoft*) OS="WSL2" ;; #WARNING: My v2 uses ubuntu 20.4 at the moment slightly different name may not always work
+	Linux*) OS="Linux" ;;
+	Darwin*) OS="Mac" ;;
+	CYGWIN*) OS="Cygwin" ;;
+	MINGW*) OS="Windows" ;;
+	*Msys) OS="Windows" ;;
+	*) OS="UNKNOWN:${unameOut}" ;;
+esac
+
+if [[ $OS = "Mac" ]]; then
+	# Disable font smoothing in Alacritty on macOS so that it won't appear
+	# bolder and harder to read
+	defaults write org.alacritty AppleFontSmoothing -int 0
+fi
+
 zsh
