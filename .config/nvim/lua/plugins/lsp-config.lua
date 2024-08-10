@@ -111,7 +111,9 @@ return {
       }
 
       -- nvim-java needs to be setup before lspconfig
-      require('java').setup()
+      -- uncomment this if you are using java 🤮 otherwise keep it commented so
+      -- that it doesn't bloat my setup
+      -- require('java').setup()
 
       -- Ensure the servers and tools above are installed
       --  To check the current status of installed tools and/or manually install
