@@ -153,7 +153,7 @@ esac
 
 if [[ $OS = "Mac" ]]; then
 	# Disable font smoothing in Alacritty on macOS so that it won't appear
-	# bolder and harder to read
+	# bolder and harder to read on low resolution screens
 	defaults write org.alacritty AppleFontSmoothing -int 0
 fi
 
