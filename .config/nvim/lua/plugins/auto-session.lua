@@ -46,17 +46,10 @@ return {
       vim.api.nvim_create_autocmd('VimEnter', {
         callback = function()
           local args = vim.fn.argv()
-          local current_file = vim.fn.expand '%'
 
           -- if there are more than one argument, then we don't want to restore
           -- the session
           if #args > 1 then
-            return
-          end
-
-          -- If there's a file specified (either existing or new), don't restore the session
-          if current_file ~= '' then
-            print('Current file is ' .. current_file)
             return
           end
 

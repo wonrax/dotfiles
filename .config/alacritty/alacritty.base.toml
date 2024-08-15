@@ -62,6 +62,16 @@ key = "0"
 mods = "Alt"
 chars = "\u001b0"
 
+[[keyboard.bindings]]
+key = "Tab"
+mods = "Control"
+chars = "\u001b[27;5;9~"
+
+[[keyboard.bindings]]
+key = "Tab"
+mods = "Control|Shift"
+chars = "\u001b[27;6;9~"
+
 [window]
 decorations = "full"
 opacity = 1.0

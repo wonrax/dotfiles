@@ -115,36 +115,19 @@ return {
       end
 
       vim.keymap.set('n', '<M-Right>', function()
-        local len = #require('cokeline.buffers').get_valid_buffers()
-        local current = require('cokeline.buffers').get_current().number
-        local is_last = require('cokeline.buffers').get_valid_buffers()[len].number == current
+        vim.cmd 'bnext'
+      end, { desc = 'Next tab' })
 
-        if len == 0 then
-          return
-        end
-
-        if is_last then
-          require('cokeline.buffers').get_valid_buffers()[1]:focus()
-          return
-        end
-
-        require('cokeline.buffers').get_buffer(current + 1):focus()
+      vim.keymap.set('n', '<C-Tab>', function()
+        vim.cmd 'bnext'
       end, { desc = 'Next tab' })
 
       vim.keymap.set('n', '<M-Left>', function()
-        local len = #require('cokeline.buffers').get_valid_buffers()
-        local current = require('cokeline.buffers').get_current().number
-        local is_first = require('cokeline.buffers').get_valid_buffers()[1].number == current
+        vim.cmd 'bprevious'
+      end, { desc = 'Previous tab' })
 
-        if len == 0 then
-          return
-        end
-
-        if is_first then
-          require('cokeline.buffers').get_valid_buffers()[len]:focus()
-          return
-        end
-        require('cokeline.buffers').get_buffer(current - 1):focus()
+      vim.keymap.set('n', '<C-S-Tab>', function()
+        vim.cmd 'bprevious'
       end, { desc = 'Previous tab' })
     end,
   },
