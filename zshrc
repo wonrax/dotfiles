@@ -90,6 +90,7 @@ plugins=(
   zsh-syntax-highlighting
   z
   forgit
+  zsh-vi-mode
 )
 
 source $ZSH/oh-my-zsh.sh
