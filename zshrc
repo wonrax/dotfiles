@@ -119,6 +119,8 @@ export XDG_CONFIG_HOME="$HOME/.config"
 # https://github.com/zsh-users/zsh-autosuggestions/issues/532#issuecomment-637381889
 bindkey '^I'   complete-word       # tab          | complete
 bindkey '^[[Z' autosuggest-accept  # shift + tab  | autosuggest
+zvm_bindkey viins '^I'   complete-word
+zvm_bindkey viins '^[[Z' autosuggest-accept
 
 ZSH_AUTOSUGGEST_STRATEGY=(history completion)
 ZSH_AUTOSUGGEST_CLEAR_WIDGETS+=(buffer-empty bracketed-paste accept-line push-line-or-edit)
