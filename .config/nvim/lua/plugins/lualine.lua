@@ -4,6 +4,9 @@ return {
     dependencies = {
       'nvim-tree/nvim-web-devicons',
     },
+    -- Event `VeryLazy` is a MUST since the colors will not be set correctly if
+    -- the colorscheme is set after the lualine config is loaded.
+    event = 'VeryLazy',
     config = function()
       local function get_opts()
         -- TODO: there are cases where the colorscheme is set before our config
