@@ -74,9 +74,9 @@ return {
         -- clangd = {},
         -- gopls = {},
         -- pyright = {},
-        rust_analyzer = {
-          autostart = false, -- to avoid conflicts with rustaceanvim
-        },
+        -- rust_analyzer = {
+        --   autostart = false, -- to avoid conflicts with rustaceanvim
+        -- },
         eslint = {
           -- on_attach = function(_, bufnr)
           --   vim.api.nvim_create_autocmd('BufWritePre', {
