@@ -6,8 +6,10 @@ SESSION_DIR="$HOME/.local/share/nvim/sessions/"
 # List all session files, decode the filenames, extract the path without the extension
 SESSIONS=$(ls "$SESSION_DIR" | sed -e 's/%2F/\//g' -e 's/%2E/\./g' -e 's/\.vim$//')
 
-# Feed it to fzf to pick and open it in nvim
-SELECTED_SESSION=$(echo "$SESSIONS" | fzf)
+# Feed it to fzf to pick, extract only the last part of the path for entry
+# name, and don't display preview
+SELECTED_SESSION=$(echo "$SESSIONS" \
+    | fzf --layout=reverse --height=40% --info=inline --delimiter="/" --with-nth=-1)
 
 # If a session is selected, open nvim with the full absolute workspace path
 if [ -n "$SELECTED_SESSION" ]; then
