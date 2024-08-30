@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# Find sessions in $HOME/.local/share/nvim/sessions/
+SESSION_DIR="$HOME/.local/share/nvim/sessions/"
+
+# List all session files, decode the filenames, extract the path without the extension
+SESSIONS=$(ls "$SESSION_DIR" | sed -e 's/%2F/\//g' -e 's/%2E/\./g' -e 's/\.vim$//')
+
+# Feed it to fzf to pick and open it in nvim
+SELECTED_SESSION=$(echo "$SESSIONS" | fzf)
+
+# If a session is selected, open nvim with the full absolute workspace path
+if [ -n "$SELECTED_SESSION" ]; then
+    nvim "$SELECTED_SESSION"
+fi
