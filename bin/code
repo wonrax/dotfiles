@@ -11,7 +11,9 @@ SESSIONS=$(ls "$SESSION_DIR" | sed -e 's/%2F/\//g' -e 's/%2E/\./g' -e 's/\.vim$/
 SELECTED_SESSION=$(echo "$SESSIONS" \
     | fzf --layout=reverse --height=40% --info=inline --delimiter="/" --with-nth=-1)
 
-# If a session is selected, open nvim with the full absolute workspace path
+# If a session is selected, change dir to the full absolute workspace path and
+# open nvim
 if [ -n "$SELECTED_SESSION" ]; then
-    nvim "$SELECTED_SESSION"
+    cd "$SELECTED_SESSION"
+    nvim .
 fi
