@@ -101,10 +101,13 @@ return {
           --    https://github.com/L3MON4D3/LuaSnip?tab=readme-ov-file#keymaps
         },
         sources = {
-          { name = 'nvim_lsp' },
-          { name = 'luasnip' },
-          { name = 'path' },
-          { name = 'copilot-chat' },
+          { name = 'nvim_lsp', priority = 100 },
+          { name = 'path', priority = 90 },
+          { name = 'buffer', priority = 70 },
+          { name = 'spell', priority = 60 },
+          { name = 'dictionary', priority = 60 },
+          { name = 'luasnip', priority = -10 },
+          { name = 'copilot-chat', priority = -10, trigger_characters = { '/' } },
         },
         formatting = {
           expandable_indicator = true,
