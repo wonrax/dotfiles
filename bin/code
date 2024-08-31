@@ -15,5 +15,5 @@ SELECTED_SESSION=$(echo "$SESSIONS" \
 # open nvim
 if [ -n "$SELECTED_SESSION" ]; then
     cd "$SELECTED_SESSION"
-    nvim .
+    exec nvim .
 fi
