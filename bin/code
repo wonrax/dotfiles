@@ -7,6 +7,9 @@ if [ -n "$1" ]; then
     if [ -n "$WORKSPACE" ]; then
         cd "$WORKSPACE"
         nvim .
+    else
+        # Signal that the command failed without exiting the shell
+        return 1
     fi
 else
     # Find sessions in $HOME/.local/share/nvim/sessions/
