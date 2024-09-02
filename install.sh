@@ -15,9 +15,11 @@ packagesNeeded='zsh bat eza fzf git-delta ripgrep gh'
 if [ -x "$(command -v apk)" ]; then
 	sudo apk add --no-cache $packagesNeeded
 elif [ -x "$(command -v apt-get)" ]; then
-	echo "apt detected, removing git-delta from packagesNeeded." \
-		"Please install manually"
+	echo "apt detected, removing git-delta and eza from packagesNeeded." \
+		"Please install manually. both can be compiled with cargo"
 	packagesNeeded=$(echo "$packagesNeeded" | sed 's/git-delta//')
+	packagesNeeded=$(echo "$packagesNeeded" | sed 's/eza//')
+	sudo apt update
 	sudo apt-get install $packagesNeeded
 elif [ -x "$(command -v dnf)" ]; then
 	sudo dnf install $packagesNeeded
