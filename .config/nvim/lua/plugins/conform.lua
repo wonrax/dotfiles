@@ -28,6 +28,7 @@ return {
         json = { 'prettier' },
         jsonc = { 'prettier' },
         graphql = { 'prettier' },
+        scss = { 'prettier' },
         -- Conform can also run multiple formatters sequentially
         -- python = { "isort", "black" },
         --
