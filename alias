@@ -19,6 +19,8 @@ alias cdd="cd .."
 
 alias gdfz=git-diff-fzf
 
+alias code=". code"
+
 function gstfz() {
   git status --short | awk '{print $2}' | fzf -m
 }
