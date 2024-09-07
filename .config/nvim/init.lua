@@ -118,10 +118,12 @@ vim.api.nvim_create_autocmd('LspAttach', {
     -- Jump to the definition of the word under your cursor.
     --  This is where a variable was first declared, or where a function is defined, etc.
     --  To jump back, press <C-t>.
-    map('gd', require('telescope.builtin').lsp_definitions, '[G]oto [D]efinition')
+    -- NOTE: replaced with lspsaga
+    -- map('gd', require('telescope.builtin').lsp_definitions, '[G]oto [D]efinition')
 
     -- Find references for the word under your cursor.
-    map('gr', require('telescope.builtin').lsp_references, '[G]oto [R]eferences')
+    -- NOTE: replaced with lspsaga
+    -- map('gr', require('telescope.builtin').lsp_references, '[G]oto [R]eferences')
 
     -- Jump to the implementation of the word under your cursor.
     --  Useful when your language has ways of declaring types without an actual implementation.
@@ -129,7 +131,8 @@ vim.api.nvim_create_autocmd('LspAttach', {
 
     -- Rename the variable under your cursor.
     --  Most Language Servers support renaming across files, etc.
-    map('<leader>rn', vim.lsp.buf.rename, '[R]e[n]ame')
+    --  NOTE: disabled to use lspsaga rename
+    -- map('<leader>rn', vim.lsp.buf.rename, '[R]e[n]ame')
 
     -- Jump to the type of the word under your cursor.
     --  Useful when you're not sure what type a variable is and you want to see
@@ -149,7 +152,8 @@ vim.api.nvim_create_autocmd('LspAttach', {
 
     -- WARN: This is not Goto Definition, this is Goto Declaration.
     --  For example, in C this would take you to the header.
-    map('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
+    --  NOTE: replaced with lspsaga
+    -- map('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
 
     -- The following two autocommands are used to highlight references of the
     -- word under your cursor when your cursor rests there for a little while.
@@ -197,6 +201,7 @@ vim.api.nvim_create_autocmd('LspAttach', {
       float = {
         border = 'rounded',
       },
+      virtual_text = false,
     }
   end,
 })
