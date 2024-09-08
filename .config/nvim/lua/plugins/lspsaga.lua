@@ -9,6 +9,10 @@ return {
         lightbulb = {
           enable = false,
         },
+        ui = {
+          border = 'rounded',
+          lines = { '└', '├', '│', '─', '┌' },
+        },
       }
 
       require('which-key').add {
