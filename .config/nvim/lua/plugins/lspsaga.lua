@@ -13,6 +13,11 @@ return {
           border = 'rounded',
           lines = { '└', '├', '│', '─', '┌' },
         },
+        symbol_in_winbar = {
+          -- Disabled to render our own padded custom symbols
+          enable = false,
+          show_file = false,
+        },
       }
 
       require('which-key').add {
@@ -20,6 +25,13 @@ return {
         { '<leader>dd', desc = 'Show [D]iagnostic messages in buffer' },
         { '<leader>dw', desc = 'Show [D]iagnostic messages in [w]orkspace' },
       }
+
+      vim.api.nvim_create_autocmd('CursorMoved', {
+        callback = function()
+          local bar = require('lspsaga.symbol.winbar').get_bar()
+          vim.opt_local.winbar = bar and ' ' .. bar or ''
+        end,
+      })
     end,
     keys = {
       {
