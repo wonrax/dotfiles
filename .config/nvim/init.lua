@@ -290,31 +290,10 @@ require('lazy').setup({
   --  Here are some example plugins that I've included in the Kickstart repository.
   --  Uncomment any of the lines below to enable them (you will need to restart nvim).
   --
-  require 'kickstart.plugins.debug',
-  require 'kickstart.plugins.lint',
-  require 'kickstart.plugins.autopairs',
-  require 'kickstart.plugins.neo-tree',
-  require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
-  require 'kickstart.plugins.indent_line',
+  -- require 'kickstart.plugins.debug',
+  -- require 'kickstart.plugins.lint',
 
-  {
-    'mg979/vim-visual-multi',
-    lazy = false,
-  },
-
-  {
-    'vidocqh/auto-indent.nvim',
-    opts = {
-      indentexpr = function(lnum)
-        return require('nvim-treesitter.indent').get_indent(lnum)
-      end,
-    },
-    config = function(_, opts)
-      require('auto-indent').setup(opts)
-    end,
-  },
-
-  -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
+  -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/plugins/*.lua`
   --    This is the easiest way to modularize your config.
   --
   --  Uncomment the following line and add your plugins to `lua/plugins/*.lua` to get going.

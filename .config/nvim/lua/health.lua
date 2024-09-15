@@ -1,3 +1,4 @@
+-- TODO: currently not used when using `:checkhealth` command
 --[[
 --
 -- This file is not required for your own configuration,

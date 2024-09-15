@@ -21,7 +21,7 @@ return {
         dayfox = {
           -- BG color for current line selection etc. since it's a bit too
           -- dimmed when using the transparent window bg
-          bg3 = '#ececec',
+          bg3 = '#e7e7e7',
         },
         nightfox = {
           bg0 = '#24292e',
