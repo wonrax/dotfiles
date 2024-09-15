@@ -15,12 +15,12 @@ return {
         -- which is not what we have, thus erroring out.
         local theme = require('lualine.themes.' .. (vim.g.colors_name or 'ayu'))
 
-        local fox = require('nightfox.palette.' .. (vim.g.colors_name or 'dayfox'))
+        local palette = require('palette').load_current_theme_palette()
 
-        local b_bg = fox.palette.bg0
-        local b_fg = fox.palette.fg
-        local inactive_bg = fox.palette.bg0
-        local inactive_fg = fox.palette.fg2
+        local b_bg = palette.bg0
+        local b_fg = palette.fg0
+        local inactive_bg = palette.bg0
+        local inactive_fg = palette.fg2
 
         theme.normal.b.bg = b_bg
         theme.normal.b.fg = b_fg
@@ -41,7 +41,7 @@ return {
         local neotree = require 'lualine.extensions.neo-tree'
         local my_neotree = {
           sections = {
-            lualine_a = { { get_short_cwd, color = { bg = fox.palette.blue.base, fg = b_bg } } },
+            lualine_a = { { get_short_cwd, color = { bg = palette.blue.base, fg = b_bg } } },
           },
           inactive_sections = {
             lualine_a = { { get_short_cwd, color = { bg = b_bg } } },

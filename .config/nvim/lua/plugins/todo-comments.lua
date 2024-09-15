@@ -5,12 +5,6 @@ return {
     event = 'VimEnter',
     dependencies = {
       'nvim-lua/plenary.nvim',
-
-      -- Set the current using theme as a dependency so that when starting up
-      -- the theme is loaded before todo-comments and the highlight groups are
-      -- available, otherwise if the hi groups are nil it will use the default
-      -- colors
-      'EdenEast/nightfox.nvim',
     },
     opts = {
       signs = false,

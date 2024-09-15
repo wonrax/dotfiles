@@ -21,9 +21,9 @@ return {
     config = function(_, opts)
       require('neogit').setup(opts)
 
-      local palette = require('nightfox.palette').load(vim.g.colors_name)
+      local palette = require('palette').load_current_theme_palette()
 
-      vim.api.nvim_set_hl(0, 'NeogitStagedchanges', { fg = palette.base, bg = palette.bg0 }) -- Unstaged changespalette
+      vim.api.nvim_set_hl(0, 'NeogitStagedchanges', { fg = palette.fg0, bg = palette.bg0 }) -- Staged changespalette
       vim.api.nvim_set_hl(0, 'NeogitUnstagedchanges', { fg = palette.blue.base, bg = palette.bg0 }) -- Unstaged changespalette
       vim.api.nvim_set_hl(0, 'NeogitRecentCommits', { fg = palette.blue.base, bg = palette.bg0 }) -- Recent commits
       vim.api.nvim_set_hl(0, 'NeogitBranch', { fg = palette.yellow.base, bg = palette.bg0 }) -- Head branch
