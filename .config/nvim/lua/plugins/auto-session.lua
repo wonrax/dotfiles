@@ -12,6 +12,8 @@ return {
       -- https://stackoverflow.com/a/60875369/11129119
       vim.cmd 'set sessionoptions+=localoptions'
 
+      local events = require('events').auto_session
+
       require('auto-session').setup {
         enabled = true, -- Enables/disables auto creating, saving and restoring
         root_dir = vim.fn.stdpath 'data' .. '/sessions/', -- Root dir where sessions will be stored
@@ -36,7 +38,7 @@ return {
           function()
             vim.api.nvim_exec_autocmds('User', {
               -- TODO: move the user events to shared global variables
-              pattern = 'AutoSession::PreSessionSave',
+              pattern = events.pre_session_save,
             })
           end,
         },
@@ -45,18 +47,19 @@ return {
           function()
             vim.api.nvim_exec_autocmds('User', {
               -- TODO: move the user events to shared global variables
-              pattern = 'AutoSession::SessionRestored',
+              pattern = events.session_restored,
+            })
+          end,
+        },
+        no_restore_cmds = {
+          function()
+            vim.api.nvim_exec_autocmds('User', {
+              -- TODO: move the user events to shared global variables
+              pattern = events.no_session_restored,
             })
           end,
         },
       }
-
-      vim.api.nvim_create_autocmd('User', {
-        pattern = 'AutoSession::PreSessionSave',
-        callback = function()
-          require('neo-tree.command').execute { action = 'close' }
-        end,
-      })
 
       vim.keymap.set('n', '<leader>s', require('auto-session.session-lens').search_session, {
         noremap = true,
@@ -65,7 +68,7 @@ return {
 
       -- https://vi.stackexchange.com/a/44625/51174
       vim.api.nvim_create_autocmd('User', {
-        pattern = 'AutoSession::SessionRestored',
+        pattern = events.session_restored,
         desc = 'Close empty buffers',
         callback = function()
           -- Get a list of all buffers

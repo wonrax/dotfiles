@@ -85,11 +85,20 @@ return {
 
     suppress_netrw()
 
+    local session_events = require('events').auto_session
+
     -- open the file browser when no session is restored
     vim.api.nvim_create_autocmd('User', {
-      pattern = 'AutoSession::NoSessionRestored',
+      pattern = session_events.no_session_restored,
       callback = function()
         require('neo-tree.command').execute { action = 'focus' }
+      end,
+    })
+
+    vim.api.nvim_create_autocmd('User', {
+      pattern = session_events.pre_session_save,
+      callback = function()
+        require('neo-tree.command').execute { action = 'close' }
       end,
     })
   end,

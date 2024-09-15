@@ -10,7 +10,7 @@ return {
       end, { desc = 'Close other buffers' })
 
       vim.api.nvim_create_autocmd('User', {
-        pattern = 'AutoSession::SessionRestored',
+        pattern = require('events').auto_session.session_restored,
         callback = function()
           require('close_buffers').delete { type = 'nameless' }
         end,
