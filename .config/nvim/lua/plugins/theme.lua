@@ -1,3 +1,36 @@
+local function save_current_colorscheme()
+  local colorscheme = vim.g.colors_name
+
+  local fp = vim.fn.stdpath 'state'
+  local fn = 'current_colorscheme'
+
+  local f = io.open(fp .. '/' .. fn, 'w')
+  if not f then
+    error('Could not open file for writing: ' .. fp .. '/' .. fn)
+  end
+
+  f:write(colorscheme)
+end
+
+local function load_last_colorscheme()
+  local fp = vim.fn.stdpath 'state'
+  local fn = 'current_colorscheme'
+
+  local f = io.open(fp .. '/' .. fn, 'r')
+  if not f then
+    return
+  end
+
+  local colorscheme = f:read()
+  f:close()
+
+  if not colorscheme then
+    return
+  end
+
+  vim.cmd('colorscheme ' .. colorscheme)
+end
+
 return {
   {
     'EdenEast/nightfox.nvim',
@@ -40,9 +73,9 @@ return {
     config = function(_, opts)
       require('nightfox').setup(opts)
 
-      -- TODO: This line prevents light themes from flashing on startup however in
-      -- system dark mode it will still flash the light theme
-      vim.cmd 'colorscheme dayfox'
+      -- Prevents the transition from default themes to target theme from
+      -- causing flashes on startup
+      load_last_colorscheme()
     end,
   },
 
@@ -50,6 +83,7 @@ return {
     'projekt0n/github-nvim-theme',
     priority = 1000, -- make sure to load this before all the other start plugins
     lazy = true,
+    enabled = false,
     config = function()
       require('github-theme').setup {
         options = {
@@ -101,9 +135,11 @@ return {
         update_interval = 1000,
         set_dark_mode = function()
           vim.cmd 'colorscheme nightfox'
+          save_current_colorscheme()
         end,
         set_light_mode = function()
           vim.cmd 'colorscheme dayfox'
+          save_current_colorscheme()
         end,
       }
     end,

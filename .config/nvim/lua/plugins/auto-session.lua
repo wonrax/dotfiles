@@ -37,7 +37,6 @@ return {
           -- 'Neotree close'
           function()
             vim.api.nvim_exec_autocmds('User', {
-              -- TODO: move the user events to shared global variables
               pattern = events.pre_session_save,
             })
           end,
@@ -46,7 +45,6 @@ return {
           -- 'Neotree show position=left'
           function()
             vim.api.nvim_exec_autocmds('User', {
-              -- TODO: move the user events to shared global variables
               pattern = events.session_restored,
             })
           end,
@@ -54,7 +52,6 @@ return {
         no_restore_cmds = {
           function()
             vim.api.nvim_exec_autocmds('User', {
-              -- TODO: move the user events to shared global variables
               pattern = events.no_session_restored,
             })
           end,
