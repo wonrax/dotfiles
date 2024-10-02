@@ -22,7 +22,11 @@ return {
         auto_create = true, -- Enables/disables auto creating new session files. Can take a function that should return true/false if a new session file should be created or not
         suppressed_dirs = nil, -- Suppress session restore/create in certain directories
         allowed_dirs = nil, -- Allow session restore/create in certain directories
-        auto_restore_last_session = true, -- On startup, loads the last saved session if session for cwd does not exist
+        -- NOTE: If this is enabled, when you try to open a file in a directory
+        -- new to auto-session (e.g. nvim ~/.local/test.txt), it won't open the
+        -- file you provided but instead open the last session saved in another
+        -- directory. Thus it's better to disable this option.
+        auto_restore_last_session = false, -- On startup, loads the last saved session if session for cwd does not exist
         use_git_branch = false, -- Include git branch name in session name
         lazy_support = true, -- Automatically detect if Lazy.nvim is being used and wait until Lazy is done to make sure session is restored correctly. Does nothing if Lazy isn't being used. Can be disabled if a problem is suspected or for debugging
         bypass_save_filetypes = nil, -- List of file types to bypass auto save when the only buffer open is one of the file types listed, useful to ignore dashboards

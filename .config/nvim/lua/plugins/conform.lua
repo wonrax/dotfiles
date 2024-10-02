@@ -29,6 +29,7 @@ return {
         jsonc = { 'prettier' },
         graphql = { 'prettier' },
         scss = { 'prettier' },
+        nix = { 'nixfmt' },
         -- Conform can also run multiple formatters sequentially
         -- python = { "isort", "black" },
         --
