@@ -90,7 +90,7 @@ vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right win
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
-vim.keymap.set('n', '<leader>bb', function()
+vim.keymap.set('n', '<leader><Tab>', function()
   vim.cmd 'edit #'
 end, { desc = 'Switch to previous buffer' })
 
