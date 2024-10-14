@@ -10,6 +10,8 @@ return {
       local green = vim.g.terminal_color_2
       local yellow = vim.g.terminal_color_3
 
+      local colorscheme = require('palette').load_current_theme_palette()
+
       local focused_bg = function(buffer)
         return buffer.is_focused and get_hex('WinSeparator', 'fg') or get_hex('None', 'bg')
       end
@@ -66,7 +68,7 @@ return {
               return buffer.is_modified and '●' or ' '
             end,
             fg = function(buffer)
-              return buffer.is_modified and yellow or green
+              return buffer.is_modified and colorscheme.yellow.base or colorscheme.green.base
             end,
             bg = focused_bg,
           },
@@ -79,18 +81,18 @@ return {
           placement = 'right',
           components = {
             {
-              text = ' ',
-            },
-            {
               text = function(tabp)
-                return tabp.number
+                return ' ' .. tabp.number .. ' '
               end,
               bold = function(tabp)
                 return tabp.is_active
               end,
-            },
-            {
-              text = ' ',
+              bg = function(tabp)
+                return tabp.is_active and colorscheme.blue.base or colorscheme.bg0
+              end,
+              fg = function(tabp)
+                return tabp.is_active and colorscheme.white.base or colorscheme.blue.base
+              end,
             },
           },
         },
