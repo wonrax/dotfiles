@@ -56,9 +56,6 @@ return {
           -- dimmed when using the transparent window bg
           bg3 = '#e7e7e7',
         },
-        nightfox = {
-          bg0 = '#24292e',
-        },
       },
       groups = {
         all = {

@@ -6,111 +6,124 @@ return {
       'nvim-tree/nvim-web-devicons', -- If you want devicons
     },
     config = function()
-      local get_hex = require('cokeline.hlgroups').get_hl_attr
-      local green = vim.g.terminal_color_2
-      local yellow = vim.g.terminal_color_3
+      local function config()
+        local colorscheme = require('palette').load_current_theme_palette()
 
-      local colorscheme = require('palette').load_current_theme_palette()
+        local get_buffer_bg = function(buffer)
+          return buffer.is_focused and colorscheme.black.base or colorscheme.bg0
+        end
 
-      local focused_bg = function(buffer)
-        return buffer.is_focused and get_hex('WinSeparator', 'fg') or get_hex('None', 'bg')
+        require('cokeline').setup {
+          default_hl = {
+            fg = function(buffer)
+              return buffer.is_focused and colorscheme.white.base or colorscheme.fg2
+            end,
+            bg = get_buffer_bg,
+          },
+          fill_hl = 'TabLineFill',
+          components = {
+            {
+              text = function(buffer)
+                return buffer.index == 1 and '▕' or ' '
+              end,
+              bg = function(buffer)
+                return buffer.index == 1 and 'None' or get_buffer_bg(buffer)
+              end,
+              fg = colorscheme.bg0,
+            },
+            {
+              text = ' ',
+              bg = get_buffer_bg,
+            },
+            {
+              text = function(buffer)
+                return buffer.devicon.icon
+              end,
+              fg = function(buffer)
+                return buffer.devicon.color
+              end,
+              bg = get_buffer_bg,
+            },
+            {
+              text = function(buffer)
+                return buffer.index .. ':'
+              end,
+              bg = get_buffer_bg,
+              fg = function(buffer)
+                return buffer.is_focused and colorscheme.white.base or colorscheme.fg2
+              end,
+            },
+            {
+              text = function(buffer)
+                return buffer.unique_prefix
+              end,
+              fg = colorscheme.comment,
+              italic = true,
+              bg = get_buffer_bg,
+            },
+            {
+              text = function(buffer)
+                return buffer.filename .. ' '
+              end,
+              bold = function(buffer)
+                return buffer.is_focused
+              end,
+              fg = function(buffer)
+                return buffer.is_focused and colorscheme.white.base or colorscheme.fg2
+              end,
+              bg = get_buffer_bg,
+            },
+            { -- dirty status
+              text = function(buffer)
+                return buffer.is_modified and '●' or ' '
+              end,
+              fg = function(buffer)
+                return buffer.is_modified and colorscheme.yellow.base or colorscheme.green.base
+              end,
+              bg = get_buffer_bg,
+            },
+            {
+              text = ' ',
+              bg = get_buffer_bg,
+            },
+          },
+          tabs = {
+            placement = 'right',
+            components = {
+              {
+                text = function(tabp)
+                  return ' ' .. tabp.number .. ' '
+                end,
+                bold = function(tabp)
+                  return tabp.is_active
+                end,
+                bg = function(tabp)
+                  return tabp.is_active and colorscheme.blue.base or colorscheme.bg0
+                end,
+                fg = function(tabp)
+                  return tabp.is_active and colorscheme.white.base or colorscheme.blue.base
+                end,
+              },
+            },
+          },
+          history = {
+            enabled = true,
+            size = 2,
+          },
+          sidebar = {
+            filetype = 'neo-tree',
+            components = {
+              {
+                text = function()
+                  return ' Neo-tree'
+                end,
+              },
+            },
+          },
+        }
       end
 
-      require('cokeline').setup {
-        default_hl = {
-          fg = function(buffer)
-            return buffer.is_focused and get_hex('Normal', 'bg') or get_hex('Normal', 'fg')
-          end,
-          bg = function()
-            return get_hex('None', 'fg')
-          end,
-        },
-        fill_hl = 'None',
-        components = {
-          {
-            text = '  ',
-            bg = focused_bg,
-          },
-          {
-            text = function(buffer)
-              return buffer.devicon.icon
-            end,
-            fg = function(buffer)
-              return buffer.devicon.color
-            end,
-            bg = focused_bg,
-          },
-          {
-            text = function(buffer)
-              return buffer.index .. ':'
-            end,
-            bg = focused_bg,
-          },
-          {
-            text = function(buffer)
-              return buffer.unique_prefix
-            end,
-            fg = get_hex('Comment', 'fg'),
-            italic = true,
-            bg = focused_bg,
-          },
-          {
-            text = function(buffer)
-              return buffer.filename .. ' '
-            end,
-            bold = function(buffer)
-              return buffer.is_focused
-            end,
-            bg = focused_bg,
-          },
-          { -- dirty status
-            text = function(buffer)
-              return buffer.is_modified and '●' or ' '
-            end,
-            fg = function(buffer)
-              return buffer.is_modified and colorscheme.yellow.base or colorscheme.green.base
-            end,
-            bg = focused_bg,
-          },
-          {
-            text = ' ',
-            bg = focused_bg,
-          },
-        },
-        tabs = {
-          placement = 'right',
-          components = {
-            {
-              text = function(tabp)
-                return ' ' .. tabp.number .. ' '
-              end,
-              bold = function(tabp)
-                return tabp.is_active
-              end,
-              bg = function(tabp)
-                return tabp.is_active and colorscheme.blue.base or colorscheme.bg0
-              end,
-              fg = function(tabp)
-                return tabp.is_active and colorscheme.white.base or colorscheme.blue.base
-              end,
-            },
-          },
-        },
-        history = {
-          enabled = true,
-          size = 2,
-        },
-        sidebar = {
-          filetype = 'neo-tree',
-          components = {
-            {
-              text = function()
-                return ' Neo-tree'
-              end,
-            },
-          },
-        },
-      }
+      config()
 
       for i = 1, 9 do
         vim.keymap.set('n', ('<Leader>%s'):format(i), ('<Plug>(cokeline-focus-%s)'):format(i), { silent = true, desc = nil })
@@ -131,6 +144,13 @@ return {
       vim.keymap.set('n', '<C-S-Tab>', function()
         vim.cmd 'bprevious'
       end, { desc = 'Previous tab' })
+
+      -- Reload cokeline on colorscheme change, mainly dark/light mode toggle
+      vim.api.nvim_create_autocmd('ColorScheme', {
+        callback = function()
+          config()
+        end,
+      })
     end,
   },
 }
