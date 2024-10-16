@@ -2,6 +2,7 @@
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Go to previous [D]iagnostic message' })
 vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next [D]iagnostic message' })
 vim.keymap.set('n', '<leader>le', vim.diagnostic.open_float, { desc = 'Show [L]sp diagnostic [E]rror messages' })
+vim.keymap.set('n', 'gh', vim.diagnostic.open_float, { desc = 'Show cursor diagnostics' })
 vim.keymap.set('n', '<leader>lf', vim.diagnostic.setloclist, { desc = '[L]sp Open diagnostic Quick[f]ix list' })
 -- NOTE: disabled to use lspsaga show_cursor_diagnostics
 -- vim.keymap.set('n', 'gh', vim.diagnostic.open_float, { desc = 'Show [L]sp diagnostic [E]rror messages' })

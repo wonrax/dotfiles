@@ -21,6 +21,7 @@ return {
     config = function(_, opts)
       require('neogit').setup(opts)
 
+      -- TODO: does not automatically change the colors when dark/light theme changes
       local palette = require('palette').load_current_theme_palette()
 
       vim.api.nvim_set_hl(0, 'NeogitStagedchanges', { fg = palette.fg0, bg = palette.bg0 }) -- Staged changespalette

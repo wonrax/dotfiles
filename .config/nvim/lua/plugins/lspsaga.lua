@@ -42,13 +42,6 @@ return {
         end,
       },
       {
-        'gh',
-        mode = { 'n' },
-        function()
-          vim.cmd 'Lspsaga show_cursor_diagnostics'
-        end,
-      },
-      {
         ']d',
         mode = { 'n' },
         function()

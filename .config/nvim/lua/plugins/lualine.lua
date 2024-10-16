@@ -59,7 +59,10 @@ return {
             my_neotree,
           },
           sections = {
-            lualine_b = { 'diff', 'diagnostics' },
+            lualine_b = {
+              'diff',
+              'diagnostics',
+            },
             lualine_c = {
               {
                 'filename',

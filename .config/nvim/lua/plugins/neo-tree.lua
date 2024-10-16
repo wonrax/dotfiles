@@ -57,7 +57,13 @@ return {
   cmd = 'Neotree',
   lazy = false,
   keys = {
-    { '<leader>e', ':Neotree reveal position=left<CR>', { desc = 'NeoTree reveal' } },
+    {
+      '<leader>e',
+      function()
+        require('neo-tree.command').execute { action = 'focus' }
+      end,
+      { desc = 'NeoTree reveal' },
+    },
   },
   opts = {
     close_if_last_window = true,
