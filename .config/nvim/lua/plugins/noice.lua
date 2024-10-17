@@ -32,6 +32,12 @@ return {
             winblend = 0,
           },
         },
+        popup = {
+          close = {
+            events = { 'BufLeave' },
+            keys = { 'q', '<Esc>' },
+          },
+        },
       },
     },
     dependencies = {
