@@ -74,6 +74,13 @@ return {
             -- theme = { }, -- use own theme spec
             -- layout_config = { mirror=true }, -- mirror preview pane
           },
+          smart_open = {
+            -- Default ignore patterns include too many things that I want to
+            -- see so I'm going to disable them here.
+            ignore_patterns = {
+              '*.git/*',
+            },
+          },
         },
         -- You can put your default mappings / updates / etc. in here
         --  All the info you're looking for is in `:help telescope.setup()`
