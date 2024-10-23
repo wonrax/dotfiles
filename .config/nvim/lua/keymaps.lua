@@ -48,9 +48,7 @@ vim.keymap.set('n', '<Esc>', function()
     -- nvim_win_get_config() will throw an error if the window is not valid,
     -- which i guess can happen if the window was closed while we are iterating
     -- over the list of windows
-    local ok, conf = pcall(function()
-      vim.api.nvim_win_get_config(win)
-    end)
+    local ok, conf = pcall(vim.api.nvim_win_get_config, win)
 
     if ok and conf ~= nil then
       if conf.relative == 'win' then
