@@ -7,22 +7,22 @@ return {
       neoscroll.setup(opts)
       local keymap = {
         ['<C-u>'] = function()
-          neoscroll.ctrl_u { duration = 100 }
+          neoscroll.ctrl_u { duration = 50 }
         end,
         ['<C-d>'] = function()
-          neoscroll.ctrl_d { duration = 100 }
+          neoscroll.ctrl_d { duration = 50 }
         end,
         ['<C-b>'] = function()
-          neoscroll.ctrl_b { duration = 200 }
+          neoscroll.ctrl_b { duration = 100 }
         end,
         ['<C-f>'] = function()
-          neoscroll.ctrl_f { duration = 200 }
+          neoscroll.ctrl_f { duration = 100 }
         end,
         ['<C-y>'] = function()
-          neoscroll.scroll(-0.1, { move_cursor = false, duration = 50 })
+          neoscroll.scroll(-0.1, { move_cursor = false, duration = 25 })
         end,
         ['<C-e>'] = function()
-          neoscroll.scroll(0.1, { move_cursor = false, duration = 50 })
+          neoscroll.scroll(0.1, { move_cursor = false, duration = 25 })
         end,
         ['zt'] = function()
           neoscroll.zt { half_win_duration = 50 }

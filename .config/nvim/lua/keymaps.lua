@@ -40,6 +40,8 @@ end, { desc = 'Switch to previous tabpage' })
 
 vim.keymap.set('n', '<leader>bd', ':bn<cr>:bd#<cr>', { desc = 'Close current buffer without closing the window' })
 
+-- TODO: this does not work because there are multiple Esc mappings, which
+-- override each other.
 vim.keymap.set('n', '<Esc>', function()
   -- Close every floating window, this is helpful when for example you want to
   -- quit the focused hover window without having to press `q`. Improv of
