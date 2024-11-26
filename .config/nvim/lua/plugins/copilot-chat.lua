@@ -34,6 +34,7 @@ return {
       show_help = true,
       auto_follow_cursor = false,
       clear_chat_on_new_prompt = false,
+      chat_autocomplete = true,
       mappings = {
         -- Disable to use nvim-cmp
         complete = {
@@ -240,8 +241,6 @@ return {
           },
         },
       }))
-      -- Setup the CMP integration
-      require('CopilotChat.integrations.cmp').setup()
 
       -- Custom buffer for CopilotChat
       vim.api.nvim_create_autocmd('BufEnter', {
