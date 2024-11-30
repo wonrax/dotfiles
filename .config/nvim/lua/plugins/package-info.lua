@@ -6,7 +6,6 @@ return {
       'MunifTanjim/nui.nvim',
       'nvim-telescope/telescope.nvim',
     },
-    version = '2.*',
     ft = 'json',
     config = function()
       require('package-info').setup()

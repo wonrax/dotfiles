@@ -96,6 +96,13 @@ vim.opt.tabstop = 4
 -- Set highlight on search
 vim.opt.hlsearch = true
 
+vim.diagnostic.config {
+  float = {
+    border = 'rounded',
+  },
+  virtual_text = false,
+}
+
 -- [[ Basic Keymaps ]]
 --  See `:help vim.keymap.set()`
 require 'keymaps'

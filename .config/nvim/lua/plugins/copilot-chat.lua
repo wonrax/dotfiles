@@ -68,13 +68,11 @@ return {
         show_diff = {
           normal = 'gmd',
         },
-        -- Show the prompt
-        show_system_prompt = {
-          normal = 'gmp',
+        show_info = {
+          normal = 'gi',
         },
-        -- Show the user selection
-        show_user_selection = {
-          normal = 'gms',
+        show_context = {
+          normal = 'gc',
         },
       },
     },
@@ -171,8 +169,7 @@ return {
     },
     config = function(_, opts)
       local chat = require 'CopilotChat'
-      local select = require 'CopilotChat.select'
-      local windowopts = {
+      local floating_window_opts = {
         layout = 'float',
         relative = 'cursor',
         width = 125,
@@ -183,61 +180,49 @@ return {
       chat.setup(vim.tbl_deep_extend('force', opts, {
         prompts = {
           -- Code related prompts
-          ChatRename = {
-            selection = select.visual,
-            prompt = 'Rename the selected identifier to be more concise, readable, understandable and maintainable.',
-            description = 'Rename the identifier',
-            context = 'buffer',
+          Explain = {
+            prompt = '> /COPILOT_EXPLAIN\n\nWrite an explanation for the selected code as paragraphs of text.',
           },
-          ChatRefactor = {
-            selection = select.visual,
-            prompt = '/COPILOT_GENERATE Refactor the following code to improve its clarity, readability and maintainability.',
-            description = 'Refactor the code',
-            context = 'buffer',
+          Review = {
+            prompt = '> /COPILOT_REVIEW\n\nReview the selected code.',
+            -- see config.lua for implementation
           },
-          ChatWithVisual = {
-            selection = select.visual,
-            description = 'Ask Copilot to help with the selected code.',
-            context = 'buffer',
+          Fix = {
+            prompt = '> /COPILOT_GENERATE\n\nThere is a problem in this code. Rewrite the code to show it with the bug fixed.',
           },
-          ChatInline = {
-            selection = select.visual,
-            window = windowopts,
-            description = 'Ask Copilot to help with the selected code in a floating window.',
-            context = 'buffer',
+          Optimize = {
+            prompt = '> /COPILOT_GENERATE\n\nOptimize the selected code to improve performance and readability.',
+          },
+          Docs = {
+            prompt = '> /COPILOT_GENERATE\n\nPlease add documentation comments to the selected code.',
+          },
+          Tests = {
+            prompt = '> /COPILOT_GENERATE\n\nPlease generate tests for my code.',
           },
           Commit = {
-            prompt = 'Write commit message for the change with commitizen convention. Make sure the title has maximum 50 characters and message is wrapped at 72 characters. Wrap the whole message in code block with language gitcommit.',
-            selection = select.gitdiff,
-            window = windowopts,
-          },
-          CommitStaged = {
-            prompt = 'Write commit message for the change with commitizen convention. Make sure the title has maximum 50 characters and message is wrapped at 72 characters. Wrap the whole message in code block with language gitcommit.',
-            selection = function(source)
-              return select.gitdiff(source, true)
-            end,
-            window = windowopts,
+            prompt = '> #git:staged\n\nWrite commit message for the change with commitizen convention. Make sure the title has maximum 50 characters and message is wrapped at 72 characters. Wrap the whole message in code block with language gitcommit.',
+            window = floating_window_opts,
           },
           -- Text related prompts
           Summarize = {
-            prompt = 'Summarize the following text.',
+            prompt = '/COPILOT_EXPLAIN\n\nSummarize the selected text.',
             description = 'Summarize the text',
-            context = 'buffer',
+            window = floating_window_opts,
           },
           Spelling = {
-            prompt = '/COPILOT_GENERATE Correct any grammar and spelling errors in the following text.',
+            prompt = '/COPILOT_GENERATE\n\nCorrect any grammar and spelling errors in the following text.',
             description = 'Correct spelling and grammar',
-            context = 'buffer',
+            window = floating_window_opts,
           },
           Wording = {
-            prompt = '/COPILOT_GENERATE Improve the grammar and wording of the following text.',
+            prompt = '/COPILOT_GENERATE\n\nImprove the grammar and wording of the following text.',
             description = 'Improve grammar and wording',
-            context = 'buffer',
+            window = floating_window_opts,
           },
           Concise = {
-            prompt = '/COPILOT_GENERATE Rewrite the following text to make it more concise.',
+            prompt = '/COPILOT_GENERATE\n\nRewrite the following text to make it more concise.',
             description = 'Make the text more concise',
-            context = 'buffer',
+            window = floating_window_opts,
           },
         },
       }))
