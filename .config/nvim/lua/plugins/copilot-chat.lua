@@ -2,6 +2,14 @@
 -- https://github.com/jellydn/lazy-nvim-ide/blob/a4e259de5e466367683a7e89fa943366fb0e8af5/lua/plugins/extras/copilot-chat-v2.lua
 -- TODO: not all copilot chat prompts are available in which-key
 
+local floating_window_opts = {
+  layout = 'float',
+  relative = 'cursor',
+  width = 125,
+  height = 0.4,
+  col = 1,
+}
+
 return {
   {
     'CopilotC-Nvim/CopilotChat.nvim',
@@ -103,79 +111,46 @@ return {
           local actions = require 'CopilotChat.actions'
           require('CopilotChat.integrations.telescope').pick(actions.prompt_actions { selection = require('CopilotChat.select').visual })
         end,
-        mode = 'x',
+        mode = { 'v', 'x', 'n' },
         desc = 'Prompt actions',
       },
-      -- Code related commands
-      { '<leader>ce', '<cmd>CopilotChatExplain<cr>', desc = 'Explain code', mode = { 'v' } },
-      { '<leader>ct', '<cmd>CopilotChatTests<cr>', desc = 'Generate tests', mode = { 'n', 'v' } },
-      { '<leader>cr', '<cmd>CopilotChatReview<cr>', desc = 'Review code', mode = { 'v' } },
-      { '<leader>cR', '<cmd>CopilotChatRefactor<cr>', desc = 'Refactor code', mode = { 'v' } },
-      { '<leader>cn', '<cmd>CopilotChatRename>', desc = 'Rename identifier', mode = { 'v' } },
       -- Chat with Copilot in visual mode
       {
         '<leader>cv',
-        ':CopilotChatVisual',
-        mode = 'x',
+        function()
+          local chat = require 'CopilotChat'
+          local select = require 'CopilotChat.select'
+
+          chat.toggle {
+            selection = function(source)
+              return select.visual(source) or nil
+            end,
+            context = 'buffer',
+          }
+        end,
+        mode = { 'v', 'x', 'n' },
         desc = 'Copilot Chat with selected text',
       },
       {
-        '<leader>cx',
-        ':CopilotChatInline<cr>',
-        mode = 'x',
-        desc = 'Inline chat with selected text',
-      },
-      -- Custom input for CopilotChat
-      {
         '<leader>ci',
         function()
-          local input = vim.fn.input 'Ask Copilot: '
-          if input ~= '' then
-            vim.cmd('CopilotChat ' .. input)
-          end
+          local chat = require 'CopilotChat'
+          local select = require 'CopilotChat.select'
+
+          chat.toggle {
+            selection = function(source)
+              return select.visual(source) or nil
+            end,
+            context = 'buffer',
+            window = floating_window_opts,
+          }
         end,
-        desc = 'Ask input',
+        mode = { 'v', 'x', 'n' },
+        desc = 'Inline chat with selected text',
       },
-      -- Generate commit message based on the git diff
-      {
-        '<leader>cm',
-        '<cmd>CopilotChatCommit<cr>',
-        desc = 'Generate commit message for all changes',
-      },
-      {
-        '<leader>cM',
-        '<cmd>CopilotChatCommitStaged<cr>',
-        desc = 'Generate commit message for staged changes',
-      },
-      -- Quick chat with Copilot
-      {
-        '<leader>cq',
-        function()
-          local input = vim.fn.input 'Quick Chat: '
-          if input ~= '' then
-            vim.cmd('CopilotChatBuffer ' .. input)
-          end
-        end,
-        desc = 'Quick chat',
-      },
-      -- Debug
-      { '<leader>cd', '<cmd>CopilotChatDebugInfo<cr>', desc = 'Debug Info' },
-      -- Fix the issue with diagnostic
-      { '<leader>cf', '<cmd>CopilotChatFixDiagnostic<cr>', desc = 'Fix Diagnostic' },
-      -- Clear buffer and chat history
-      { '<leader>cl', '<cmd>CopilotChatReset<cr>', desc = 'Clear buffer and chat history' },
-      -- Toggle Copilot Chat Vsplit
-      { '<leader>cv', '<cmd>CopilotChatToggle<cr>', desc = 'Toggle' },
     },
     config = function(_, opts)
       local chat = require 'CopilotChat'
-      local floating_window_opts = {
-        layout = 'float',
-        relative = 'cursor',
-        width = 125,
-        height = 0.4,
-        col = 1,
-      }
 
       chat.setup(vim.tbl_deep_extend('force', opts, {
         prompts = {
@@ -202,6 +177,15 @@ return {
           Commit = {
             prompt = '> #git:staged\n\nWrite commit message for the change with commitizen convention. Make sure the title has maximum 50 characters and message is wrapped at 72 characters. Wrap the whole message in code block with language gitcommit.',
             window = floating_window_opts,
+          },
+          ChatWithVisual = {
+            description = 'Ask Copilot to help with the selected code.',
+            context = 'buffer',
+          },
+          ChatInline = {
+            window = floating_window_opts,
+            description = 'Ask Copilot to help with the selected code in a floating window.',
+            context = 'buffer',
           },
           -- Text related prompts
           Summarize = {
@@ -231,8 +215,8 @@ return {
       vim.api.nvim_create_autocmd('BufEnter', {
         pattern = 'copilot-*',
         callback = function()
-          vim.opt_local.relativenumber = true
-          vim.opt_local.number = true
+          -- vim.opt_local.relativenumber = true
+          -- vim.opt_local.number = true
 
           -- Get current filetype and set it to markdown if the current filetype is copilot-chat
           local ft = vim.bo.filetype
