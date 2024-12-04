@@ -16,19 +16,27 @@
     xremap-flake.url = "github:xremap/nix-flake";
   };
 
-  outputs = { self, nixpkgs, home-manager, ... }@inputs: let
-    user = {
-      username = "wonrax";
-      fullname = "Hai L. Ha-Huy";
+  outputs =
+    {
+      self,
+      nixpkgs,
+      home-manager,
+      ...
+    }@inputs:
+    let
+      user = {
+        username = "wonrax";
+        fullname = "Hai L. Ha-Huy";
+      };
+    in
+    {
+      # Please replace my-nixos with your hostname
+      nixosConfigurations.wonrax-desktop-nixos = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        specialArgs = { inherit user; };
+        modules = import ./nixos.nix { inherit inputs user home-manager; } ++ [
+          ./hosts/desktop-nixos/configuration.nix
+        ];
+      };
     };
-  in {
-    # Please replace my-nixos with your hostname
-    nixosConfigurations.wonrax-desktop-nixos = nixpkgs.lib.nixosSystem {
-      system = "x86_64-linux";
-      specialArgs = { inherit user; };
-      modules = import ./nixos.nix { inherit inputs user home-manager; } ++ [
-        ./hosts/desktop-nixos/configuration.nix
-      ];
-    };
-  };
 }

@@ -1,4 +1,10 @@
-{ config, pkgs, lib, user, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  user,
+  ...
+}:
 
 {
   # TODO please change the username & home directory to your own
@@ -11,8 +17,8 @@
   # link all files in `./scripts` to `~/.config/i3/scripts`
   home.file.".config/nvim" = {
     source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/.config/nvim";
-    recursive = true;   # link recursively
-    executable = false;  # make all files executable
+    recursive = true; # link recursively
+    executable = false; # make all files executable
   };
 
   # encode the file content in nix configuration file directly
@@ -26,21 +32,32 @@
   #   "Xft.dpi" = 172;
   # };
 
+  # allowUnfree is also enabled for nixos configuration but we need to enable
+  # it here as well since home-manager.useUserPackages = true making it a user
+  # configuration. If you want the nixos configuration to also affect
+  # home-manager configuration, you can set home-manager.useGlobalPkgs = true
+  # in nixos configuration. Explanation:
+  # https://discourse.nixos.org/t/home-manager-useuserpackages-useglobalpkgs-settings/
+  nixpkgs.config.allowUnfree = true;
+
   # Packages that should be installed to the user profile.
   home.packages = with pkgs; [
-    # here is some command line tools I use frequently
-    # feel free to add your own or remove some of them
+    # productivity
     neovim
     gh
-
-    nodejs_23
-    rustup
-
-    # productivity
     ripgrep
 
     # devel
     gcc
+    nodejs_23
+    rustup
+    nixfmt-rfc-style
+
+    # entertainment
+    spotify
+
+    # communication
+    discord
   ];
 
   # This value determines the home Manager release that your
