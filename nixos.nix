@@ -1,3 +1,5 @@
+# TODO: enable nix periodic GC
+
 {
   inputs,
   user,
@@ -5,6 +7,35 @@
   ...
 }:
 [
+  (
+    # System packages
+    { pkgs, ... }:
+    {
+      environment.systemPackages = with pkgs; [
+        vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
+        git
+        gnome-tweaks
+        xclip
+        unzip
+        tmux
+      ];
+
+    }
+  )
+
+  (
+    # Gnome extensions
+    { pkgs, ... }:
+    {
+      environment.systemPackages = with pkgs.gnomeExtensions; [
+        tray-icons-reloaded
+        user-themes
+        dash-to-dock
+      ];
+
+    }
+  )
+
   # Keyboard remapping
   inputs.xremap-flake.nixosModules.default
   {
@@ -36,7 +67,39 @@
     home-manager.extraSpecialArgs = {
       user = user;
     };
-    home-manager.users.${user.username} = ./home.nix;
+    home-manager.users.${user.username} = {
+      imports = [
+        ./home.nix
+        (
+          { pkgs, ... }:
+          let
+            rofi-launchers = pkgs.callPackage ./rofi.nix { };
+          in
+          {
+            home.packages = with pkgs; [
+              rofi-launchers
+            ];
+
+            dconf.settings = {
+              "org/gnome/settings-daemon/plugins/media-keys" = {
+                custom-keybindings = [
+                  "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/"
+                ];
+              };
+              "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0" = {
+                # Super + Space
+                # NOTE: if this does not work, try disabling the default
+                # binding (likely input switching) in the GNOME settings and
+                # then re-switch configuration
+                binding = "<Super>space";
+                command = "${rofi-launchers}/bin/launcher_t1";
+                name = "Launch Rofi";
+              };
+            };
+          }
+        )
+      ];
+    };
   }
 
   (

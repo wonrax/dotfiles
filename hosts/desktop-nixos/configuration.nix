@@ -6,6 +6,8 @@
   config,
   pkgs,
   user,
+  inputs,
+  ibus-bamboo,
   ...
 }:
 
@@ -71,6 +73,18 @@
     LC_PAPER = "en_GB.UTF-8";
     LC_TELEPHONE = "vi_VN";
     LC_TIME = "en_GB.UTF-8";
+  };
+
+  i18n.inputMethod = {
+    enable = true;
+    type = "ibus";
+    ibus.engines = with pkgs; [
+      # (callPackage ../../ibus-bamboo.nix { })
+
+      # TODO: make this cleaner
+      # https://nixos-and-flakes.thiscute.world/nixos-with-flakes/downgrade-or-upgrade-packages
+      ibus-bamboo.legacyPackages."x86_64-linux".ibus-engines.bamboo
+    ];
   };
 
   # Enable the KDE Plasma Desktop Environment.
@@ -172,16 +186,6 @@
     # require enabling PolKit integration on some desktop environments (e.g. Plasma).
     # polkitPolicyOwners = [ "yourUsernameHere" ];
   };
-
-  # List packages installed in system profile. To search, run:
-  # $ nix search wget
-  environment.systemPackages = with pkgs; [
-    git
-    vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-    gnome-tweaks
-    xclip
-    unzip
-  ];
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
