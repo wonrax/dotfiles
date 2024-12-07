@@ -72,12 +72,9 @@
         ./home.nix
         (
           { pkgs, ... }:
-          let
-            rofi-launchers = pkgs.callPackage ./rofi.nix { };
-          in
           {
             home.packages = with pkgs; [
-              rofi-launchers
+              ulauncher
             ];
 
             dconf.settings = {
@@ -92,8 +89,8 @@
                 # binding (likely input switching) in the GNOME settings and
                 # then re-switch configuration
                 binding = "<Super>space";
-                command = "${rofi-launchers}/bin/launcher_t1";
-                name = "Launch Rofi";
+                command = "${pkgs.ulauncher}/bin/ulauncher-toggle";
+                name = "Launch ulauncher";
               };
             };
           }
@@ -103,6 +100,40 @@
   }
 
   (
+    # Systemd services
+    { pkgs, ... }:
+    {
+      # TODO: find a way to group all things related to a module (e.g.
+      # ulauncher) into a single module and not spread them across multiple
+      # modules
+      systemd.user.services."net.launchpad.ulauncher" = {
+        enable = true;
+        wantedBy = [
+          "graphical-session.target"
+          "multi-user.target"
+        ];
+        after = [ "graphical-session.target" ];
+        environment = {
+          GDK_BACKEND = "x11";
+        };
+        serviceConfig = {
+          Type = "dbus";
+          BusName = "io.ulauncher.Ulauncher";
+          # A hack to fix ulauncher unable to find the installed apps
+          # https://github.com/NixOS/nixpkgs/issues/214668#issuecomment-1722569860
+          ExecStart = pkgs.writeShellScript "ulauncher-env-wrapper.sh" ''
+            export PATH="''${XDG_BIN_HOME}:$HOME/.nix-profile/bin:/etc/profiles/per-user/$USER/bin:/nix/var/nix/profiles/default/bin:/run/current-system/sw/bin"
+            exec ${pkgs.ulauncher}/bin/ulauncher --hide-window
+          '';
+          Restart = "on-failure";
+          RestartSec = "1";
+        };
+      };
+    }
+  )
+
+  (
+    # Globally linked libraries using nix-ld
     { pkgs, ... }:
     {
       programs.nix-ld.enable = true;
