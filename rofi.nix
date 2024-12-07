@@ -6,7 +6,7 @@
 # alignment issues as being discussed in:
 # https://github.com/swaywm/sway/issues/267
 # But I still want to keep it here for future reference, e.g. when I switch to
-# hyprland where it might work better.
+# X11 where it might work better.
 # Example usage:
 # ```nix
 # { pkgs, ... }:
@@ -62,6 +62,9 @@ rec {
         substituteInPlace $file \
           --replace-quiet '~/.config/rofi' "$out/share"
       done
+
+      substituteInPlace files/launchers/type-4/shared/fonts.rasi \
+        --replace-fail 'Iosevka Nerd Font 10' "Iosevka Nerd Font 12"
     '';
 
     installPhase = ''
@@ -94,12 +97,12 @@ rec {
 
   launch = writeShellScriptBin "rofi-launcher" ''
     ${rofi}/bin/launcher_t1
-    dir="${package}/share/launchers/type-1"
-    theme='style-1'
+    dir="${package}/share/launchers/type-4"
+    theme='style-5'
 
     ## Run
     ${lib.getExe rofi} \
-      -show drun -normal-window -steal-focus \
+      -show drun \
       -theme $dir/$theme.rasi
   '';
 }

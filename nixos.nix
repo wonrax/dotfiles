@@ -72,9 +72,12 @@
         ./home.nix
         (
           { pkgs, ... }:
+          let
+            rofi-launchers = pkgs.callPackage ./rofi.nix { };
+          in
           {
             home.packages = with pkgs; [
-              ulauncher
+              rofi
             ];
 
             dconf.settings = {
@@ -89,7 +92,7 @@
                 # binding (likely input switching) in the GNOME settings and
                 # then re-switch configuration
                 binding = "<Super>space";
-                command = "${pkgs.ulauncher}/bin/ulauncher-toggle";
+                command = pkgs.lib.getExe rofi-launchers.launch;
                 name = "Launch ulauncher";
               };
             };
@@ -107,7 +110,7 @@
       # ulauncher) into a single module and not spread them across multiple
       # modules
       systemd.user.services."net.launchpad.ulauncher" = {
-        enable = true;
+        enable = false; # Disabled because we're using rofi instead
         wantedBy = [
           "graphical-session.target"
           "multi-user.target"
