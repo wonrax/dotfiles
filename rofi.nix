@@ -63,8 +63,8 @@ rec {
           --replace-quiet '~/.config/rofi' "$out/share"
       done
 
-      substituteInPlace files/launchers/type-4/shared/fonts.rasi \
-        --replace-fail 'Iosevka Nerd Font 10' "Iosevka Nerd Font 12"
+      substituteInPlace files/launchers/type-1/shared/fonts.rasi \
+        --replace-fail 'JetBrains Mono Nerd Font 10' 'JetBrains Mono Nerd Font 13'
     '';
 
     installPhase = ''
@@ -96,8 +96,7 @@ rec {
   };
 
   launch = writeShellScriptBin "rofi-launcher" ''
-    ${rofi}/bin/launcher_t1
-    dir="${package}/share/launchers/type-4"
+    dir="${package}/share/launchers/type-1"
     theme='style-5'
 
     ## Run

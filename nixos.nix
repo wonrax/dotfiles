@@ -78,6 +78,7 @@
           {
             home.packages = with pkgs; [
               rofi
+              rofi-launchers.package
             ];
 
             dconf.settings = {
