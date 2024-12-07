@@ -8,7 +8,7 @@
 }:
 [
   (
-    # System packages
+    # System config
     { pkgs, ... }:
     {
       environment.systemPackages = with pkgs; [
@@ -20,6 +20,15 @@
         tmux
       ];
 
+      # NixOS does not follow the XDG Base Directory Specification by default
+      # Tracking issue: https://github.com/NixOS/nixpkgs/issues/224525
+      environment.variables = {
+        XDG_CACHE_HOME = "$HOME/.cache";
+        XDG_CONFIG_DIRS = "/etc/xdg";
+        XDG_CONFIG_HOME = "$HOME/.config";
+        XDG_DATA_HOME = "$HOME/.local/share";
+        XDG_STATE_HOME = "$HOME/.local/state";
+      };
     }
   )
 

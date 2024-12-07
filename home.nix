@@ -7,18 +7,51 @@
 }:
 
 {
-  # TODO please change the username & home directory to your own
   home.username = user.username;
   home.homeDirectory = "/home/${user.username}";
 
-  # link the configuration file in current directory to the specified location in home directory
-  # home.file.".config/i3/wallpaper.jpg".source = ./wallpaper.jpg;
-
-  # link all files in `./scripts` to `~/.config/i3/scripts`
-  home.file.".config/nvim" = {
+  # TODO: find a way to assert that the dotfiles are cloned under ~/.dotfiles
+  # otherwise the configuration will not work
+  xdg.configFile.nvim = {
     source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/.config/nvim";
     recursive = true; # link recursively
+    executable = false;
+  };
+
+  xdg.configFile.tmux = {
+    source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/.config/tmux";
+    recursive = true; # link recursively
     executable = false; # make all files executable
+  };
+
+  home.file.".tmux.conf" = {
+    source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/.config/tmux/tmux.conf";
+    recursive = true; # link recursively
+    executable = false; # make all files executable
+  };
+
+  xdg.configFile.alacritty = {
+    source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/.config/alacritty";
+    recursive = true; # link recursively
+    executable = false; # make all files executable
+  };
+
+  home.activation = {
+    tmuxPluginManager = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      PATH="${pkgs.git}/bin:$PATH"
+      # The .dotfiles absolute path where you cloned the repo
+      DOTFILES="$HOME/.dotfiles"
+
+      if [ ! -d "$HOME/.config/tmux/plugins/tpm" ]; then
+        $DRY_RUN_CMD git clone https://github.com/tmux-plugins/tpm "$HOME/.config/tmux/plugins/tpm"
+      fi
+
+      if [[ ! -f "$DOTFILES/.config/alacritty/alacritty.toml" ]]; then
+          echo "Creating a local alacritty config: alacritty.toml"
+          cp $DOTFILES/.config/alacritty/alacritty.toml.template \
+            $DOTFILES/.config/alacritty/alacritty.toml
+      fi
+    '';
   };
 
   # encode the file content in nix configuration file directly
@@ -46,6 +79,7 @@
     neovim
     gh
     ripgrep
+    alacritty
 
     # devel
     gcc
@@ -58,6 +92,9 @@
 
     # communication
     discord
+
+    # Fonts
+    cascadia-code
   ];
 
   # TODO: what does this do?
