@@ -60,6 +60,7 @@ vim.keymap.set('n', '<Esc>', function()
   end
 
   -- Clear the search highlight
+  -- TODO: this currently does not work
   vim.cmd 'nohlsearch'
 end, { desc = 'Close every floating window' })
 

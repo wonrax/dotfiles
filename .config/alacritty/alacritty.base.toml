@@ -1,4 +1,4 @@
-import = ["~/.config/alacritty/alacritty.local.toml"]
+general.import = ["~/.config/alacritty/alacritty.local.toml"]
 
 [bell]
 animation = "EaseOut"
