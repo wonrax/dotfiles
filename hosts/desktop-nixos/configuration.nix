@@ -5,8 +5,6 @@
 {
   config,
   pkgs,
-  user,
-  inputs,
   ibus-bamboo,
   ...
 }:
@@ -166,27 +164,6 @@
 
   # Enable touchpad support (enabled default in most desktopManager).
   # services.xserver.libinput.enable = true;
-
-  # Define a user account. Don't forget to set a password with ‘passwd’.
-  users.users.${user.username} = {
-    isNormalUser = true;
-    description = user.fullname;
-    extraGroups = [
-      "networkmanager"
-      "wheel"
-    ];
-    packages = with pkgs; [
-      google-chrome
-    ];
-  };
-
-  programs._1password.enable = true;
-  programs._1password-gui = {
-    enable = true;
-    # Certain features, including CLI integration and system authentication support,
-    # require enabling PolKit integration on some desktop environments (e.g. Plasma).
-    # polkitPolicyOwners = [ "yourUsernameHere" ];
-  };
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.

@@ -1,4 +1,5 @@
 # TODO: enable nix periodic GC
+# TODO: enable swap
 
 {
   inputs,
@@ -19,6 +20,32 @@
         unzip
         tmux
       ];
+
+      # Enable ZSH so that it's available on login
+      programs.zsh.enable = true;
+
+      users.users.${user.username} = {
+        isNormalUser = true;
+        description = user.fullname;
+        extraGroups = [
+          "networkmanager"
+          "wheel"
+        ];
+
+        packages = with pkgs; [
+          google-chrome
+        ];
+
+        shell = pkgs.zsh;
+      };
+
+      programs._1password.enable = true;
+      programs._1password-gui = {
+        enable = true;
+        # Certain features, including CLI integration and system authentication support,
+        # require enabling PolKit integration on some desktop environments (e.g. Plasma).
+        # polkitPolicyOwners = [ "yourUsernameHere" ];
+      };
 
       # NixOS does not follow the XDG Base Directory Specification by default
       # Tracking issue: https://github.com/NixOS/nixpkgs/issues/224525

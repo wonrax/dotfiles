@@ -139,10 +139,15 @@
   # Packages that should be installed to the user profile.
   home.packages = with pkgs; [
     # productivity
+    alacritty
     neovim
     gh
+
     ripgrep
-    alacritty
+    bat
+    eza
+    fzf
+    delta
 
     # devel
     gcc
