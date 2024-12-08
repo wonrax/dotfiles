@@ -100,7 +100,9 @@ source $ZSH/oh-my-zsh.sh
 # Automatic rename tmux window after changing dir
 # https://github.com/ofirgall/tmux-window-name?tab=readme-ov-file#automatic-rename-after-changing-dir
 tmux-window-name() {
-	($TMUX_PLUGIN_MANAGER_PATH/tmux-window-name/scripts/rename_session_windows.py &)
+  # Only run the command if we are in a tmux session
+  if [ -n "$TMUX" ] || return
+  ($TMUX_PLUGIN_MANAGER_PATH/tmux-window-name/scripts/rename_session_windows.py &)
 }
 
 add-zsh-hook chpwd tmux-window-name
