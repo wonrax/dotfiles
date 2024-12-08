@@ -9,8 +9,6 @@
   home.username = user.username;
   home.homeDirectory = "/home/${user.username}";
 
-  # TODO: find a way to assert that the dotfiles are cloned under ~/.dotfiles
-  # otherwise the configuration will not work
   xdg.configFile.nvim = {
     source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/.config/nvim";
     recursive = true; # link recursively
@@ -38,6 +36,15 @@
   };
 
   home.activation = {
+    # Make sure that the dotfiles are cloned in the correct location so that
+    # the configuration can be linked and binaries are available
+    # TODO: is there a better way to do this?
+    assertDotfilesLocation = lib.hm.dag.entryBefore [ "installPackages" "linkGeneration" ] ''
+      if [ ! -f "$HOME/.dotfiles/flake.nix" ]; then
+        echo "Please clone the dotfiles repository to ~/.dotfiles"
+        exit 1
+      fi
+    '';
     tmuxPluginManager = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       PATH="${pkgs.git}/bin:$PATH"
       # The .dotfiles absolute path where you cloned the repo

@@ -37,7 +37,6 @@
       };
     in
     {
-      # Please replace my-nixos with your hostname
       nixosConfigurations.wonrax-desktop-nixos = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         specialArgs = { inherit user ibus-bamboo; };
