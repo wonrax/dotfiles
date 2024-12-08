@@ -23,6 +23,8 @@
     executable = false; # make all files executable
   };
 
+  # NOTE: have to link the tmux.conf file separately in home because tmux won't
+  # read the configuration inside XDG
   home.file.".tmux.conf" = {
     source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/.config/tmux/tmux.conf";
     recursive = true; # link recursively
