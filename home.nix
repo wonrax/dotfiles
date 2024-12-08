@@ -154,6 +154,10 @@
     nodejs_23
     rustup
     nixfmt-rfc-style
+    (pkgs.python312.withPackages (ppkgs: [
+      # wanted by tmux window name
+      ppkgs.libtmux
+    ]))
 
     # entertainment
     spotify

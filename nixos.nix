@@ -1,5 +1,7 @@
 # TODO: enable nix periodic GC
 # TODO: enable swap
+# TODO: reorganize modules and their dependencies so that they are easier to
+# manage
 
 {
   inputs,
