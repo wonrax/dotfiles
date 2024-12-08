@@ -138,6 +138,16 @@
     '';
   };
 
+  programs.git = {
+    # TODO: set up git delta
+    enable = true;
+    userName = user.username;
+    userEmail = user.email;
+    extraConfig = {
+      pull.rebase = true;
+    };
+  };
+
   # Packages that should be installed to the user profile.
   home.packages = with pkgs; [
     # productivity

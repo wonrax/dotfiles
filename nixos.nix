@@ -136,6 +136,20 @@
                 name = "Launch ulauncher";
               };
             };
+
+            # NOTE: This is currently nixos specific because we haven't figured
+            # out how to make it work with home manager on macos
+            # TODO: also config SSH for 1password, see example in:
+            # https://github.com/cbr9/dotfiles/blob/617144/modules/home-manager/ssh/default.nix
+            programs.git = {
+              extraConfig = {
+                # 1password general SSH key
+                user.signingKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILcVnyW/bNR+hbNQ4utoprtSm8ONNFMER9lgLT9u9rVu";
+                gpg.format = "ssh";
+                gpg.ssh.program = "${pkgs._1password-gui}/bin/op-ssh-sign";
+                commit.gpgsign = true;
+              };
+            };
           }
         )
       ];

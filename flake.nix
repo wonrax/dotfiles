@@ -33,6 +33,7 @@
       user = {
         username = "wonrax";
         fullname = "Hai L. Ha-Huy";
+        email = "hahuylonghai2012@gmail.com";
       };
     in
     {
