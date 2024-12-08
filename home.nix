@@ -5,7 +5,6 @@
   user,
   ...
 }:
-
 {
   home.username = user.username;
   home.homeDirectory = "/home/${user.username}";
@@ -72,6 +71,70 @@
   # in nixos configuration. Explanation:
   # https://discourse.nixos.org/t/home-manager-useuserpackages-useglobalpkgs-settings/
   nixpkgs.config.allowUnfree = true;
+
+  programs.zsh = {
+    enable = true;
+    oh-my-zsh.enable = true;
+    oh-my-zsh.plugins = [
+      "zsh-autosuggestions"
+    ];
+    oh-my-zsh.package = pkgs.stdenv.mkDerivation rec {
+      # Making a new oh-my-zsh derivation to include custom plugins
+      name = "oh-my-zsh-customization-${version}";
+      version = "2024-12-08";
+      src = pkgs.fetchFromGitHub {
+        owner = "ohmyzsh";
+        repo = "ohmyzsh";
+        rev = "69a6359f7cf8978d464573fb7b023ee3cd00181a";
+        sha256 = "sha256-31wI3wFGQ9YhEo7XguLSTNY0rvOFa+/MoFwDAZIo7ZY";
+      };
+
+      zsh-autosuggestions = pkgs.fetchFromGitHub {
+        owner = "zsh-users";
+        repo = "zsh-autosuggestions";
+        rev = "v0.7.1";
+        sha256 = "sha256-vpTyYq9ZgfgdDsWzjxVAE7FZH4MALMNZIFyEOBLm5Qo";
+      };
+
+      zsh-syntax-highlighting = pkgs.fetchFromGitHub {
+        owner = "zsh-users";
+        repo = "zsh-syntax-highlighting";
+        rev = "0.8.0";
+        sha256 = "sha256-iJdWopZwHpSyYl5/FQXEW7gl/SrKaYDEtTH9cGP7iPo";
+      };
+
+      forgit = pkgs.fetchFromGitHub {
+        owner = "wfxr";
+        repo = "forgit";
+        rev = "24.12.0";
+        sha256 = "sha256-nFXouj2e0oyN9p4/pZlVa3vsSoJ3zJesHKY22V4eLKA";
+      };
+
+      zsh-vi-mode = pkgs.fetchFromGitHub {
+        owner = "jeffreytse";
+        repo = "zsh-vi-mode";
+        rev = "v0.11.0";
+        sha256 = "sha256-xbchXJTFWeABTwq6h4KWLh+EvydDrDzcY9AQVK65RS8";
+      };
+
+      dontBuild = true;
+      installPhase = ''
+        mkdir -p $out/share/oh-my-zsh/custom/plugins
+
+        ln -s ${zsh-autosuggestions} $out/share/oh-my-zsh/custom/plugins/zsh-autosuggestions
+        ln -s ${zsh-syntax-highlighting} $out/share/oh-my-zsh/custom/plugins/zsh-syntax-highlighting
+        ln -s ${forgit} $out/share/oh-my-zsh/custom/plugins/forgit
+        ln -s ${zsh-vi-mode} $out/share/oh-my-zsh/custom/plugins/zsh-vi-mode
+
+        # This must be the last line because otherwise the the inner plugins
+        # directory will be read-only and the plugin installation will fail
+        cp -r $src/* $out/share/oh-my-zsh/
+      '';
+    };
+    initExtra = ''
+      ${builtins.readFile ./zshrc}
+    '';
+  };
 
   # Packages that should be installed to the user profile.
   home.packages = with pkgs; [

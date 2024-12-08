@@ -13,7 +13,9 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]
 fi
 
 # Path to your oh-my-zsh installation.
-export ZSH="$HOME/.oh-my-zsh"
+# If already exists, don't override it because nix home manager could wrap it
+# with a oh-my-zsh directory in the nix store
+export ZSH=${ZSH:-$HOME/.oh-my-zsh}
 
 # Set name of the theme to load --- if set to "random", it will
 # load a random theme each time oh-my-zsh is loaded, in which case,
@@ -82,7 +84,7 @@ ZSH_THEME="refined"
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(
-  zsh-history-enquirer
+  # zsh-history-enquirer # This does not work with zsh-vi-mode
   tmux
   git
   npm
