@@ -95,14 +95,14 @@ decorations = "full"
 opacity = 1.0
 
 [window.dimensions]
-columns = 100
+columns = 140
 lines = 30
 
 [window.padding]
-x = 16
-y = 16
+x = 10
+y = 10
 
 [window.position]
-x = 512
-y = 512
+x = 256
+y = 256
 
