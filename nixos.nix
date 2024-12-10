@@ -36,11 +36,15 @@
 
         packages = with pkgs; [
           google-chrome
+          tailscale-systray
 
-          # entertainment
+          # NOTE: These packages are NixOS specific because on macOS I'd like
+          # for these programs to be able to update itself, which is only
+          # possible if you install them the "normal" way.
+          # - entertainment
           spotify
-
-          # communication
+          plex-desktop
+          # - communication
           discord
         ];
 
@@ -164,6 +168,28 @@
     # Systemd services
     { pkgs, ... }:
     {
+      # ==== Tailscale ====
+      services.tailscale.enable = true;
+      systemd.user.services.tailscale-systray = {
+        enable = true;
+        wantedBy = [
+          "graphical-session.target"
+          "multi-user.target"
+        ];
+        after = [ "graphical-session.target" ];
+        path = with pkgs; [
+          tailscale
+          xdg-utils
+          xclip
+        ];
+        serviceConfig = {
+          ExecStart = pkgs.lib.getExe pkgs.tailscale-systray;
+          Restart = "on-failure";
+          RestartSec = "3";
+        };
+      };
+
+      # ==== Ulauncher ====
       # TODO: find a way to group all things related to a module (e.g.
       # ulauncher) into a single module and not spread them across multiple
       # modules
