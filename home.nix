@@ -201,6 +201,10 @@
     gh
     bash
 
+    htop
+    btop
+    tokei
+
     ripgrep
     bat
     eza
