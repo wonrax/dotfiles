@@ -39,10 +39,30 @@
     {
       nixosConfigurations.wonrax-desktop-nixos = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
-        specialArgs = { inherit user ibus-bamboo; };
-        modules = import ./nixos.nix { inherit inputs user home-manager; } ++ [
+        specialArgs = {
+          inherit user ibus-bamboo;
+        };
+        modules = import ./nixos.nix { inherit inputs user; } ++ [
           ./hosts/desktop-nixos/configuration.nix
         ];
+      };
+
+      # Standalone home-manager configuration, for systems where you don't want
+      # to use NixOS but still want to use home-manager, e.g. macOS without
+      # nix-darwin.
+      packages.aarch64-darwin = {
+        # TODO: libsqlite3 is not yet managed by home-manager, gotta install it
+        # manually using brew
+        # TODO: config git signing
+        homeConfigurations.${user.username} = home-manager.lib.homeManagerConfiguration {
+          pkgs = nixpkgs.legacyPackages.aarch64-darwin;
+          extraSpecialArgs = {
+            inherit user;
+          };
+          modules = [
+            ./home.nix
+          ];
+        };
       };
     };
 }

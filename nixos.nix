@@ -36,6 +36,12 @@
 
         packages = with pkgs; [
           google-chrome
+
+          # entertainment
+          spotify
+
+          # communication
+          discord
         ];
 
         shell = pkgs.zsh;

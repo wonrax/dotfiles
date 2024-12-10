@@ -1,5 +1,4 @@
 general.import = [
-  "~/.config/alacritty/alacritty.base.toml",
-  "~/.config/alacritty/alacritty-light.toml"
+  "~/.dotfiles/.config/alacritty/alacritty-light.toml"
 ]
 
