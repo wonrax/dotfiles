@@ -166,6 +166,10 @@
       pull.rebase = true;
       merge.conflictStyle = "diff3";
 
+      # enable gpg signing
+      commit.gpgsign = true;
+      gpg.format = "ssh";
+
       # TODO: what are all these difftool doing with each other?
 
       diff = {
