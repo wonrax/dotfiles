@@ -42,7 +42,7 @@
         specialArgs = {
           inherit user ibus-bamboo;
         };
-        modules = import ./nixos.nix { inherit inputs user; } ++ [
+        modules = import ./nixos.nix { inherit inputs user home-manager; } ++ [
           ./hosts/desktop-nixos/configuration.nix
         ];
       };
