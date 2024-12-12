@@ -11,6 +11,15 @@ return {
           keys = { 'F', 't', 'T', ';', ',' },
         },
       },
+      label = {
+        -- TODO: experimenting with this, if it does not feel better change it
+        -- back to false
+        uppercase = false,
+
+        rainbow = {
+          enabled = true,
+        },
+      },
     },
   -- stylua: ignore
   keys = {
