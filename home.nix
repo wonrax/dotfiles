@@ -232,6 +232,22 @@
   # TODO: what does this do?
   fonts.fontconfig.enableProfileFonts = true;
 
+  # NOTE: that you have to create a new shell session after changing these,
+  # since these variables are being sourced only once per shell session.
+  # TODO: Maybe consider using zsh variables instead.
+  home.sessionVariables = {
+    # Build time globally linked libraries, for runtime linking, use
+    # LD_LIBRARY_PATH
+    LIBRARY_PATH =
+      "$LIBRARY_PATH:"
+      + pkgs.lib.makeLibraryPath (
+        with pkgs;
+        [
+          libiconv
+        ]
+      );
+  };
+
   # This value determines the home Manager release that your
   # configuration is compatible with. This helps avoid breakage
   # when a new home Manager release introduces backwards
