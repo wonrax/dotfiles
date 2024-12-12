@@ -30,6 +30,14 @@ return {
               dismiss = '<M-0>',
             },
           },
+          filetypes = {
+            -- NOTE: we need to explicitly enable these filetypes because if
+            -- not the default config will be used
+            yaml = true,
+            markdown = true,
+            gitcommit = true,
+            gitrebase = true,
+          },
         },
         config = function(_, opts)
           require('copilot').setup(opts)
