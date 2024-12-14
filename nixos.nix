@@ -168,6 +168,10 @@
     # Systemd services
     { pkgs, ... }:
     {
+      # ==== Docker ====
+      virtualisation.docker.enable = true;
+      users.users.${user.username}.extraGroups = [ "docker" ];
+
       # ==== Tailscale ====
       services.tailscale.enable = true;
       systemd.user.services.tailscale-systray = {
@@ -188,6 +192,8 @@
           RestartSec = "3";
         };
       };
+      # https://github.com/tailscale/tailscale/issues/4432#issuecomment-1112819111
+      networking.firewall.checkReversePath = "loose";
 
       # ==== Ulauncher ====
       # TODO: find a way to group all things related to a module (e.g.
