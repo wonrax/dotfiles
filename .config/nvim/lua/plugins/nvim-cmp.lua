@@ -2,6 +2,7 @@ return {
   { -- Autocompletion
     'hrsh7th/nvim-cmp',
     event = 'InsertEnter',
+    enabled = false, -- Disabled to use blink.cmp
     dependencies = {
       -- Snippet Engine & its associated nvim-cmp source
       {

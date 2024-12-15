@@ -52,10 +52,6 @@ return {
       clear_chat_on_new_prompt = false,
       chat_autocomplete = true,
       mappings = {
-        -- Disable to use nvim-cmp
-        complete = {
-          insert = '',
-        },
         -- Close the chat
         close = {
           normal = 'q',
