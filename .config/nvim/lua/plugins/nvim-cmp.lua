@@ -42,6 +42,8 @@ return {
       local luasnip = require 'luasnip'
       luasnip.config.setup {}
 
+      local compare = require 'cmp.config.compare'
+
       cmp.setup {
         snippet = {
           expand = function(args)
@@ -108,6 +110,19 @@ return {
           { name = 'dictionary', priority = 60 },
           { name = 'luasnip', priority = -10 },
           { name = 'copilot-chat', priority = -10, trigger_characters = { '/' } },
+        },
+        sorting = {
+          priority_weight = 1.0,
+          comparators = {
+            compare.exact,
+            compare.score,
+            compare.sort_text,
+            compare.order,
+            compare.offset,
+            compare.locality,
+            compare.recently_used,
+            compare.kind,
+          },
         },
         formatting = {
           expandable_indicator = true,
