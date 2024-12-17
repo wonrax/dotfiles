@@ -299,22 +299,6 @@
         "type": "github"
       }
     },
-    "ibus-bamboo": {
-      "locked": {
-        "lastModified": 1715721473,
-        "narHash": "sha256-42okGEXT2cPw3xfSxpb+L/O1YdIM/luq4poIuqEW/Fk=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "0c19708cf035f50d28eb4b2b8e7a79d4dc52f6bb",
-        "type": "github"
-      },
-      "original": {
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "0c19708cf035f50d28eb4b2b8e7a79d4dc52f6bb",
-        "type": "github"
-      }
-    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1732981179,
@@ -426,7 +410,6 @@
     "root": {
       "inputs": {
         "home-manager": "home-manager",
-        "ibus-bamboo": "ibus-bamboo",
         "nixpkgs": "nixpkgs",
         "xremap-flake": "xremap-flake"
       }

@@ -5,7 +5,6 @@
 {
   config,
   pkgs,
-  ibus-bamboo,
   ...
 }:
 
@@ -71,18 +70,6 @@
     LC_PAPER = "en_GB.UTF-8";
     LC_TELEPHONE = "vi_VN";
     LC_TIME = "en_GB.UTF-8";
-  };
-
-  i18n.inputMethod = {
-    enable = true;
-    type = "ibus";
-    ibus.engines = with pkgs; [
-      # (callPackage ../../ibus-bamboo.nix { })
-
-      # TODO: make this cleaner
-      # https://nixos-and-flakes.thiscute.world/nixos-with-flakes/downgrade-or-upgrade-packages
-      ibus-bamboo.legacyPackages."x86_64-linux".ibus-engines.bamboo
-    ];
   };
 
   # Enable the KDE Plasma Desktop Environment.
