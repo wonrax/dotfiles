@@ -60,6 +60,14 @@
         polkitPolicyOwners = [ user.username ];
       };
 
+      i18n.inputMethod = {
+        enable = true;
+        type = "ibus";
+        ibus.engines = with pkgs.ibus-engines; [
+          bamboo
+        ];
+      };
+
       # NixOS does not follow the XDG Base Directory Specification by default
       # Tracking issue: https://github.com/NixOS/nixpkgs/issues/224525
       environment.variables = {

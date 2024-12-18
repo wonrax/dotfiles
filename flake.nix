@@ -14,11 +14,6 @@
     };
 
     xremap-flake.url = "github:xremap/nix-flake";
-
-    # Latest version 0.8.4-RC6 keeps crashing on my system so downgrading to 0.8.2-rc18
-    ibus-bamboo = {
-      url = "github:NixOS/nixpkgs/0c19708cf035f50d28eb4b2b8e7a79d4dc52f6bb";
-    };
   };
 
   outputs =
@@ -26,7 +21,6 @@
       self,
       nixpkgs,
       home-manager,
-      ibus-bamboo,
       ...
     }@inputs:
     let
@@ -40,7 +34,7 @@
       nixosConfigurations.wonrax-desktop-nixos = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         specialArgs = {
-          inherit user ibus-bamboo;
+          inherit user;
         };
         modules = import ./nixos.nix { inherit inputs user home-manager; } ++ [
           ./hosts/desktop-nixos/configuration.nix
