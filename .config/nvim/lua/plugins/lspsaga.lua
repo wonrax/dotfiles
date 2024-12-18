@@ -20,7 +20,7 @@ return {
         },
         rename = {
           keys = {
-            quit = '<esc>',
+            -- quit = 'q',
           },
         },
         diagnostic = {
