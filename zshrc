@@ -154,6 +154,7 @@ export PATH=$PATH:/usr/local/go/bin:~/go/bin
 export PATH=$PATH:/opt/swift/usr/bin
 
 export SYSTEMD_EDITOR=nvim
+# TODO: not working on nix
 export EDITOR=/usr/bin/nvim
 
 # Bat (cat alternative)
