@@ -40,6 +40,7 @@
         packages = with pkgs; [
           google-chrome
           tailscale-systray
+          jetbrains.datagrip
 
           lazydocker
 
