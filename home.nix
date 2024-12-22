@@ -197,37 +197,43 @@
   };
 
   # Packages that should be installed to the user profile.
-  home.packages = with pkgs; [
-    # productivity
-    alacritty
-    neovim
-    tmux
-    gh
-    bash
+  home.packages =
+    with pkgs;
+    [
+      # productivity
+      alacritty
+      neovim
+      tmux
+      gh
+      bash
 
-    htop
-    btop
-    tokei
+      htop
+      btop
+      tokei
 
-    ripgrep
-    bat
-    eza
-    fzf
-    delta
+      ripgrep
+      bat
+      eza
+      fzf
+      delta
 
-    # devel
-    gcc
-    nodejs_23
-    rustup
-    nixfmt-rfc-style
-    (pkgs.python312.withPackages (ppkgs: [
-      # wanted by tmux window name
-      ppkgs.libtmux
-    ]))
+      # devel
+      nodejs_23
+      rustup
+      nixfmt-rfc-style
+      (pkgs.python312.withPackages (ppkgs: [
+        # wanted by tmux window name
+        ppkgs.libtmux
+      ]))
 
-    # Fonts
-    cascadia-code
-  ];
+      # Fonts
+      cascadia-code
+    ]
+    ++ lib.optionals stdenv.isLinux [
+      # Leave clang on MacOS alone, apparently crates like aws-lc-sys need
+      # MacOS clang to build properly
+      gcc
+    ];
 
   # TODO: what does this do?
   fonts.fontconfig.enableProfileFonts = true;

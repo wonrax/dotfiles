@@ -150,6 +150,9 @@ export PATH=$HOME/.local/bin:$PATH
 # Golang
 export PATH=$PATH:/usr/local/go/bin:~/go/bin
 
+# Rust
+export PATH=$PATH:$HOME/.cargo/bin
+
 # Swift
 export PATH=$PATH:/opt/swift/usr/bin
 
