@@ -218,6 +218,7 @@
       delta
 
       # devel
+      pkg-config
       nodejs_23
       rustup
       nixfmt-rfc-style
@@ -252,6 +253,7 @@
           libiconv
         ]
       );
+    PKG_CONFIG_PATH = "$PKG_CONFIG_PATH:${pkgs.openssl.dev}/lib/pkgconfig";
   };
 
   # This value determines the home Manager release that your
