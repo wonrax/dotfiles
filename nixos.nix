@@ -26,6 +26,9 @@
       # Enable ZSH so that it's available on login
       programs.zsh.enable = true;
 
+      # Enable docker
+      virtualisation.docker.enable = true;
+
       users.users.${user.username} = {
         isNormalUser = true;
         description = user.fullname;
@@ -37,6 +40,8 @@
         packages = with pkgs; [
           google-chrome
           tailscale-systray
+
+          lazydocker
 
           # NOTE: These packages are NixOS specific because on macOS I'd like
           # for these programs to be able to update itself, which is only
@@ -176,8 +181,6 @@
     # Systemd services
     { pkgs, ... }:
     {
-      # ==== Docker ====
-      virtualisation.docker.enable = true;
       users.users.${user.username}.extraGroups = [ "docker" ];
 
       # ==== Tailscale ====
