@@ -47,6 +47,7 @@ return {
       { 'nvim-telescope/telescope.nvim' },
     },
     opts = {
+      model = 'claude-3.5-sonnet',
       show_help = true,
       auto_follow_cursor = false,
       clear_chat_on_new_prompt = false,
