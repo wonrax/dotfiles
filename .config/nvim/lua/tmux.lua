@@ -1,3 +1,7 @@
+-- TODO: There's a bug where after exitting neovim, the tmux-window-name does
+-- not work anymore, that is when changing dir the window name is not being
+-- updated. Not sure why and what is causing this.
+
 -- Function to check if we're running inside tmux
 local function is_in_tmux()
   return vim.env.TMUX ~= nil
@@ -30,8 +34,8 @@ if is_in_tmux() then
   local tmux_group = vim.api.nvim_create_augroup('TmuxWindowName', { clear = true })
 
   vim.api.nvim_create_autocmd({
-    'DirChanged',
     'VimEnter',
+    'DirChanged',
     'VimResized',
   }, {
     group = tmux_group,
@@ -47,6 +51,8 @@ if is_in_tmux() then
       end)
     end,
   })
+
+  update_tmux_window_name()
 end
 
 -- Create a command to manually update the window name
