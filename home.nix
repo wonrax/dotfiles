@@ -163,7 +163,9 @@
     userName = user.username;
     userEmail = user.email;
     extraConfig = {
-      pull.rebase = true;
+      pull.rebase = false;
+      pull.ff = true;
+
       merge.conflictStyle = "diff3";
 
       # enable gpg signing
