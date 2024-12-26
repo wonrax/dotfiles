@@ -6,10 +6,6 @@
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
-alias python="python3"
-alias py="python3"
-alias vim="nvim"
-alias vi="nvim"
 alias ls="eza"
 alias cat="bat"
 

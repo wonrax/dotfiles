@@ -30,6 +30,14 @@ return {
               dismiss = '<M-0>',
             },
           },
+          filetypes = {
+            -- NOTE: we need to explicitly enable these filetypes because if
+            -- not the default config will be used
+            yaml = true,
+            markdown = true,
+            gitcommit = true,
+            gitrebase = true,
+          },
         },
         config = function(_, opts)
           require('copilot').setup(opts)
@@ -39,15 +47,12 @@ return {
       { 'nvim-telescope/telescope.nvim' },
     },
     opts = {
+      model = 'claude-3.5-sonnet',
       show_help = true,
       auto_follow_cursor = false,
       clear_chat_on_new_prompt = false,
       chat_autocomplete = true,
       mappings = {
-        -- Disable to use nvim-cmp
-        complete = {
-          insert = '',
-        },
         -- Close the chat
         close = {
           normal = 'q',

@@ -1,8 +1,10 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-if [[ $TERM != "alacritty" ]]; then
-	exit 0
-fi
+# TODO: alacritty from nixpkgs does not have TERM set to
+# alacritty
+# if [[ $TERM != "alacritty" ]]; then
+# 	exit 0
+# fi
 
 unameOut=$(uname -a)
 case "${unameOut}" in
@@ -45,7 +47,7 @@ function setTheme() {
 
 	echo $testDark
 
-	CONFIG_PATH="$HOME/.dotfiles/.config/alacritty/alacritty.toml"
+	CONFIG_PATH="$HOME/.dotfiles/.config/alacritty/alacritty.local.toml"
 	LIGHT="alacritty-light"
 	DARK="alacritty-dark"
 

@@ -87,7 +87,7 @@ fi
 ln -sf $DOTFILES/.config/tmux/tmux.conf $HOME/.tmux.conf
 # TPM
 [[ ! -d "$HOME/.tmux/plugins/tpm" ]] &&
-	git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+	git clone https://github.com/tmux-plugins/tpm ~/.config/tmux/plugins/tpm
 
 echo "Installing libtmux"
 python3 -m pip install --user libtmux --break-system-packages

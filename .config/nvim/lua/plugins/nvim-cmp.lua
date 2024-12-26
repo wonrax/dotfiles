@@ -2,6 +2,7 @@ return {
   { -- Autocompletion
     'hrsh7th/nvim-cmp',
     event = 'InsertEnter',
+    enabled = false, -- Disabled to use blink.cmp
     dependencies = {
       -- Snippet Engine & its associated nvim-cmp source
       {
@@ -41,6 +42,8 @@ return {
       local cmp = require 'cmp'
       local luasnip = require 'luasnip'
       luasnip.config.setup {}
+
+      local compare = require 'cmp.config.compare'
 
       cmp.setup {
         snippet = {
@@ -108,6 +111,19 @@ return {
           { name = 'dictionary', priority = 60 },
           { name = 'luasnip', priority = -10 },
           { name = 'copilot-chat', priority = -10, trigger_characters = { '/' } },
+        },
+        sorting = {
+          priority_weight = 1.0,
+          comparators = {
+            compare.exact,
+            compare.score,
+            compare.sort_text,
+            compare.order,
+            compare.offset,
+            compare.locality,
+            compare.recently_used,
+            compare.kind,
+          },
         },
         formatting = {
           expandable_indicator = true,

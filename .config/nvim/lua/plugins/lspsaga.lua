@@ -18,6 +18,18 @@ return {
           enable = false,
           show_file = false,
         },
+        rename = {
+          keys = {
+            -- quit = 'q',
+          },
+        },
+        diagnostic = {
+          keys = {
+            quit = { 'q', '<ESC>' },
+            quit_in_show = { 'q', '<ESC>' },
+            toggle_or_jump = { 'o', '<CR>' },
+          },
+        },
       }
 
       require('which-key').add {
