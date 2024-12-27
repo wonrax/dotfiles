@@ -6,6 +6,7 @@
   pkgs,
   lib,
   user,
+  ghostty,
   ...
 }:
 {
@@ -32,6 +33,12 @@
       rev = "v3.1.0";
       sha256 = "sha256-CeI9Wq6tHqV68woE11lIY4cLoNY8XWyXyMHTDmFKJKI=";
     };
+  };
+
+  xdg.configFile.ghostty = {
+    source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/.config/ghostty";
+    recursive = true; # link recursively
+    executable = false;
   };
 
   home.activation = {
@@ -236,10 +243,14 @@
       # Leave clang on MacOS alone, apparently crates like aws-lc-sys need
       # MacOS clang to build properly
       gcc
+
+      # Ghostty has not been available for MacOS yet, related discussion:
+      # https://github.com/ghostty-org/ghostty/discussions/2824
+      ghostty.packages.${pkgs.stdenv.hostPlatform.system}.default
     ];
 
   # TODO: what does this do?
-  fonts.fontconfig.enableProfileFonts = true;
+  fonts.fontconfig.enable = true;
 
   # NOTE: that you have to create a new shell session after changing these,
   # since these variables are being sourced only once per shell session.

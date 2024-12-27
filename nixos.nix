@@ -9,6 +9,9 @@
   home-manager,
   ...
 }:
+let
+  ghostty = inputs.ghostty;
+in
 [
   (
     # System config
@@ -128,7 +131,7 @@
   {
     home-manager.useUserPackages = true;
     home-manager.extraSpecialArgs = {
-      user = user;
+      inherit user ghostty;
     };
     home-manager.users.${user.username} = {
       imports = [

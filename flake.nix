@@ -14,6 +14,10 @@
     };
 
     xremap-flake.url = "github:xremap/nix-flake";
+
+    ghostty = {
+      url = "github:ghostty-org/ghostty";
+    };
   };
 
   outputs =
@@ -21,6 +25,7 @@
       self,
       nixpkgs,
       home-manager,
+      ghostty,
       ...
     }@inputs:
     let
@@ -51,7 +56,7 @@
         homeConfigurations.${user.username} = home-manager.lib.homeManagerConfiguration {
           pkgs = nixpkgs.legacyPackages.aarch64-darwin;
           extraSpecialArgs = {
-            inherit user;
+            inherit user ghostty;
           };
           modules = [
             ./home.nix
