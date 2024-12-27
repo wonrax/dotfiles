@@ -147,9 +147,7 @@ return {
 
       -- Reload cokeline on colorscheme change, mainly dark/light mode toggle
       vim.api.nvim_create_autocmd('ColorScheme', {
-        callback = function()
-          config()
-        end,
+        callback = config,
       })
     end,
   },

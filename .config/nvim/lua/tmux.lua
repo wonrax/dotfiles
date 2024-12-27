@@ -22,7 +22,7 @@ local function update_tmux_window_name()
   local project_name = vim.fn.fnamemodify(vim.fn.getcwd(), ':t')
   local window_name = ''
 
-  window_name = ':' .. project_name
+  window_name = 'code:' .. project_name
 
   pcall(function()
     vim.fn.system('tmux rename-window "' .. window_name .. '"')
