@@ -154,6 +154,7 @@
       export SYSTEMD_EDITOR=nvim
       export EDITOR=nvim
       export PATH=$PATH:$DOTFILES/bin
+      export PATH=$PATH:~/.cargo/bin
       # diffstatic
       export DFT_DISPLAY=inline
 
