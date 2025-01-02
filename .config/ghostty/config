@@ -6,11 +6,10 @@ confirm-close-surface = false
 
 font-family = "Cascadia Code NF"
 font-feature = -calt
-adjust-cell-height = 2
-adjust-cell-width = -10%
+adjust-cell-height = 4
 macos-option-as-alt = true
 
-cursor-invert-fg-bg = true
+cursor-invert-fg-bg = false
 
 config-file = config.local
 
