@@ -245,6 +245,7 @@
       nodejs_23
       rustup
       nixfmt-rfc-style
+      gnumake
       (pkgs.python312.withPackages (ppkgs: [
         # wanted by tmux window name
         ppkgs.libtmux
