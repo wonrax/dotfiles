@@ -44,6 +44,7 @@ return {
       'MunifTanjim/nui.nvim',
       {
         'rcarriga/nvim-notify',
+        version = '*',
         opts = {
           background_colour = '#000000',
           render = 'wrapped-compact',
