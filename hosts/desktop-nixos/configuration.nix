@@ -56,6 +56,8 @@
 
   # Set your time zone.
   time.timeZone = "Asia/Ho_Chi_Minh";
+  # Fixes time drift on dual-boot systems.
+  time.hardwareClockInLocalTime = true;
 
   # Select internationalisation properties.
   i18n.defaultLocale = "en_US.UTF-8";
