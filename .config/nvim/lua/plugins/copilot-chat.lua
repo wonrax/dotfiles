@@ -61,7 +61,7 @@ return {
         -- Reset the chat buffer
         reset = {
           normal = '<C-x>',
-          insert = '<C-x>',
+          insert = nil,
         },
         -- Submit the prompt to Copilot
         submit_prompt = {
@@ -215,6 +215,28 @@ return {
           },
         },
       }))
+
+      -- NOTE: plugin author's recommendation for neovim below 0.11. We can
+      -- remove this once we're on neovim 0.11
+      vim.opt.completeopt:append 'noinsert'
+      vim.opt.completeopt:append 'popup'
+      -- Configuring neovim built-in completion here because only this plugin
+      -- uses it
+      -- Accept completion with Ctrl-y
+      -- vim.keymap.set('i', '<C-y>', '<C-y>', { noremap = true })
+      -- Navigate completion menu with Ctrl-j and Ctrl-k
+      vim.keymap.set('i', '<C-j>', function()
+        if vim.fn.pumvisible() == 1 then
+          return '<C-n>'
+        end
+        return '<C-j>'
+      end, { expr = true, noremap = true })
+      vim.keymap.set('i', '<C-k>', function()
+        if vim.fn.pumvisible() == 1 then
+          return '<C-p>'
+        end
+        return '<C-k>'
+      end, { expr = true, noremap = true })
 
       -- Custom buffer for CopilotChat
       vim.api.nvim_create_autocmd('BufEnter', {
