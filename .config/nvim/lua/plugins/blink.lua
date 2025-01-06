@@ -25,7 +25,7 @@ return {
           -- Ignore copilot chat buffers because they use neovim default
           -- completion engine, begins with copilot-*
           local buffer_name = vim.fn.expand '%:t'
-          return not string.match(buffer_name, '^copilot-')
+          return not string.match(buffer_name, '^copilot-') and vim.bo.buftype ~= 'prompt' and vim.b.completion ~= false
         end,
         -- 'default' for mappings similar to built-in completion
         -- 'super-tab' for mappings similar to vscode (tab to accept, arrow keys to navigate)
