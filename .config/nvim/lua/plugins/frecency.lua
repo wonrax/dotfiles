@@ -1,6 +1,7 @@
 return {
   {
     'nvim-telescope/telescope-frecency.nvim',
+    enabled = false,
     config = function()
       -- This extension may conflict with the auto-session plugin when it tries
       -- to prompt a 'Delete n entries from the database' by opening a new

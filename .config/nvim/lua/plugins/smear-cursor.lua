@@ -1,6 +1,7 @@
 return {
   {
     'sphamba/smear-cursor.nvim',
+    version = '*',
     opts = {
       stiffness = 0.75,
       trailing_stiffness = 0.5,

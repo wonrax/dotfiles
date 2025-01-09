@@ -56,6 +56,9 @@ return {
       require('noice').setup(opts)
 
       vim.keymap.set('n', '<leader>nd', require('noice.view.backend.notify').dismiss, { desc = 'Dismiss notifications' })
+      vim.keymap.set('n', '<leader>na', function()
+        require('noice').cmd 'NoiceAll'
+      end, { desc = 'Dismiss notifications' })
     end,
   },
 }
