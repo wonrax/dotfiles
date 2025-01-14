@@ -242,7 +242,7 @@
 
       # devel
       pkg-config
-      nodejs_23
+      nodejs_22
       rustup
       nixfmt-rfc-style
       gnumake
