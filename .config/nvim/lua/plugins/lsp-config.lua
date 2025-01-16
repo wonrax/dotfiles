@@ -148,6 +148,16 @@ return {
           end,
         },
       }
+
+      -- NOTE: that on first install and first invocation (e.g. hls --version),
+      -- hls might take a comically long time to run for some reason thus it
+      -- might seem like the language server in neovim don't work. Just run
+      -- some hls command, wait for it to complete and then open the haskell
+      -- project again
+      require('lspconfig')['hls'].setup {
+        capabilities = capabilities,
+        filetypes = { 'haskell', 'lhaskell', 'cabal' },
+      }
     end,
   },
 }

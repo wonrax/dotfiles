@@ -223,7 +223,7 @@
   home.packages =
     with pkgs;
     [
-      # productivity
+      # .::= Productivity =::.
       alacritty
       neovim
       tmux
@@ -240,8 +240,11 @@
       fzf
       delta
 
-      # devel
+      # .::= Devel =::.
       pkg-config
+      # Downgraded from nodejs_23 because for some reason I had to build from
+      # source which requires a lot of time and memory (my machine froze every
+      # time and had to add swap in order for it to build).
       nodejs_22
       rustup
       nixfmt-rfc-style
@@ -250,8 +253,14 @@
         # wanted by tmux window name
         ppkgs.libtmux
       ]))
+      (haskellPackages.ghcWithPackages (
+        hspkgs: with hspkgs; [
+          cabal-install
+          haskell-language-server
+        ]
+      ))
 
-      # Fonts
+      # .::= Fonts =::.
       cascadia-code
     ]
     ++ lib.optionals stdenv.isLinux [
