@@ -149,6 +149,8 @@ return {
         },
       }
 
+      -- NOTE: won't use mason here because it uses ghcup to install hls and
+      -- ghcup is not well supported on nix.
       -- NOTE: that on first install and first invocation (e.g. hls --version),
       -- hls might take a comically long time to run for some reason thus it
       -- might seem like the language server in neovim don't work. Just run
