@@ -149,6 +149,7 @@ return {
         },
       }
 
+      -- NOTE: disabled to use haskell-tools.nvim
       -- NOTE: won't use mason here because it uses ghcup to install hls and
       -- ghcup is not well supported on nix.
       -- NOTE: that on first install and first invocation (e.g. hls --version),
@@ -156,10 +157,10 @@ return {
       -- might seem like the language server in neovim don't work. Just run
       -- some hls command, wait for it to complete and then open the haskell
       -- project again
-      require('lspconfig')['hls'].setup {
-        capabilities = capabilities,
-        filetypes = { 'haskell', 'lhaskell', 'cabal' },
-      }
+      -- require('lspconfig')['hls'].setup {
+      --   capabilities = capabilities,
+      --   filetypes = { 'haskell', 'lhaskell', 'cabal' },
+      -- }
     end,
   },
 }

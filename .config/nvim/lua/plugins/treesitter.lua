@@ -4,7 +4,27 @@ return {
     version = '*',
     build = ':TSUpdate',
     opts = {
-      ensure_installed = { 'bash', 'html', 'lua', 'luadoc', 'vim', 'vimdoc' },
+      ensure_installed = {
+        'bash',
+        'html',
+        'lua',
+        'luadoc',
+        'vim',
+        'vimdoc',
+        'haskell',
+        'rust',
+        'go',
+        'javascript',
+        'typescript',
+        'tsx',
+        'css',
+        'scss',
+        'regex',
+        'python',
+        'nix',
+        'markdown',
+        'markdown_inline',
+      },
       -- Autoinstall languages that are not installed
       auto_install = false,
       highlight = {

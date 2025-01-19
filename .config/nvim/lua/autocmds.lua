@@ -139,6 +139,8 @@ vim.api.nvim_create_autocmd('LspAttach', {
       end, '[T]oggle Inlay [H]ints')
     end
 
+    vim.keymap.set('n', '<space>cl', vim.lsp.codelens.run, { noremap = true, silent = true, buffer = event.buf, desc = 'Open codelens' })
+
     -- NOTE: currently disabled to use noice.nvim
     -- Enable hover window border styles
     -- vim.lsp.handlers['textDocument/hover'] = vim.lsp.with(vim.lsp.handlers.hover, { border = 'rounded' })
