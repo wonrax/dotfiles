@@ -15,7 +15,7 @@ return {
         { '<leader>l', group = '[L]sp', icon = '' },
         { '<leader>q', group = '[Q]uit', icon = { icon = '󰈆', color = 'red' } },
         { '<leader>r', group = '[R]ename', icon = '' },
-        { '<leader>t', group = '[T]oggle/[T]abpage/[T]erminal', icon = '' },
+        { '<leader>t', group = '[T]oggle/[T]abpage/[T]erminal/[T]est', icon = '' },
         { '<leader>b', group = '[B]uffer', icon = '󰈔' },
         { '<leader>c', group = '[C]opilot', icon = '', mode = { 'v', 'n' } },
       }
