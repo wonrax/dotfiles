@@ -84,7 +84,8 @@ return {
                 },
               },
             },
-            lualine_x = {
+            lualine_x = { 'overseer' },
+            lualine_y = {
               'encoding',
               {
                 'fileformat',
