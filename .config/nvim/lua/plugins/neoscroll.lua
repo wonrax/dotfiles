@@ -1,7 +1,9 @@
 return {
   {
     'karb94/neoscroll.nvim',
-    lazy = false,
+    -- Disabled due to performance issue, but enabled when pair programming so
+    -- that they can catch up with what the hell is going on
+    lazy = true,
     config = function(_, opts)
       local neoscroll = require 'neoscroll'
       neoscroll.setup(opts)
