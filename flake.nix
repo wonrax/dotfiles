@@ -56,7 +56,6 @@
       packages.aarch64-darwin = {
         # TODO: libsqlite3 is not yet managed by home-manager, gotta install it
         # manually using brew
-        # TODO: config git signing
         homeConfigurations.${user.username} = home-manager.lib.homeManagerConfiguration {
           pkgs = nixpkgs.legacyPackages.aarch64-darwin;
           extraSpecialArgs = {
@@ -65,6 +64,8 @@
           modules = [
             ./home.nix
             {
+              # NOTE: ssh agent must be enabled and configured manually in
+              # 1password on macos for now
               programs.git = {
                 extraConfig = {
                   gpg.ssh.program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
