@@ -184,6 +184,9 @@
     userName = user.username;
     userEmail = user.email;
     extraConfig = {
+      # 1password general SSH key
+      user.signingKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILcVnyW/bNR+hbNQ4utoprtSm8ONNFMER9lgLT9u9rVu";
+
       pull.rebase = false;
       pull.ff = true;
 
