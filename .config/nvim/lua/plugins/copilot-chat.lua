@@ -91,16 +91,6 @@ return {
     },
     event = 'VeryLazy',
     keys = {
-      -- Show help actions with telescope
-      -- TODO: currently not working, or I'm using it wrong
-      {
-        '<leader>ch',
-        function()
-          local actions = require 'CopilotChat.actions'
-          require('CopilotChat.integrations.telescope').pick(actions.help_actions())
-        end,
-        desc = 'Help actions',
-      },
       -- Show prompts actions with telescope
       {
         '<leader>cp',
