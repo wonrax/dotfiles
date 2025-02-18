@@ -242,6 +242,7 @@
       eza
       fzf
       delta
+      jq
 
       # .::= Devel =::.
       pkg-config
