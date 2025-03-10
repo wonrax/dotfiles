@@ -155,6 +155,8 @@
       export EDITOR=nvim
       export PATH=$PATH:$DOTFILES/bin
       export PATH=$PATH:~/.cargo/bin
+      # Global npm packages
+      export PATH=$PATH:$HOME/.npm-packages/bin
       # diffstatic
       export DFT_DISPLAY=inline
 
@@ -272,7 +274,7 @@
       # MacOS clang to build properly
       gcc
 
-      # Ghostty has not been available for MacOS yet, related discussion:
+      # Ghostty flake has not been available for MacOS yet, related discussion:
       # https://github.com/ghostty-org/ghostty/discussions/2824
       ghostty.packages.${pkgs.stdenv.hostPlatform.system}.default
     ];
