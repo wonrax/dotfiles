@@ -79,6 +79,7 @@ return {
           ['<leader>e'] = 'close_window',
           ['<space>'] = false, -- disable space until we figure out which-key disabling
           o = 'open',
+          ['<c-r>'] = 'refresh',
         },
       },
       follow_current_file = { enabled = true, leave_dirs_open = true },
