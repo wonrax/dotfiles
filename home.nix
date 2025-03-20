@@ -180,6 +180,113 @@
     };
   };
 
+  programs.ghostty = {
+    enable = pkgs.stdenv.isLinux; # ghostty package is currently marked as broken on MacOS
+  };
+
+  programs.nushell = {
+    enable = true;
+    environmentVariables = config.home.sessionVariables;
+    configFile.text = ''
+      # TODO: this will append the paths everytime nu is run as a child
+      # thus making duplicate paths
+      # HINT: set a flag to check if the paths are already set
+      # TODO: find a way to get nix-profile paths instead of hardcoding them
+      # HINT: how does programs.zsh do it?
+      $env.PATH = ([
+        "~/.nix-profile/bin"
+        "/nix/var/nix/profiles/default/bin"
+        "~/.dotfiles/bin"
+        "~/.cargo/bin"
+        "~/.npm-packages/bin"
+        "~/.orbstack/bin"
+        "/usr/local/bin"
+      ] | each { |p| path expand }) ++ ($env.PATH | split row (char esep))
+
+      $env.SHELL = "${pkgs.nushell}/bin/nu"
+
+      let zoxide_completer = {|spans|
+        $spans | skip 1 | zoxide query -l ...$in | lines | where {|x| $x != $env.PWD}
+      }
+
+      let fish_completer = {|spans|
+        fish --command $'complete "--do-complete=($spans | str join " ")"'
+        | from tsv --flexible --noheaders --no-infer
+        | rename value description
+      }
+
+      let external_completer = {|spans|
+        let expanded_alias = scope aliases
+        | where name == $spans.0
+        | get -i 0.expansion
+
+        let spans = if $expanded_alias != null {
+          $spans
+          | skip 1
+          | prepend ($expanded_alias | split row ' ' | take 1)
+        } else {
+          $spans
+        }
+
+        match $spans.0 {
+          z | zi | __zoxide_z | __zoxide_zi => $zoxide_completer
+          _ => $fish_completer
+        } | do $in $spans
+      }
+
+      $env.config = {
+        highlight_resolved_externals: true # enables highlighting of external commands
+        edit_mode: "vi"
+        cursor_shape: {
+          vi_insert: "line"
+          vi_normal: "block"
+        }
+        keybindings: [
+          {
+            name: complete_history_hint_or_cycle_backward
+            modifier: shift
+            keycode: backtab
+            mode: [ emacs, vi_insert, vi_normal ]
+            event: {
+              until: [
+                { send: historyhintcomplete }
+                { send: menuleft }
+                { send: left }
+              ]
+            }
+          }
+        ]
+          completions: {
+            external: {
+              enable: true
+              completer: $external_completer
+            }
+        }
+      }
+
+      $env.PROMPT_COMMAND = { ||
+        let cwd = $env.PWD | path basename
+        let name = $env.USER
+        let branch = do { git branch --show-current } | complete
+        let git_status = if $branch.exit_code == 0 and $branch.stdout != "" {
+            $"(ansi white) ➜(ansi yellow) \u{eafe} ($branch.stdout)"
+        } else {
+            "\n"
+        }
+        $"(ansi magenta)($name) (ansi white)➜ (ansi blue)($cwd)($git_status)\n"
+      }
+
+      $env.PROMPT_COMMAND_RIGHT = { ||
+        ""
+      }
+    '';
+  };
+
+  programs.zoxide = {
+    enable = true;
+    enableNushellIntegration = true;
+  };
+
   programs.git = {
     # TODO: set up git delta
     enable = true;
@@ -234,6 +341,8 @@
       tmux
       gh
       bash
+      # nushell is using fish for completions
+      fish
 
       htop
       btop

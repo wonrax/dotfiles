@@ -1,3 +1,5 @@
+command = ~/.nix-profile/bin/nu
+
 theme = light:rose-pine-dawn,dark:nightfox
 
 window-padding-x = 8

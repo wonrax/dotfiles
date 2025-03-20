@@ -1,32 +1,49 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env nu
 
-# If there's an argument, call `z -e` to get the path to the workspace and open
-# nvim in that directory.
-if [ -n "$1" ]; then
-    WORKSPACE=$(zshz -e "$1")
-    if [ -n "$WORKSPACE" ]; then
-        cd "$WORKSPACE"
-        nvim .
-    else
-        # Signal that the command failed without exiting the shell
-        return 1
-    fi
-else
-    # Find sessions in $HOME/.local/share/nvim/sessions/
-    SESSION_DIR="$HOME/.local/share/nvim/sessions/"
+# Open a code workspace using either an argument or by selecting from neovim sessions
+def main [
+    workspace?: string  # Optional workspace name to open
+] {
+    if $workspace != null {
+        let path = (zoxide query $workspace)
+        if $path != "" {
+            cd $path
+            nvim .
+        } else {
+            # Signal that the command failed
+            print $"Could not find workspace matching '($workspace)'"
+            exit 1
+        }
+    } else {
+        # Find sessions in $HOME/.local/share/nvim/sessions/
+        let session_dir = ($env.HOME | path join ".local" "share" "nvim" "sessions")
 
-    # List all session files, decode the filenames, extract the path without the extension
-    SESSIONS=$(ls "$SESSION_DIR" | sed -e 's/%2F/\//g' -e 's/%2E/\./g' -e 's/\.vim$//')
+        # List all session files, decode the filenames, extract the path without the extension
+        let sessions = (
+            ls $session_dir
+            | where type == "file"
+            | get name
+            | each { |file|
+                $file
+                | path basename
+                | str replace -a "%2F" "/"
+                | str replace -a "%2E" "."
+                | str replace ".vim" ""
+            }
+        )
 
-    # Feed it to fzf to pick, extract only the last part of the path for entry
-    # name, and don't display preview
-    SELECTED_SESSION=$(echo "$SESSIONS" \
-        | fzf --layout=reverse --height=40% --info=inline --delimiter="/" --with-nth=-1)
+        # Use fzf to select a session
+        let selected_session = (
+            $sessions
+            | to text
+            | fzf --layout=reverse --height=40% --info=inline --delimiter="/" --with-nth=-1
+            | str trim
+        )
 
-    # If a session is selected, change dir to the full absolute workspace path and
-    # open nvim
-    if [ -n "$SELECTED_SESSION" ]; then
-        cd "$SELECTED_SESSION"
-        nvim .
-    fi
-fi
+        # If a session is selected, change dir to the full absolute workspace path and open nvim
+        if $selected_session != "" {
+            cd $selected_session
+            nvim .
+        }
+    }
+}
