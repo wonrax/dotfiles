@@ -52,9 +52,8 @@ return {
       },
       palettes = {
         dayfox = {
-          -- BG color for current line selection etc. since it's a bit too
-          -- dimmed when using the transparent window bg
-          bg3 = '#e7e7e7',
+          -- BG color for current line selection
+          bg3 = '#ebe7e1',
         },
       },
       groups = {
