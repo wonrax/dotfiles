@@ -1,7 +1,7 @@
 #!/usr/bin/env nu
 
 # Open a code workspace using either an argument or by selecting from neovim sessions
-def main [
+export def main [
     workspace?: string  # Optional workspace name to open
 ] {
     if $workspace != null {

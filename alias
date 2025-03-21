@@ -6,18 +6,19 @@
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
-alias ls="eza"
-alias cat="bat"
 
-alias la="ls -la"
-alias l="ls"
-alias cdd="cd .."
+# alias ls = "eza"
+alias cat = bat
 
-alias gdfz=git-diff-fzf
+alias la = ls -la
+alias l = ls
+alias cdd = cd ..
 
-alias code=". $DOTFILES/bin/code"
+alias gdfz = git-diff-fzf
 
-function gstfz() {
+use ~/.dotfiles/bin/code
+
+def gstfz [] {
   git status --short | awk '{print $2}' | fzf -m
 }
 

@@ -203,6 +203,8 @@
         "/usr/local/bin"
       ] | each { |p| path expand }) ++ ($env.PATH | split row (char esep))
 
+      source ~/.dotfiles/alias
+
       $env.SHELL = "${pkgs.nushell}/bin/nu"
 
       let zoxide_completer = {|spans|
@@ -256,11 +258,11 @@
             }
           }
         ]
-          completions: {
-            external: {
-              enable: true
-              completer: $external_completer
-            }
+        completions: {
+          external: {
+            enable: true
+            completer: $external_completer
+          }
         }
       }
 
