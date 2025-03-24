@@ -278,6 +278,22 @@
         $"(ansi magenta)($name) (ansi white)➜ (ansi blue)($cwd)($git_status)\n"
       }
 
+      $env.PROMPT_INDICATOR_VI_INSERT = { ||
+        if $env.LAST_EXIT_CODE == 0 {
+          $"(ansi blue): "
+        } else {
+          $"(ansi red): "
+        }
+      }
+
+      $env.PROMPT_INDICATOR_VI_NORMAL = { ||
+        if $env.LAST_EXIT_CODE == 0 {
+          $"(ansi blue)> "
+        } else {
+          $"(ansi red)> "
+        }
+      }
+
       $env.PROMPT_COMMAND_RIGHT = { ||
         ""
       }
