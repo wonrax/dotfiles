@@ -206,6 +206,8 @@
       source ~/.dotfiles/alias
 
       $env.SHELL = "${pkgs.nushell}/bin/nu"
+      $env.EDITOR = "nvim"
+      $env.config.show_banner = false
 
       let zoxide_completer = {|spans|
         $spans | skip 1 | zoxide query -l ...$in | lines | where {|x| $x != $env.PWD}
@@ -269,6 +271,7 @@
       $env.PROMPT_COMMAND = { ||
         let cwd = $env.PWD | path basename
         let name = $env.USER
+        let host = $env.HOSTNAME
         let branch = do { git branch --show-current } | complete
         let git_status = if $branch.exit_code == 0 and $branch.stdout != "" {
             $"(ansi white) ➜(ansi yellow) \u{eafe} ($branch.stdout)"
@@ -297,7 +300,77 @@
       $env.PROMPT_COMMAND_RIGHT = { ||
         ""
       }
+
+      # show a slightly different banner
+      def show_banner [] {
+        let ellie = [
+          "     __  ,"
+          " .--()°'.'"
+          "'|, . ,'  "
+          ' !_-(_\   '
+        ]
+        let s_mem = (sys mem)
+        let s_ho = (sys host)
+        print $"(ansi reset)(ansi green)($ellie.0)"
+        print $"(ansi green)($ellie.1)  (ansi yellow) (ansi yellow_bold)Nushell (ansi reset)(ansi yellow)v(version | get version)(ansi reset)"
+        print $"(ansi green)($ellie.2)  (ansi light_blue) (ansi light_blue_bold)RAM (ansi reset)(ansi light_blue)($s_mem.used) / ($s_mem.total)(ansi reset)"
+        print $"(ansi green)($ellie.3)  (ansi light_purple)ﮫ (ansi light_purple_bold)Uptime (ansi reset)(ansi light_purple)($s_ho.uptime)(ansi reset)"
+      }
+
+      show_banner
     '';
+  };
+
+  programs.starship = {
+    enable = true;
+    enableNushellIntegration = true;
+    settings = {
+      # https://starship.rs/presets/pure-preset
+      format = lib.replaceStrings [ "\n" ] [ "" ] ''
+        $username
+        $hostname
+        $directory
+        $git_branch
+        $git_state
+        $git_status
+        $cmd_duration
+        $line_break
+        $python
+        $character'';
+      directory.style = "bold cyan";
+      character = {
+        format = "$symbol";
+        success_symbol = "[>](blue)";
+        error_symbol = "[>](red)";
+      };
+      git_branch = {
+        format = "[$branch]($style)";
+        style = "bright-black";
+      };
+      git_status = {
+        format = "[[(*$conflicted$untracked$modified$staged$renamed$deleted)](218) ($ahead_behind$stashed)]($style)";
+        style = "cyan";
+        conflicted = "​";
+        untracked = "​";
+        modified = "​";
+        staged = "​";
+        renamed = "​";
+        deleted = "​";
+        stashed = "≡";
+      };
+      git_state = {
+        format = "\([$state( $progress_current/$progress_total)]($style)\) ";
+        style = "bright-black";
+      };
+      cmd_duration = {
+        format = "[$duration]($style) ";
+        style = "yellow";
+      };
+      python = {
+        format = "[$virtualenv]($style) ";
+        style = "bright-black";
+      };
+    };
   };
 
   programs.zoxide = {
