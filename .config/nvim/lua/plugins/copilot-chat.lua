@@ -13,7 +13,7 @@ local floating_window_opts = {
 return {
   {
     'CopilotC-Nvim/CopilotChat.nvim',
-    branch = 'main',
+    version = '*',
     dependencies = {
       {
         'zbirenbaum/copilot.lua',
