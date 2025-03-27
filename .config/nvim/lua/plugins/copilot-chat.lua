@@ -17,6 +17,7 @@ return {
     dependencies = {
       {
         'zbirenbaum/copilot.lua',
+        commit = '49807c6d963ff0f1cb5110d3672732f3734965e6',
         lazy = false,
         opts = {
           suggestion = {
