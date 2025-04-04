@@ -7,6 +7,7 @@
   lib,
   user,
   ghostty,
+  unstablePkgs,
   ...
 }:
 {
@@ -428,7 +429,7 @@
     [
       # .::= Productivity =::.
       alacritty
-      neovim
+      unstablePkgs.neovim
       tmux
       gh
       bash

@@ -3,6 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
 
     home-manager = {
       url = "github:nix-community/home-manager/release-24.11";
@@ -30,6 +31,7 @@
       nixpkgs,
       home-manager,
       ghostty,
+      nixpkgs-unstable,
       ...
     }@inputs:
     let
@@ -45,9 +47,18 @@
         specialArgs = {
           inherit user;
         };
-        modules = import ./nixos.nix { inherit inputs user home-manager; } ++ [
-          ./hosts/desktop-nixos/configuration.nix
-        ];
+        modules =
+          import ./nixos.nix {
+            unstablePkgs = nixpkgs-unstable.legacyPackages.x86_64-linux;
+            inherit
+              inputs
+              user
+              home-manager
+              ;
+          }
+          ++ [
+            ./hosts/desktop-nixos/configuration.nix
+          ];
       };
 
       # Standalone home-manager configuration, for systems where you don't want
@@ -59,6 +70,7 @@
         homeConfigurations.${user.username} = home-manager.lib.homeManagerConfiguration {
           pkgs = nixpkgs.legacyPackages.aarch64-darwin;
           extraSpecialArgs = {
+            unstablePkgs = nixpkgs-unstable.legacyPackages.aarch64-darwin;
             inherit user ghostty;
           };
           modules = [
