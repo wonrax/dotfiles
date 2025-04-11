@@ -6,6 +6,7 @@ return {
       'nvim-telescope/telescope.nvim',
       'nvim-tree/nvim-web-devicons',
     },
+    lazy = true,
     config = function()
       require('octo').setup()
     end,

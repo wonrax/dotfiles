@@ -108,7 +108,7 @@ return {
         function()
           -- Jump to definition if there is only one, otherwise open Lspsaga finder
 
-          local params = vim.lsp.util.make_position_params()
+          local params = vim.lsp.util.make_position_params(nil, nil)
 
           vim.lsp.buf_request(0, 'textDocument/definition', params, function(err, result, ctx, config)
             if err then
@@ -121,7 +121,7 @@ return {
             end
 
             local count = 0
-            if vim.tbl_islist(result) then
+            if vim.islist(result) then
               count = #result
             elseif type(result) == 'table' then
               count = 1
