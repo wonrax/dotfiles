@@ -100,7 +100,7 @@ vim.diagnostic.config {
   float = {
     border = 'rounded',
   },
-  virtual_text = false,
+  virtual_lines = true,
 }
 
 -- [[ Basic Keymaps ]]
