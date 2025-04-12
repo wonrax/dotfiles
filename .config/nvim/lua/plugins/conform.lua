@@ -1,6 +1,7 @@
 return {
   { -- Autoformat
     'stevearc/conform.nvim',
+    version = '*',
     lazy = false,
     keys = {
       {
@@ -38,6 +39,9 @@ return {
         -- You can use a sub-list to tell conform to run *until* a formatter
         -- is found.
         -- javascript = { { "prettierd", "prettier" } },
+        sql = { 'sleek' },
+        rust = { 'rustfmt' },
+        ['*'] = { 'injected' }, -- enables injected-lang formatting for all filetypes
       },
     },
   },

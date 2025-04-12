@@ -107,10 +107,10 @@ return {
         mode = { 'n' },
         function()
           -- Jump to definition if there is only one, otherwise open Lspsaga finder
+          local clients = vim.lsp.get_clients()
+          local params = vim.lsp.util.make_position_params(nil, clients[1].offset_encoding or 'utf-16')
 
-          local params = vim.lsp.util.make_position_params(nil, nil)
-
-          vim.lsp.buf_request(0, 'textDocument/definition', params, function(err, result, ctx, config)
+          vim.lsp.buf_request(0, 'textDocument/definition', params, function(err, result)
             if err then
               print('Error: ' .. err.message)
               return
