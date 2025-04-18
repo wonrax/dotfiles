@@ -69,6 +69,14 @@ return {
     config = function(_, opts)
       require('nightfox').setup(opts)
 
+      vim.api.nvim_create_autocmd('ColorScheme', {
+        pattern = '*',
+        callback = function()
+          local pallete = require('palette').load_current_theme_palette()
+          vim.api.nvim_set_hl(0, 'LspInlayHint', { fg = pallete.bg4, bg = 'NONE' })
+        end,
+      })
+
       -- Prevents the transition from default themes to target theme from
       -- causing flashes on startup
       load_last_colorscheme()
