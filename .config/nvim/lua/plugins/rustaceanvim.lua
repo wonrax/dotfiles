@@ -26,6 +26,14 @@ return {
               check = {
                 command = 'clippy',
               },
+              inlayHints = {
+                implicitDrops = {
+                  enable = true,
+                },
+                -- closingBraceHints = {
+                --   enable = false,
+                -- },
+              },
             },
           },
         },
