@@ -18,11 +18,6 @@
       url = "github:xremap/nix-flake";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
-    ghostty = {
-      url = "github:ghostty-org/ghostty?ref=refs/tags/v1.1.2";
-      inputs.nixpkgs-stable.follows = "nixpkgs";
-    };
   };
 
   outputs =
@@ -30,7 +25,6 @@
       self,
       nixpkgs,
       home-manager,
-      ghostty,
       nixpkgs-unstable,
       ...
     }@inputs:
@@ -71,7 +65,7 @@
           pkgs = nixpkgs.legacyPackages.aarch64-darwin;
           extraSpecialArgs = {
             unstablePkgs = nixpkgs-unstable.legacyPackages.aarch64-darwin;
-            inherit user ghostty;
+            inherit user;
           };
           modules = [
             ./home.nix

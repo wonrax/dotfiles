@@ -6,7 +6,6 @@
   pkgs,
   lib,
   user,
-  ghostty,
   unstablePkgs,
   ...
 }:
@@ -474,10 +473,6 @@
       # Leave clang on MacOS alone, apparently crates like aws-lc-sys need
       # MacOS clang to build properly
       gcc
-
-      # Ghostty flake has not been available for MacOS yet, related discussion:
-      # https://github.com/ghostty-org/ghostty/discussions/2824
-      ghostty.packages.${pkgs.stdenv.hostPlatform.system}.default
     ];
 
   # TODO: what does this do?

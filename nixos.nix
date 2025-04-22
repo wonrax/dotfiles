@@ -7,11 +7,9 @@
   inputs,
   user,
   home-manager,
+  unstablePkgs,
   ...
 }:
-let
-  ghostty = inputs.ghostty;
-in
 [
   (
     # System config
@@ -131,7 +129,7 @@ in
   {
     home-manager.useUserPackages = true;
     home-manager.extraSpecialArgs = {
-      inherit user ghostty;
+      inherit user unstablePkgs;
     };
     home-manager.users.${user.username} = {
       imports = [
