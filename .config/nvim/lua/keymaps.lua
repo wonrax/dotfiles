@@ -95,13 +95,3 @@ vim.keymap.set('', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper wind
 vim.keymap.set('n', '<leader><Tab>', function()
   vim.cmd 'edit #'
 end, { desc = 'Switch to previous buffer' })
-
-vim.keymap.set('n', '<leader>H', function()
-  if vim.lsp.inlay_hint.is_enabled { bufnr = 0 } then
-    vim.lsp.inlay_hint.enable(false, { bufnr = 0 })
-  else
-    vim.lsp.inlay_hint.enable(true, { bufnr = 0 })
-  end
-end, {
-  desc = 'Toggle inlay hints',
-})
