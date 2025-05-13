@@ -18,6 +18,11 @@
       url = "github:xremap/nix-flake";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    hyprpanel = {
+      url = "github:Jas-SinghFSU/HyprPanel";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -41,6 +46,7 @@
         specialArgs = {
           inherit user;
         };
+
         modules =
           import ./nixos.nix {
             unstablePkgs = nixpkgs-unstable.legacyPackages.x86_64-linux;

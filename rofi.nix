@@ -90,7 +90,6 @@ rec {
     meta = {
       description = "A collection of rofi launchers";
       homepage = "https://github.com/adi1090x/rofi";
-      maintainers = with lib.maintainers; [ ];
       platforms = lib.platforms.linux;
     };
   };
