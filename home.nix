@@ -201,6 +201,7 @@
         "~/.npm-packages/bin"
         "~/.orbstack/bin"
         "/usr/local/bin"
+        "~/go/bin"
       ] | each { |p| path expand }) ++ ($env.PATH | split row (char esep))
 
       source ~/.dotfiles/alias
@@ -453,6 +454,7 @@
       # time and had to add swap in order for it to build).
       nodejs_22
       rustup
+      go
       nixfmt-rfc-style
       gnumake
       (pkgs.python312.withPackages (ppkgs: [
