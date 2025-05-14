@@ -25,7 +25,17 @@ return {
       --   },
       -- } },
 
-      { 'folke/lazydev.nvim', ft = 'lua' },
+      {
+        'folke/lazydev.nvim',
+        ft = 'lua',
+        opts = {
+          library = {
+            -- See the configuration section for more details
+            -- Load luvit types when the `vim.uv` word is found
+            { path = '${3rd}/luv/library', words = { 'vim%.uv' } },
+          },
+        },
+      },
     },
     config = function()
       local capabilities = vim.lsp.protocol.make_client_capabilities()
@@ -35,11 +45,21 @@ return {
         lua_ls = {
           settings = {
             Lua = {
+              runtime = {
+                version = 'LuaJIT',
+              },
               completion = {
                 callSnippet = 'Replace',
               },
               -- You can toggle below to ignore Lua_LS's noisy `missing-fields` warnings
               -- diagnostics = { disable = { 'missing-fields' } },
+              workspace = {
+                checkThirdParty = true,
+                library = {
+                  vim.env.VIMRUNTIME,
+                  '${3rd}/luv/library',
+                },
+              },
             },
           },
         },
@@ -70,10 +90,6 @@ return {
             -- certain features of an LSP (for example, turning off formatting for tsserver)
             server.capabilities = capabilities
             require('lspconfig')[server_name].setup(server)
-
-            if server_name == 'lua_ls' then
-              require('lazydev').setup()
-            end
           end,
         },
       }

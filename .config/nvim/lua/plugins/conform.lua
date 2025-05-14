@@ -35,7 +35,7 @@ return {
         nix = { 'nixfmt' },
         sql = { 'sleek' },
         rust = { 'rustfmt' },
-        ['*'] = { 'injected' }, -- enables injected-lang formatting for all filetypes
+        -- ['*'] = { 'injected' }, -- enables injected-lang formatting for all filetypes
       },
     },
   },

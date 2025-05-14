@@ -95,3 +95,9 @@ vim.keymap.set('', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper wind
 vim.keymap.set('n', '<leader><Tab>', function()
   vim.cmd 'edit #'
 end, { desc = 'Switch to previous buffer' })
+
+vim.keymap.set('n', '<leader>tvl', function()
+  vim.diagnostic.config {
+    virtual_lines = vim.diagnostic.config().virtual_lines == false,
+  }
+end, { desc = 'Toggle virtual lines' })
