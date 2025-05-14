@@ -171,7 +171,7 @@ return {
             prompt = '> /COPILOT_GENERATE\n\nPlease generate tests for my code.',
           },
           Commit = {
-            prompt = '> #git:staged\n\nWrite commit message for the change with commitizen convention. Make sure the title has maximum 50 characters and message is wrapped at 72 characters. Wrap the whole message in code block with language gitcommit.',
+            prompt = "> #gitlog:20\n#git:staged\n\nWrite commit message for the change following the convention of the provided commit history. If there's no inherent style, fallback to commitizen convention. Make sure the title has around 50 characters and message is wrapped at 72 characters. Wrap the whole message in code block with language gitcommit.",
             window = floating_window_opts,
           },
           ChatWithVisual = {
@@ -203,6 +203,30 @@ return {
             prompt = '/COPILOT_GENERATE\n\nRewrite the following text to make it more concise.',
             description = 'Make the text more concise',
             window = floating_window_opts,
+          },
+        },
+        contexts = {
+          gitlog = {
+            resolve = function(input)
+              input = input or '20'
+              local cmd = {
+                'git',
+                'log',
+                '-n',
+                input,
+                '--oneline',
+              }
+
+              local out = require('CopilotChat.utils').system(cmd)
+
+              return {
+                {
+                  content = out.stdout,
+                  filename = 'gitlog_last_' .. input .. 'commits',
+                  filetype = 'text',
+                },
+              }
+            end,
           },
         },
       }))
