@@ -209,20 +209,69 @@ return {
           gitlog = {
             resolve = function(input)
               input = input or '20'
+              local N = tonumber(input)
+              local M = 10 * N -- Fetch 10x more commits than needed for sampling pool
               local cmd = {
                 'git',
                 'log',
                 '-n',
-                input,
+                tostring(M),
                 '--oneline',
               }
 
               local out = require('CopilotChat.utils').system(cmd)
 
+              -- Split git output into individual commit lines
+              local lines = {}
+              for line in out.stdout:gmatch '[^\r\n]+' do
+                table.insert(lines, line)
+              end
+
+              -- Prepare commits with weighted probabilities (recent = higher weight)
+              local commits = {}
+              for i, line in ipairs(lines) do
+                table.insert(commits, {
+                  text = line,
+                  weight = #lines - (i - 1), -- Linear weight decay (most recent first)
+                })
+              end
+
+              -- Weighted random selection without replacement
+              local selected = {}
+              for _ = 1, N do
+                if #commits == 0 then
+                  break
+                end
+
+                -- Calculate total weight of remaining commits
+                local total_weight = 0
+                for _, c in ipairs(commits) do
+                  total_weight = total_weight + c.weight
+                end
+                if total_weight == 0 then
+                  break
+                end
+
+                -- Select a random commit based on weights
+                local r = math.random() * total_weight
+                local accum = 0
+                for idx = 1, #commits do
+                  accum = accum + commits[idx].weight
+                  if accum >= r then
+                    table.insert(selected, commits[idx].text)
+                    table.remove(commits, idx)
+                    break
+                  end
+                end
+              end
+
+              -- Combine selected commits into final output
+              local content = table.concat(selected, '\n')
+
               return {
                 {
-                  content = out.stdout,
-                  filename = 'gitlog_last_' .. input .. 'commits',
+                  content = content,
+                  filename = 'gitlog_sampled_' .. input .. '_commits',
                   filetype = 'text',
                 },
               }
@@ -233,8 +282,9 @@ return {
 
       -- NOTE: plugin author's recommendation for neovim below 0.11. We can
       -- remove this once we're on neovim 0.11
-      vim.opt.completeopt:append 'noinsert'
-      vim.opt.completeopt:append 'popup'
+      -- vim.opt.completeopt:append 'noinsert'
+      -- vim.opt.completeopt:append 'popup'
+
       -- Configuring neovim built-in completion here because only this plugin
       -- uses it
       -- Accept completion with Ctrl-y
