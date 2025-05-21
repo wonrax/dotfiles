@@ -18,6 +18,8 @@
       url = "github:xremap/nix-flake";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    minegrub-theme.url = "github:Lxtharia/minegrub-theme";
   };
 
   outputs =
@@ -52,6 +54,7 @@
           }
           ++ [
             ./hosts/desktop-nixos/configuration.nix
+            inputs.minegrub-theme.nixosModules.default
           ];
       };
 

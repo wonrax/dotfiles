@@ -32,16 +32,10 @@
   boot.loader.grub.default = "saved";
   boot.loader.grub.timeoutStyle = "hidden";
   boot.loader.grub.gfxmodeEfi = "2560x1440";
-  boot.loader.grub.theme = pkgs.stdenv.mkDerivation {
-    pname = "grub-themes";
-    version = "40ac04";
-    src = pkgs.fetchFromGitHub {
-      owner = "xenlism";
-      repo = "Grub-themes";
-      rev = "40ac048df9aacfc053c515b97fcd24af1a06762f";
-      hash = "sha256-ProTKsFocIxWAFbYgQ46A+GVZ7mUHXxZrvdiPJqZJ6I=";
-    };
-    installPhase = "cp -r xenlism-grub-2k-nixos/Xenlism-Nixos $out";
+  boot.loader.grub.minegrub-theme = {
+    enable = true;
+    splash = "Fully reproducible btw!";
+    background = "background_options/1.8  - [Classic Minecraft].png";
   };
 
   networking.hostName = "wonrax-desktop-nixos"; # Define your hostname.
