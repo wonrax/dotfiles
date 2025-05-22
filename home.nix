@@ -129,7 +129,7 @@
         };
       }
     ];
-    initExtra = ''
+    initContent = ''
       # Automatic rename tmux window after changing dir
       # https://github.com/ofirgall/tmux-window-name?tab=readme-ov-file#automatic-rename-after-changing-dir
       tmux-window-name() {
