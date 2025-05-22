@@ -53,6 +53,7 @@
           plex-desktop
           # - communication
           discord
+          telegram-desktop
         ];
 
         shell = pkgs.zsh;
