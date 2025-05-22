@@ -477,9 +477,6 @@
       gcc
     ];
 
-  # TODO: what does this do?
-  fonts.fontconfig.enable = true;
-
   # NOTE: that you have to create a new shell session after changing these,
   # since these variables are being sourced only once per shell session.
   # TODO: Maybe consider using zsh variables instead.
