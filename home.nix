@@ -202,6 +202,7 @@
         "~/.orbstack/bin"
         "/usr/local/bin"
         "~/go/bin"
+        "~/.local/bin"
       ] | each { |p| path expand }) ++ ($env.PATH | split row (char esep))
 
       source ~/.dotfiles/alias
