@@ -51,7 +51,8 @@
           # - entertainment
           spotify
           plex-desktop
-          vlc
+          # Pin VLC to 3.0.20 since 21 has an audio bug
+          inputs.nixpkgs-vlc.legacyPackages.x86_64-linux.vlc
           # - communication
           discord
           telegram-desktop
