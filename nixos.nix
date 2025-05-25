@@ -51,9 +51,13 @@
           # - entertainment
           spotify
           plex-desktop
+          vlc
           # - communication
           discord
           telegram-desktop
+
+          # alsamixer
+          alsa-utils
         ];
 
         shell = pkgs.zsh;
