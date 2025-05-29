@@ -456,6 +456,7 @@
       nodejs_22
       rustup
       go
+      uv
       nixfmt-rfc-style
       gnumake
       (pkgs.python312.withPackages (ppkgs: [
