@@ -92,6 +92,11 @@
       };
 
       fonts.fontconfig.enable = true;
+
+      programs.nh = {
+        enable = true;
+        flake = "/home/wonrax/.dotfiles";
+      };
     }
   )
 
@@ -238,6 +243,19 @@
           Restart = "on-failure";
           RestartSec = "1";
         };
+      };
+
+      # Disable alsamixer's auto-mute mode so that it does not mute the
+      # speakers when headphones are plugged in
+      systemd.services.disable-alsamixer-auto-mute = {
+        enable = true;
+        wantedBy = [ "multi-user.target" ];
+        path = [ pkgs.alsa-utils ];
+        serviceConfig = {
+          User = "root";
+          Group = "root";
+        };
+        script = ''amixer -c 1 sset "Auto-Mute Mode" Disabled'';
       };
     }
   )
