@@ -440,6 +440,7 @@
       fish
       nh
       jujutsu
+      difftastic
 
       htop
       btop
