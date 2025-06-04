@@ -182,6 +182,9 @@
                 gpg.ssh.program = "${pkgs._1password-gui}/bin/op-ssh-sign";
               };
             };
+            programs.jujutsu = {
+              settings.signing.backends.ssh.program = "${pkgs._1password-gui}/bin/op-ssh-sign";
+            };
           }
         )
       ];
