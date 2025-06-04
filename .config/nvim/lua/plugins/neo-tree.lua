@@ -98,7 +98,7 @@ return {
     vim.api.nvim_create_autocmd('User', {
       pattern = session_events.no_session_restored,
       callback = function()
-        require('neo-tree.command').execute { action = 'focus' }
+        require('neo-tree.command').execute { action = 'show' }
       end,
     })
 
