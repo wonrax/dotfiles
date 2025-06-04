@@ -82,6 +82,9 @@
                   gpg.ssh.program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
                 };
               };
+              programs.jujutsu = {
+                settings.signing.backends.ssh.program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
+              };
             }
           ];
         };

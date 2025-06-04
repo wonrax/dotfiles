@@ -424,6 +424,32 @@
     };
   };
 
+  programs.jujutsu = {
+    enable = true;
+    settings = {
+      signing = {
+        behavior = "own";
+        backend = "ssh";
+        # TODO: move the key to a variable
+        key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILcVnyW/bNR+hbNQ4utoprtSm8ONNFMER9lgLT9u9rVu";
+      };
+      # lazily signing only on push
+      git.sign-on-push = true;
+      user = {
+        name = user.username;
+        email = user.email;
+      };
+      ui.diff.tool = [
+        "${pkgs.difftastic}/bin/difft"
+        "--color=always"
+        "--display"
+        "inline"
+        "$left"
+        "$right"
+      ];
+    };
+  };
+
   # Packages that should be installed to the user profile.
   home.packages =
     with pkgs;
@@ -439,8 +465,6 @@
       # nushell is using fish for completions
       fish
       nh
-      jujutsu
-      difftastic
 
       htop
       btop
