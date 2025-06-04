@@ -428,6 +428,8 @@
   home.packages =
     with pkgs;
     [
+      nix
+
       # .::= Productivity =::.
       alacritty
       unstablePkgs.neovim
@@ -437,6 +439,7 @@
       # nushell is using fish for completions
       fish
       nh
+      jujutsu
 
       htop
       btop
