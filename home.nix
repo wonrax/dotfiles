@@ -436,6 +436,7 @@
       bash
       # nushell is using fish for completions
       fish
+      nh
 
       htop
       btop
