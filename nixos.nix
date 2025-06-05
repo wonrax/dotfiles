@@ -258,7 +258,7 @@
           User = "root";
           Group = "root";
         };
-        script = ''amixer -c 1 sset "Auto-Mute Mode" Disabled'';
+        script = ''amixer -c 0 sset "Auto-Mute Mode" Disabled'';
       };
     }
   )
