@@ -466,6 +466,7 @@
       fish
       nh
       difftastic
+      unstablePkgs.goose-cli
 
       htop
       btop

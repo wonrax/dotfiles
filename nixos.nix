@@ -258,7 +258,13 @@
           User = "root";
           Group = "root";
         };
-        script = ''amixer -c 0 sset "Auto-Mute Mode" Disabled'';
+        script = ''
+          # Sometimes the cards are reordered on startup, so we need to disable
+          # auto-mute mode for all cards to make sure that it is disabled
+          amixer -c 0 sset "Auto-Mute Mode" Disabled
+          amixer -c 1 sset "Auto-Mute Mode" Disabled
+          amixer -c 2 sset "Auto-Mute Mode" Disabled
+        '';
       };
     }
   )
