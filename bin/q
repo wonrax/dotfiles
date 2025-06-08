@@ -7,9 +7,9 @@
 const system_prompts = {
     brief: "Answer in as few words as possible. Use a brief style with short replies."
     detailed: "Provide a thorough explanation with examples and technical details."
-    commit: "Generate a concise commit message based on the jj diff. Sample the jj log for conventional format used in the current project. If there isn't any, fallback to conventional commit message. Then use that message to jj describe automatically without asking for user confirmation because the user can then redescribe it later if needed.
+    commit: "Generate a concise commit message based on the jj diff. Sample the jj log for conventional format used in the current project. If there isn't any, fallback to conventional commit message. Then use that message to jj describe automatically without asking for user confirmation because the user can then redescribe it later if needed. **IMPORTANT:** Try to limit the first line message length of 72 characters unless necessary.
 
-    For acquiring the diff, use `jj diff --no-pager --config ui.diff.tool='["difft", "--display", "inline", "--color=never", "$left", "$right"]'` to get the machine readable diff.
+    For acquiring the diff, use `jj diff --no-pager --config ui.diff.tool='["git", "--no-pager", "diff", "--no-color", "$left", "$right"]'` to get the machine readable diff.
 
     For sampling the commit message, use `jj log -n20 -r ::@ --color=never -T builtin_log_oneline --no-pager`.
     "
