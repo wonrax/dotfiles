@@ -1,0 +1,63 @@
+#!/usr/bin/env nu
+# q - Quick LLM queries with Goose CLI
+# Inspired by https://entropicthoughts.com/q
+# Created using Deepseek R1 with supervision.
+
+# Predefined system prompts
+const system_prompts = {
+    brief: "Answer in as few words as possible. Use a brief style with short replies."
+    detailed: "Provide a thorough explanation with examples and technical details."
+    commit: "Generate a concise commit message based on the jj diff. Sample the jj log for conventional format used in the current project. If there isn't any, fallback to conventional commit message. Then use that message to jj describe automatically without asking for user confirmation because the user can then redescribe it later if needed.
+
+    For acquiring the diff, use `jj diff --no-pager --config ui.diff.tool='["difft", "--display", "inline", "--color=never", "$left", "$right"]'` to get the machine readable diff.
+
+    For sampling the commit message, use `jj log -n20 -r ::@ --color=never -T builtin_log_oneline --no-pager`.
+    "
+}
+
+# Get available system prompt names
+def get-prompt-names [] {
+    $system_prompts | columns
+}
+
+# Main function
+export def main [
+    ...prompt: string  # Prompt as last arguments without quotes
+    --recipe (-r): string = "brief"  # Predefined prompt name
+    --context (-c): string = ""  # Predefined context string
+] {
+    # Validate system prompt name
+    let valid_prompts = (get-prompt-names)
+    if $recipe not-in $valid_prompts {
+        error make {
+            msg: $"Invalid system prompt '($recipe)'",
+            label: {
+                text: $"Valid options: ($valid_prompts | str join ', ')"
+                span: (metadata $recipe).span
+            }
+        }
+    }
+
+    # Capture piped input if any
+    let piped_input = $in
+
+    # Combine all prompt arguments into a single string
+    let user_prompt = ($prompt | str join " ")
+
+    # Build the full prompt
+    let full_prompt = $"""
+    ($system_prompts | get $recipe)
+
+    (if $context != "" { $"CONTEXT:\n($context)\n\n" })
+    (if not ($piped_input | is-empty) { $"INPUT:\n($piped_input)\n\n" })
+    QUERY:
+    ($user_prompt)
+    """
+
+    if $full_prompt == "" {
+        error make {msg: "Error: No input provided"}
+    }
+
+    # Run goose with the constructed prompt
+    goose run --no-session --text $full_prompt
+}

@@ -465,6 +465,7 @@
       # nushell is using fish for completions
       fish
       nh
+      difftastic
 
       htop
       btop
