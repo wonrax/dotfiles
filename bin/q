@@ -12,6 +12,8 @@ const system_prompts = {
     For acquiring the diff, use `jj diff --no-pager --config ui.diff.tool='["git", "--no-pager", "diff", "--no-color", "$left", "$right"]'` to get the machine readable diff.
 
     For sampling the commit message, use `jj log -n20 -r ::@ --color=never -T builtin_log_oneline --no-pager`.
+
+    In the end, do not provide any additional text or explanation, since the UI already shows which command you have run.
     "
 }
 
