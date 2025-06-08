@@ -86,6 +86,11 @@
 
     # Load nvidia driver for Xorg and Wayland
     videoDrivers = [ "nvidia" ];
+
+    displayManager.sessionCommands = ''
+      ${pkgs.xorg.xset}/bin/xset s off
+      ${pkgs.xorg.xset}/bin/xset -dpms
+    '';
   };
 
   hardware.nvidia = {
