@@ -108,6 +108,7 @@
         tray-icons-reloaded
         user-themes
         dash-to-dock
+        caffeine
       ];
 
     }
