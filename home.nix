@@ -151,8 +151,8 @@
 
       export DOTFILES="$HOME/.dotfiles"
       # TODO: consider moving these to zsh.envExtra
-      export SYSTEMD_EDITOR=nvim
-      export EDITOR=nvim
+      export SYSTEMD_EDITOR=nvim --clean
+      export EDITOR=nvim --clean
       export PATH=$PATH:$DOTFILES/bin
       export PATH=$PATH:~/.cargo/bin
       # Global npm packages
@@ -208,7 +208,7 @@
       source ~/.dotfiles/alias
 
       $env.SHELL = "${pkgs.nushell}/bin/nu"
-      $env.EDITOR = "nvim"
+      $env.EDITOR = "nvim --clean"
       $env.config.show_banner = false
 
       let zoxide_completer = {|spans|
