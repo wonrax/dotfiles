@@ -450,6 +450,11 @@
     };
   };
 
+  programs.atuin = {
+    enable = true;
+    enableNushellIntegration = true;
+  };
+
   # Packages that should be installed to the user profile.
   home.packages =
     with pkgs;
