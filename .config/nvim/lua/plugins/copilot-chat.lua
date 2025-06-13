@@ -171,7 +171,7 @@ return {
             prompt = '> /COPILOT_GENERATE\n\nPlease generate tests for my code.',
           },
           Commit = {
-            prompt = "> #gitlog:20\n#git:staged\n\nWrite commit message for the change following the convention of the provided commit history. If there's no inherent style, fallback to commitizen convention. Make sure the title has around 50 characters and message is wrapped at 72 characters. Wrap the whole message in code block with language gitcommit.",
+            prompt = "> #jjlog:20\n#jj:diff\n\nWrite commit message for the change following the convention of the provided commit history. If there's no inherent style, fallback to conventional commit message. Make sure the title has around 72 characters and message is wrapped at 72 characters. Wrap the whole message in code block with language gitcommit. DO NOT add to the response explanation or anything other than the git commit itself.",
             window = floating_window_opts,
           },
           ChatWithVisual = {
@@ -206,22 +206,27 @@ return {
           },
         },
         contexts = {
-          gitlog = {
+          jjlog = {
             resolve = function(input)
               input = input or '20'
               local N = tonumber(input)
               local M = 10 * N -- Fetch 10x more commits than needed for sampling pool
               local cmd = {
-                'git',
+                'jj',
                 'log',
                 '-n',
                 tostring(M),
-                '--oneline',
+                '-r',
+                '::@',
+                '--color=never',
+                '-T',
+                'builtin_log_oneline',
+                '--no-pager',
               }
 
               local out = require('CopilotChat.utils').system(cmd)
 
-              -- Split git output into individual commit lines
+              -- Split jj output into individual commit lines
               local lines = {}
               for line in out.stdout:gmatch '[^\r\n]+' do
                 table.insert(lines, line)
@@ -271,8 +276,37 @@ return {
               return {
                 {
                   content = content,
-                  filename = 'gitlog_sampled_' .. input .. '_commits',
+                  filename = 'jjlog_sampled_' .. input .. '_commits',
                   filetype = 'text',
+                },
+              }
+            end,
+          },
+          jj = {
+            resolve = function(input)
+              input = input or 'diff'
+              local cmd
+
+              if input == 'diff' then
+                cmd = {
+                  'jj',
+                  'diff',
+                  '--no-pager',
+                  '--config',
+                  'ui.diff.tool=["git", "--no-pager", "diff", "--no-color", "$left", "$right"]',
+                }
+              else
+                -- Handle other jj commands if needed
+                cmd = { 'jj', input }
+              end
+
+              local out = require('CopilotChat.utils').system(cmd)
+
+              return {
+                {
+                  content = out.stdout,
+                  filename = 'jj_' .. input,
+                  filetype = 'diff',
                 },
               }
             end,
