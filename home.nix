@@ -485,7 +485,11 @@
       jq
 
       # .::= Devel =::.
+
+      # pkg-config libraries (will be automatically included in pkg-config path)
       pkg-config
+      openssl
+
       # Downgraded from nodejs_23 because for some reason I had to build from
       # source which requires a lot of time and memory (my machine froze every
       # time and had to add swap in order for it to build).
@@ -514,23 +518,6 @@
       # MacOS clang to build properly
       gcc
     ];
-
-  # NOTE: that you have to create a new shell session after changing these,
-  # since these variables are being sourced only once per shell session.
-  # TODO: Maybe consider using zsh variables instead.
-  home.sessionVariables = {
-    # Build time globally linked libraries, for runtime linking, use
-    # LD_LIBRARY_PATH
-    LIBRARY_PATH =
-      "$LIBRARY_PATH:"
-      + pkgs.lib.makeLibraryPath (
-        with pkgs;
-        [
-          libiconv
-        ]
-      );
-    PKG_CONFIG_PATH = "$PKG_CONFIG_PATH:${pkgs.openssl.dev}/lib/pkgconfig";
-  };
 
   # This value determines the home Manager release that your
   # configuration is compatible with. This helps avoid breakage
