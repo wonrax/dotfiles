@@ -270,19 +270,6 @@
         }
       }
 
-      $env.PROMPT_COMMAND = { ||
-        let cwd = $env.PWD | path basename
-        let name = $env.USER
-        let host = $env.HOSTNAME
-        let branch = do { git branch --show-current } | complete
-        let git_status = if $branch.exit_code == 0 and $branch.stdout != "" {
-            $"(ansi white) ➜(ansi yellow) \u{eafe} ($branch.stdout)"
-        } else {
-            "\n"
-        }
-        $"(ansi magenta)($name) (ansi white)➜ (ansi blue)($cwd)($git_status)\n"
-      }
-
       $env.PROMPT_INDICATOR_VI_INSERT = { ||
         if $env.LAST_EXIT_CODE == 0 {
           $"(ansi blue): "
@@ -332,11 +319,7 @@
         $username
         $hostname
         $directory
-        $git_branch
-        $git_state
-        $git_status
         $cmd_duration
-        $line_break
         $python
         $character'';
       directory.style = "bold cyan";
@@ -344,25 +327,6 @@
         format = "$symbol";
         success_symbol = "[>](blue)";
         error_symbol = "[>](red)";
-      };
-      git_branch = {
-        format = "[$branch]($style)";
-        style = "bright-black";
-      };
-      git_status = {
-        format = "[[(*$conflicted$untracked$modified$staged$renamed$deleted)](218) ($ahead_behind$stashed)]($style)";
-        style = "cyan";
-        conflicted = "​";
-        untracked = "​";
-        modified = "​";
-        staged = "​";
-        renamed = "​";
-        deleted = "​";
-        stashed = "≡";
-      };
-      git_state = {
-        format = "\([$state( $progress_current/$progress_total)]($style)\) ";
-        style = "bright-black";
       };
       cmd_duration = {
         format = "[$duration]($style) ";
