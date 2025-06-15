@@ -188,22 +188,30 @@
     enable = true;
     environmentVariables = config.home.sessionVariables;
     configFile.text = ''
-      # TODO: this will append the paths everytime nu is run as a child
-      # thus making duplicate paths
-      # HINT: set a flag to check if the paths are already set
+      # Convert PATH to a list if it's a string
+      if ($env.PATH | describe) == "string" {
+          $env.PATH = ($env.PATH | split row (char esep))
+      }
+
       # TODO: find a way to get nix-profile paths instead of hardcoding them
       # HINT: how does programs.zsh do it?
-      $env.PATH = ([
-        "~/.nix-profile/bin"
-        "/nix/var/nix/profiles/default/bin"
-        "~/.dotfiles/bin"
-        "~/.cargo/bin"
-        "~/.npm-packages/bin"
-        "~/.orbstack/bin"
-        "/usr/local/bin"
-        "~/go/bin"
-        "~/.local/bin"
-      ] | each { |p| path expand }) ++ ($env.PATH | split row (char esep))
+      # Only run PATH setup once per top-level session
+      if not ("DOTFILES_PATH_INITIALIZED" in $env) {
+          $env.PATH = ([
+              "~/.nix-profile/bin",
+              "/nix/var/nix/profiles/default/bin",
+              "~/.dotfiles/bin",
+              "~/.cargo/bin",
+              "~/.npm-packages/bin",
+              "~/.orbstack/bin",
+              "/usr/local/bin",
+              "~/go/bin",
+              "~/.local/bin"
+          ] | each { |p| path expand }) ++ $env.PATH
+
+          # Set guard variable to prevent re-initialization
+          $env.DOTFILES_PATH_INITIALIZED = true
+      }
 
       source ~/.dotfiles/alias
 
