@@ -42,6 +42,7 @@
           google-chrome
           tailscale-systray
           jetbrains.datagrip
+          vscode
 
           lazydocker
 
