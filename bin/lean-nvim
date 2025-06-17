@@ -1,0 +1,8 @@
+#!/usr/bin/env nu
+
+export def main [
+    ...args: string
+] {
+    nvim --cmd "let g:nvim_lean_mode=1" ...$args
+}
+
