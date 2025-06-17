@@ -64,6 +64,21 @@ return {
             },
           },
         },
+        ltex_plus = {
+          settings = {
+            ltex = {
+              dictionary = {
+                -- TODO: move the dictionary to a file instead, see
+                -- https://ltex-plus.github.io/ltex-plus/settings.html#ltexdictionary
+                ['en-US'] = {
+                  'neovim',
+                  'nvim',
+                  'WebUI',
+                },
+              },
+            },
+          },
+        },
       }
 
       -- nvim-java needs to be setup before lspconfig
@@ -76,24 +91,32 @@ return {
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format Lua code
+        'astro',
+        'eslint',
+        'gopls',
+        'jsonls',
+        'ltex_plus',
+        'lua_ls',
+        'nil_ls',
+        'prismals',
+        'ts_ls',
       })
 
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
       require('mason-lspconfig').setup {
-        ensure_installed = {},
+        ensure_installed = ensure_installed,
         automatic_installation = true,
-        handlers = {
-          function(server_name)
-            local server = servers[server_name] or {}
-            -- This handles overriding only values explicitly passed
-            -- by the server configuration above. Useful when disabling
-            -- certain features of an LSP (for example, turning off formatting for tsserver)
-            server.capabilities = capabilities
-            require('lspconfig')[server_name].setup(server)
-          end,
-        },
+        automatic_enable = true,
       }
+
+      for server_name, server in pairs(servers) do
+        -- This handles overriding only values explicitly passed
+        -- by the server configuration above. Useful when disabling
+        -- certain features of an LSP (for example, turning off formatting for tsserver)
+        server.capabilities = capabilities
+        vim.lsp.config(server_name, server)
+      end
 
       -- NOTE: disabled to use haskell-tools.nvim
       -- NOTE: won't use mason here because it uses ghcup to install hls and
