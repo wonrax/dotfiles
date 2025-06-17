@@ -54,7 +54,7 @@
   "package-info.nvim": { "branch": "master", "commit": "4f1b8287dde221153ec9f2acd46e8237d2d0881e" },
   "plenary.nvim": { "branch": "master", "commit": "857c5ac632080dba10aae49dba902ce3abf91b35" },
   "presence.nvim": { "branch": "main", "commit": "87c857a56b7703f976d3a5ef15967d80508df6e6" },
-  "rustaceanvim": { "branch": "master", "commit": "2fdf224107e5bc29fb5c3a175f5f2c9161b34741" },
+  "rustaceanvim": { "branch": "master", "commit": "2117ea2a6b2042cdafd19c6ed2d8c9a11bf987c9" },
   "smart-open.nvim": { "branch": "0.3.x", "commit": "e7f27218bd43de5262d3e8e3e84a135737ca6942" },
   "smart-splits.nvim": { "branch": "master", "commit": "28a98f70ee30cbe3823ce9cc82e2c68ab7bed05f" },
   "smear-cursor.nvim": { "branch": "main", "commit": "aff844fc1483fd673f721a41affcd7e2fcb885f5" },

@@ -2,6 +2,7 @@ return {
   {
     -- More advanced LSP support for Rust
     'mrcjkb/rustaceanvim',
+    version = '*',
     init = function()
       local defaults = {
         tools = {
