@@ -64,7 +64,10 @@ vim.keymap.set('n', '<Esc>', function()
   vim.cmd 'nohlsearch'
 
   -- TODO: remember to remove this if remove git-messenger, or implement the outer TODO
-  vim.cmd 'GitMessengerClose'
+  -- detect if the command is available and close the git messenger window
+  if vim.fn.exists ':GitMessengerClose' == 1 then
+    vim.cmd 'GitMessengerClose'
+  end
 end, { desc = 'Close every floating window' })
 
 vim.keymap.set('n', '<leader>tt', vim.cmd.terminal, { desc = 'Open Neovim terminal simulator' })
