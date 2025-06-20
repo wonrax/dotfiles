@@ -62,7 +62,7 @@ return {
         },
       }
 
-      vim.keymap.set('n', '<leader>s', require('auto-session.session-lens').search_session, {
+      vim.keymap.set('n', '<leader>s', require('auto-session.pickers.telescope').open_session_picker, {
         noremap = true,
         desc = 'Search sessions',
       })
