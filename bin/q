@@ -13,7 +13,7 @@ const system_prompts = {
     - **IMPORTANT:** Try to limit the first line message length of 72 characters unless necessary.
     - Only let the command output to stdout, DO NOT redirect it to any file.
 
-    For acquiring the diff, use `jj diff --no-pager --config ui.diff.tool='["git", "--no-pager", "diff", "--no-color", "-U64", "$left", "$right"]'` to get the machine readable diff.
+    For acquiring the diff, use `jj diff --no-pager --config ui.diff.tool='["git", "--no-pager", "diff", "--no-color", "-U32", "$left", "$right"]'` to get the machine readable diff.
 
     For sampling the commit message, use `jj log -n20 -r ::@ --color=never -T builtin_log_oneline --no-pager`.
 
@@ -70,5 +70,5 @@ export def main [
         error make {msg: "Error: No input provided"}
     }
 
-    opencode run --model github-copilot/claude-sonnet-4 $final_system_prompts $user_prompt
+    opencode run --model github-copilot/claude-sonnet-4.5 $final_system_prompts $user_prompt
 }

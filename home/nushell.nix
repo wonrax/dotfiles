@@ -94,7 +94,7 @@
             event: {
               until: [
                 { send: historyhintcomplete }
-                { send: menuleft }
+                { send: menuprevious }
                 { send: left }
               ]
             }
@@ -146,7 +146,7 @@
 
       $env.config.hooks = {
         env_change: {
-          PWD: [{|_, after| if $env.ZELLIJ? != null { ${pkgs.zellij}/bin/zellij action rename-tab $after } }]
+          PWD: [{|_, after| if $env.ZELLIJ? != null { ${pkgs.zellij}/bin/zellij action rename-tab ($after | path basename) } }]
         }
       }
 
