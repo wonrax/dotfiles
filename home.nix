@@ -411,13 +411,37 @@
         name = user.username;
         email = user.email;
       };
-      ui.diff.tool = [
-        "${pkgs.difftastic}/bin/difft"
-        "--color=always"
-        "--display"
-        "inline"
-        "$left"
-        "$right"
+      aliases.difft = [
+        "diff"
+        "--tool"
+        "difft"
+      ];
+      merge-tools = {
+        difft = {
+          program = "${pkgs.difftastic}/bin/difft";
+          diff-args = [
+            "--color=always"
+            "--display"
+            "inline"
+            "$left"
+            "$right"
+          ];
+        };
+      };
+      ui.diff.format = "git"; # so that delta can parse it
+      ui.pager = [
+        "${pkgs.delta}/bin/delta"
+        "--color-only"
+        "--hunk-header-decoration-style"
+        "blue"
+        "--width"
+        "80"
+        "--file-decoration-style"
+        "omit"
+        "--line-numbers-right-format"
+        "{np} "
+        "--line-numbers-left-format"
+        "{nm} "
       ];
     };
   };
