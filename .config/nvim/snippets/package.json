@@ -1,0 +1,14 @@
+{
+  "name": "wonrax-snippets",
+  "contributes": {
+    "snippets": [
+      {
+        "language": [
+          "gitcommit",
+          "jjdescription"
+        ],
+        "path": "./gitcommit.json"
+      }
+    ]
+  }
+}
