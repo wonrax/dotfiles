@@ -317,7 +317,7 @@
 
       $env.config.hooks = {
         env_change: {
-          PWD: [{|_, after| ${pkgs.zellij}/bin/zellij action rename-tab $after }]
+          PWD: [{|_, after| if $env.ZELLIJ? != null { ${pkgs.zellij}/bin/zellij action rename-tab $after } }]
         }
       }
 

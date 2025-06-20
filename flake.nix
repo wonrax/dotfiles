@@ -107,12 +107,15 @@
         imports = [
           opnix.nixosModules.default
           ./hosts/pumpkin
+
+          # TODO: by importing gitignored files, we had to use file:. in flake
+          # arg. This means that other gitignored files will also be copied
+          # into the nix store, which can be huge.
+          # Fix this by using proper secret management solutions for nix
           ./pi-secrets.nix
         ];
       };
 
-      # NOTE: this can be built on ARM darwin without any config, how??
-      # For x86_64-linux, it might requires emulatedSystems though
       nixosConfigurations.pumpkin = nixpkgs.lib.nixosSystem {
         system = "aarch64-linux";
         specialArgs = { inherit user; };

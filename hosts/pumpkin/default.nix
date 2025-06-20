@@ -74,6 +74,9 @@
       "--ssh"
     ];
   };
+  # Allow tailscale to figure out direct connections on hard networks
+  # https://tailscale.com/kb/1082/firewall-ports#my-devices-are-using-a-relay-what-can-i-do-to-help-them-connect-peer-to-peer
+  networking.firewall.allowedUDPPorts = [ 41641 ];
 
   security.sudo.extraRules = [
     {
