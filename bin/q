@@ -1,5 +1,5 @@
 #!/usr/bin/env nu
-# q - Quick LLM queries with Goose CLI
+# q - Quick LLM queries with LLM CLIs
 # Inspired by https://entropicthoughts.com/q
 # Created using Deepseek R1 with supervision.
 
@@ -13,7 +13,7 @@ const system_prompts = {
     - **IMPORTANT:** Try to limit the first line message length of 72 characters unless necessary.
     - Only let the command output to stdout, DO NOT redirect it to any file.
 
-    For acquiring the diff, use `jj diff --no-pager --config ui.diff.tool='["git", "--no-pager", "diff", "--no-color", "$left", "$right"]'` to get the machine readable diff.
+    For acquiring the diff, use `jj diff --no-pager --config ui.diff.tool='["git", "--no-pager", "diff", "--no-color", "-U64", "$left", "$right"]'` to get the machine readable diff.
 
     For sampling the commit message, use `jj log -n20 -r ::@ --color=never -T builtin_log_oneline --no-pager`.
 
@@ -51,19 +51,24 @@ export def main [
     let user_prompt = ($prompt | str join " ")
 
     # Build the full prompt
-    let full_prompt = $"""
-    ($system_prompts | get $recipe)
+    let final_system_prompts = $"
+        You are a helpful AI assistant. Your task is to assist the user with
+        their queries based on the provided system prompt.
 
-    (if $context != "" { $"CONTEXT:\n($context)\n\n" })
-    (if not ($piped_input | is-empty) { $"INPUT:\n($piped_input)\n\n" })
-    QUERY:
-    ($user_prompt)
-    """
+        This chat is oneshot, meaning the user won't be able to ask follow-up
+        questions, and you should not ask for any clarifications or additional
+        information. Provide a complete answer based on the provided context
+        and perform any necessary actions without further interaction.
 
-    if $full_prompt == "" {
+        ($system_prompts | get $recipe)
+
+        (if $context != "" { $"CONTEXT:\n($context)\n\n" })
+        (if not ($piped_input | is-empty) { $"INPUT:\n($piped_input)\n\n" })
+    " | str trim
+
+    if $final_system_prompts == "" {
         error make {msg: "Error: No input provided"}
     }
 
-    # Run goose with the constructed prompt
-    goose run --no-session --text $full_prompt
+    opencode run --model github-copilot/claude-sonnet-4 $final_system_prompts $user_prompt
 }

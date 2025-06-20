@@ -199,8 +199,6 @@
       # Only run PATH setup once per top-level session
       if not ("DOTFILES_PATH_INITIALIZED" in $env) {
           $env.PATH = ([
-              "~/.nix-profile/bin",
-              "/nix/var/nix/profiles/default/bin",
               "~/.dotfiles/bin",
               "~/.cargo/bin",
               "~/.npm-packages/bin",
@@ -208,6 +206,13 @@
               "/usr/local/bin",
               "~/go/bin",
               "~/.local/bin"
+
+              # These two should have lower priority than the above since
+              # sometimes I want to use external package managers like npm or
+              # cargo because they provide more up-to-date versions of the
+              # packages.
+              "~/.nix-profile/bin",
+              "/nix/var/nix/profiles/default/bin",
           ] | each { |p| path expand }) ++ $env.PATH
 
           # Set guard variable to prevent re-initialization
@@ -566,6 +571,10 @@
       # Leave clang on MacOS alone, apparently crates like aws-lc-sys need
       # MacOS clang to build properly
       gcc
+
+      # NOTE: won't build on MacOS, but haven't tested on linux, if fail to
+      # build, remove it from the list and install using npm
+      unstablePkgs.opencode
     ];
 
   # This value determines the home Manager release that your
