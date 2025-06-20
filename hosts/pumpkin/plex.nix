@@ -11,9 +11,13 @@
     plex = {
       image = "docker.io/linuxserver/plex:latest";
       autoStart = true;
+      environment = {
+        PUID = "0"; # to let Plex manage library files (as root)
+        PGID = "0";
+      };
       ports = [
         "9000:32400"
-        "1900:1900/udp"
+        # "1900:1900/udp" # This port is often already in use by other services
         "5353:5353/udp"
         "8324:8324"
         "32410:32410/udp"
