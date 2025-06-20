@@ -1,0 +1,52 @@
+// heavily inspired by
+// https://github.com/dj95/zjstatus/discussions/44#discussioncomment-13395482
+layout {
+    default_tab_template {
+        children
+        pane size=1 borderless=true {
+            plugin location="https://github.com/dj95/zjstatus/releases/latest/download/zjstatus.wasm" {
+                format_left "{mode} {tabs}"
+                format_center ""
+                format_right "{pipe_zjstatus_hints}#[fg=blue] {datetime}#[bg=blue,fg=white,bold] {session} "
+                format_space ""
+                pipe_zjstatus_hints_format "{output}"
+                border_enabled "false"
+                border_char "─"
+                border_format "#[fg=black]{char}"
+                border_position "top"
+                hide_frame_for_single_pane "false"
+                mode_locked "#[bg=red,fg=white,bold] 🔒 "
+                mode_normal "#[bg=white,fg=black,bold] NORMAL "
+                mode_resize "#[bg=yellow,fg=red,bold] RESIZE "
+                mode_pane "#[bg=green,fg=black,bold] PANE "
+                mode_move "#[bg=yellow,fg=red,bold] MOVE "
+                mode_tab "#[bg=blue,fg=white,bold] TAB "
+                mode_scroll "#[bg=blue,fg=white,bold] SCROLL "
+                mode_search "#[bg=yellow,fg=black,bold] SEARCH "
+                mode_entersearch "#[bg=yellow,fg=black,bold] ENTER SEARCH "
+                mode_renametab "#[bg=blue,fg=cyan,bold] RENAME TAB "
+                mode_renamepane "#[bg=green,fg=cyan,bold] RENAME PANE "
+                mode_session "#[bg=red,fg=white,bold] SESSION "
+                mode_tmux "#[bg=white,fg=blue,bold] TMUX "
+                tab_active "#[bg=white,fg=black,bold] {index} {name} "
+                tab_active_fullscreen "#[bg=black,fg=white,bold] {fullscreen_indicator} {index} {name} "
+                tab_active_sync "#[bg=white,fg=black,bold] {sync_indicator} {index} {name} "
+                tab_normal "#[bg=black,fg=white,bold] {index} {name} "
+                tab_normal_fullscreen "#[fg=black,bold] {fullscreen_indicator} {index} {name} "
+                tab_normal_sync "#[fg=black,bold] {sync_indicator} {index} {name} "
+                tab_separator " "
+                tab_sync_indicator "󰓦"
+                tab_fullscreen_indicator "󰊓"
+                tab_floating_indicator "⬚"
+                tab_rename "#[bg=blue,fg=white,bold] {index} {name} {floating_indicator} "
+                tab_display_count "9"
+                tab_truncate_start_format "#[fg=yellow]  +{count}  "
+                tab_truncate_end_format "#[fg=yellow]   +{count} "
+                datetime "#[fg=white,bold] {format} "
+                datetime_format "%H:%M:%S"
+                datetime_timezone "Asia/Ho_Chi_Minh"
+            }
+        }
+    }
+}
+

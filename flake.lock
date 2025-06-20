@@ -39,6 +39,21 @@
     },
     "crane": {
       "locked": {
+        "lastModified": 1751562746,
+        "narHash": "sha256-smpugNIkmDeicNz301Ll1bD7nFOty97T79m4GUMUczA=",
+        "owner": "ipetkov",
+        "repo": "crane",
+        "rev": "aed2020fd3dc26e1e857d4107a5a67a33ab6c1fd",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ipetkov",
+        "repo": "crane",
+        "type": "github"
+      }
+    },
+    "crane_2": {
+      "locked": {
         "lastModified": 1745454774,
         "narHash": "sha256-oLvmxOnsEKGtwczxp/CwhrfmQUG2ym24OMWowcoRhH8=",
         "owner": "ipetkov",
@@ -707,6 +722,7 @@
     },
     "root": {
       "inputs": {
+        "crane": "crane",
         "home-manager": "home-manager",
         "minegrub-theme": "minegrub-theme",
         "minegrub-world-sel-theme": "minegrub-world-sel-theme",
@@ -714,7 +730,28 @@
         "nixpkgs-unstable": "nixpkgs-unstable",
         "nixpkgs-vlc": "nixpkgs-vlc",
         "opnix": "opnix",
+        "rust-overlay": "rust-overlay",
         "xremap-flake": "xremap-flake"
+      }
+    },
+    "rust-overlay": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1752028888,
+        "narHash": "sha256-LRj3/PUpII6taWOrX1w/OeI6f1ncND02PP/kEHvPCqU=",
+        "owner": "oxalica",
+        "repo": "rust-overlay",
+        "rev": "a0f1c656e053463b47639234b151a05e4441bb19",
+        "type": "github"
+      },
+      "original": {
+        "owner": "oxalica",
+        "repo": "rust-overlay",
+        "type": "github"
       }
     },
     "systems": {
@@ -831,7 +868,7 @@
     },
     "xremap-flake": {
       "inputs": {
-        "crane": "crane",
+        "crane": "crane_2",
         "devshell": "devshell",
         "flake-parts": "flake-parts",
         "home-manager": "home-manager_2",

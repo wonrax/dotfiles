@@ -9,10 +9,6 @@
 
     home-manager = {
       url = "github:nix-community/home-manager/release-25.05";
-      # The `follows` keyword in inputs is used for inheritance.
-      # Here, `inputs.nixpkgs` of home-manager is kept consistent with
-      # the `inputs.nixpkgs` of the current flake,
-      # to avoid problems caused by different versions of nixpkgs.
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -28,15 +24,21 @@
       url = "github:brizzbuzz/opnix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    crane.url = "github:ipetkov/crane";
+    rust-overlay = {
+      url = "github:oxalica/rust-overlay";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
     {
       self,
-      nixpkgs,
       home-manager,
       nixpkgs-unstable,
       opnix,
+      nixpkgs,
       ...
     }@inputs:
     let
@@ -48,7 +50,6 @@
         # 1password general SSH key
         ssh-pub-key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILcVnyW/bNR+hbNQ4utoprtSm8ONNFMER9lgLT9u9rVu";
       };
-
     in
     rec {
       nixosConfigurations.peggy = nixpkgs.lib.nixosSystem {
@@ -82,7 +83,7 @@
           pkgs = nixpkgs.legacyPackages.aarch64-darwin;
           extraSpecialArgs = {
             unstablePkgs = nixpkgs-unstable.legacyPackages.aarch64-darwin;
-            inherit user;
+            inherit user inputs;
           };
           modules = [
             ./home.nix
@@ -106,9 +107,12 @@
         imports = [
           opnix.nixosModules.default
           ./hosts/pumpkin
-        ] ++ (if builtins.pathExists ./pi-secrets.nix then [ ./pi-secrets.nix ] else [ ]);
+          ./pi-secrets.nix
+        ];
       };
 
+      # NOTE: this can be built on ARM darwin without any config, how??
+      # For x86_64-linux, it might requires emulatedSystems though
       nixosConfigurations.pumpkin = nixpkgs.lib.nixosSystem {
         system = "aarch64-linux";
         specialArgs = { inherit user; };
@@ -127,7 +131,6 @@
         modules = [
           "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
           nixosModules.pumpkin
-          ./pi-secrets.nix
           (
             { ... }:
             {
@@ -148,7 +151,6 @@
             imports = [
               "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
               nixosModules.pumpkin
-              ./pi-secrets.nix
             ];
           };
 

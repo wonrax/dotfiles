@@ -7,6 +7,7 @@
   lib,
   user,
   unstablePkgs,
+  inputs,
   ...
 }:
 {
@@ -314,6 +315,12 @@
         print $"(ansi green)($ellie.3)  (ansi light_purple)ﮫ (ansi light_purple_bold)Uptime (ansi reset)(ansi light_purple)($s_ho.uptime)(ansi reset)"
       }
 
+      $env.config.hooks = {
+        env_change: {
+          PWD: [{|_, after| ${pkgs.zellij}/bin/zellij action rename-tab $after }]
+        }
+      }
+
       show_banner
     '';
   };
@@ -450,6 +457,52 @@
     enableNushellIntegration = true;
   };
 
+  programs.zellij = {
+    enable = true;
+  };
+
+  xdg.configFile.zellij = {
+    source =
+      let
+        pkgsRust = import inputs.nixpkgs {
+          system = pkgs.stdenv.hostPlatform.system;
+          overlays = [ inputs.rust-overlay.overlays.default ];
+        };
+        craneLib = (inputs.crane.mkLib pkgsRust).overrideToolchain (
+          p:
+          p.rust-bin.stable.latest.default.override {
+            targets = [ "wasm32-wasip1" ];
+          }
+        );
+
+        # Latest commit of vim-zellij-navigator supports multi-modifier combos
+        # but not yet released, so we build it from source.
+        vim-zellij-navigator = craneLib.buildPackage {
+          src = pkgsRust.fetchFromGitHub {
+            owner = "hiasr";
+            repo = "vim-zellij-navigator";
+            rev = "5c1c39aade765e94b93c97a0cb231e49bf87cf96";
+            hash = "sha256-7xa81LPS2P4/60vxxkHAoEcv59/IG5zZv18ZRQ6H4nc=";
+          };
+          strictDeps = true;
+          cargoExtraArgs = "--target wasm32-wasip1";
+          doCheck = false;
+        };
+      in
+      pkgs.runCommand "patch-zellij-config" { } ''
+        # Create target directory structure
+        mkdir -p $out
+
+        # Copy original config files
+        cp -r ${./.config/zellij}/* $out/
+
+        # Patch the config file
+        find $out -name "config.kdl" -type f -exec sed -i \
+          -e 's|vim-zellij-navigator location=".*"|vim-zellij-navigator location="file:${vim-zellij-navigator}/bin/vim-zellij-navigator.wasm"|' \
+          {} \;
+      '';
+  };
+
   # Packages that should be installed to the user profile.
   home.packages =
     with pkgs;
@@ -493,6 +546,7 @@
       go
       uv
       nixfmt-rfc-style
+      kdlfmt
       gnumake
       (pkgs.python312.withPackages (ppkgs: [
         # wanted by tmux window name

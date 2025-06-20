@@ -282,6 +282,8 @@
         libxkbcommon
 
         # currently only neovim's smart open depends on this
+        # TODO: replace with this:
+        # https://github.com/kkharji/sqlite.lua?tab=readme-ov-file#nix-home-manager
         sqlite
 
         # libGL

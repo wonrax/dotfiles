@@ -110,6 +110,7 @@ require 'keymaps'
 -- [[ Autocommands ]]
 require 'autocmds'
 require 'tmux'
+require 'zellij'
 
 -- [[ Install `lazy.nvim` plugin manager ]]
 local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
