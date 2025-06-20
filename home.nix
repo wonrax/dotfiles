@@ -431,11 +431,12 @@
       ui.diff.format = "git"; # so that delta can parse it
       ui.pager = [
         "${pkgs.delta}/bin/delta"
-        "--color-only"
+        "--true-color"
+        "always"
         "--hunk-header-decoration-style"
         "blue"
-        "--width"
-        "80"
+        "--width=-2" # use terminal width minus 2
+        "--file-style=bold"
         "--file-decoration-style"
         "omit"
         "--line-numbers-right-format"
