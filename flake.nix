@@ -40,6 +40,8 @@
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    nix.url = "github:NixOS/nix/latest-release";
   };
 
   outputs =

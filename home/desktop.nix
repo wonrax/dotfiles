@@ -7,6 +7,7 @@
   lib,
   user,
   unstablePkgs,
+  inputs,
   ...
 }:
 {
@@ -47,6 +48,10 @@
     source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/.config/ghostty";
     recursive = true; # link recursively
     executable = false;
+  };
+
+  xdg.configFile."fish/completions/nix.fish" = {
+    source = "${inputs.nix}/misc/fish/completion.fish";
   };
 
   home.activation = {
