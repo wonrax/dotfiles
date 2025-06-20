@@ -1,7 +1,7 @@
 return {
   {
     'alexghergh/nvim-tmux-navigation',
-    enabled = false, -- using zellij
+    enabled = false, -- using smart-split
     config = function()
       local nvim_tmux_nav = require 'nvim-tmux-navigation'
 

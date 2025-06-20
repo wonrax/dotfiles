@@ -3,7 +3,7 @@ command = ~/.nix-profile/bin/nu
 # ghostty isn't in the terminfo database yet
 term = xterm-256color
 
-theme = light:rose-pine-dawn,dark:nightfox
+theme = light:Rose Pine Dawn,dark:Nightfox
 
 window-padding-x = 8
 window-padding-y = 4,8
@@ -19,4 +19,6 @@ macos-option-as-alt = true
 cursor-invert-fg-bg = false
 
 config-file = config.local
+
+custom-shader = ./cursor_blaze_no_trail.glsl
 

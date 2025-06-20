@@ -2,6 +2,7 @@ return {
   {
     'sphamba/smear-cursor.nvim',
     version = '*',
+    enabled = false, -- im using ghostty shader instead
     opts = {
       stiffness = 0.75,
       trailing_stiffness = 0.5,
