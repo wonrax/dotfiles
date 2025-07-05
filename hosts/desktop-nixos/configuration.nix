@@ -146,9 +146,12 @@
   swapDevices = [
     {
       device = "/swapfile";
-      size = 8 * 1024; # 8GB
+      size = 16 * 1024; # 16GB
     }
   ];
+
+  # To cross compile for aarch64-linux, e.g. the raspberry "pumpkin" pi 4 image
+  boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
 
   # Enable touchpad support (enabled default in most desktopManager).
   # services.xserver.libinput.enable = true;

@@ -1,3 +1,4 @@
 # nix output
 result/
+pi-secrets.nix
 
