@@ -4,16 +4,10 @@
 
 {
   config,
-  pkgs,
   ...
 }:
 
 {
-  imports = [
-    # Include the results of the hardware scan.
-    ./hardware-configuration.nix
-  ];
-
   nix.settings.experimental-features = [
     "nix-command"
     "flakes"
@@ -36,7 +30,7 @@
     background = "background_options/1.8  - [Classic Minecraft].png";
   };
 
-  networking.hostName = "wonrax-desktop-nixos"; # Define your hostname.
+  networking.hostName = "peggy";
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
   # Configure network proxy if necessary

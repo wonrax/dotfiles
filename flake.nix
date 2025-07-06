@@ -50,7 +50,7 @@
 
     in
     rec {
-      nixosConfigurations.wonrax-desktop-nixos = nixpkgs.lib.nixosSystem {
+      nixosConfigurations.peggy = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         specialArgs = {
           inherit user;
@@ -65,7 +65,7 @@
               ;
           }
           ++ [
-            ./hosts/desktop-nixos/configuration.nix
+            ./hosts/peggy
             inputs.minegrub-theme.nixosModules.default
           ];
       };
