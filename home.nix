@@ -358,8 +358,7 @@
     userName = user.username;
     userEmail = user.email;
     extraConfig = {
-      # 1password general SSH key
-      user.signingKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILcVnyW/bNR+hbNQ4utoprtSm8ONNFMER9lgLT9u9rVu";
+      user.signingKey = user.ssh-pub-key;
 
       pull.rebase = false;
       pull.ff = true;
@@ -402,8 +401,7 @@
       signing = {
         behavior = "own";
         backend = "ssh";
-        # TODO: move the key to a variable
-        key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILcVnyW/bNR+hbNQ4utoprtSm8ONNFMER9lgLT9u9rVu";
+        key = user.ssh-pub-key;
       };
       # lazily signing only on push
       git.sign-on-push = true;
