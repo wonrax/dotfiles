@@ -22,6 +22,7 @@
     };
 
     minegrub-theme.url = "github:Lxtharia/minegrub-theme";
+    minegrub-world-sel-theme.url = "github:Lxtharia/minegrub-world-sel-theme";
 
     opnix = {
       url = "github:brizzbuzz/opnix";
@@ -67,6 +68,7 @@
           ++ [
             ./hosts/peggy
             inputs.minegrub-theme.nixosModules.default
+            inputs.minegrub-world-sel-theme.nixosModules.default
           ];
       };
 

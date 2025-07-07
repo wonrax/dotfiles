@@ -25,9 +25,13 @@
   boot.loader.grub.timeoutStyle = "hidden";
   boot.loader.grub.gfxmodeEfi = "2560x1440";
   boot.loader.grub.minegrub-theme = {
-    enable = true;
+    enable = false;
     splash = "Fully reproducible btw!";
     background = "background_options/1.8  - [Classic Minecraft].png";
+  };
+  boot.loader.grub.minegrub-world-sel = {
+    enable = true;
+    customIcons = [ ];
   };
 
   networking.hostName = "peggy";
