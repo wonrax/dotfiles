@@ -4,6 +4,7 @@
     ./windmill.nix
     ./plex.nix
     ./qbittorrent.nix
+    ./vector.nix
   ];
 
   nix.settings = {
