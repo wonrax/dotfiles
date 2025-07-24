@@ -41,7 +41,7 @@ def "nix flash-sd" [device: string = "/dev/sdb"] {
 
 # Deploy nix configuration to remote host
 def "nix deploy" [host: string = "pumpkin"] {
-    nh os switch --target-host $host $"path:.#nixosConfigurations.($host)"
+    nix run .#deploy.($host)
     # TODO: for building directly on target host, we need to use nixos-rebuild
     # since nh currently has a bug where it doesn't build on --build-host
     # properly

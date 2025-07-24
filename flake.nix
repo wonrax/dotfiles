@@ -30,6 +30,11 @@
       url = "github:oxalica/rust-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    deploy-rs = {
+      url = "github:serokell/deploy-rs";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -42,6 +47,17 @@
       ...
     }@inputs:
     let
+      mapToAttrs =
+        list: keyFn: valueFn:
+        nixpkgs.lib.listToAttrs (map (item: nixpkgs.lib.nameValuePair (keyFn item) (valueFn item)) list);
+
+      forAllSystems =
+        fn:
+        nixpkgs.lib.genAttrs [
+          "x86_64-linux"
+          "aarch64-darwin"
+        ] fn;
+
       user = {
         username = "wonrax";
         fullname = "Hai L. Ha-Huy";
@@ -51,7 +67,7 @@
         ssh-pub-key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILcVnyW/bNR+hbNQ4utoprtSm8ONNFMER9lgLT9u9rVu";
       };
     in
-    rec {
+    {
       nixosConfigurations.peggy = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         specialArgs = {
@@ -120,7 +136,7 @@
         system = "aarch64-linux";
         specialArgs = { inherit user; };
         modules = [
-          nixosModules.pumpkin
+          self.nixosModules.pumpkin
           # We won't import the generated configuration in sd image builds
           # because it might get conflict with image builder, e.g.:
           # error: The option `fileSystems."/".device' has conflicting definition values
@@ -133,7 +149,7 @@
         specialArgs = { inherit user; };
         modules = [
           "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
-          nixosModules.pumpkin
+          self.nixosModules.pumpkin
           (
             { ... }:
             {
@@ -146,19 +162,83 @@
       # Use qemu to build the pumpkin image on x86_64-linux
       # requires `boot.binfmt.emulatedSystems = [ "aarch64-linux" ];`
       # TODO: detect if emulatedSystems is set, and if not, throw an error
-      packages.x86_64-linux.images.pumpkin = pumpkin-image.config.system.build.sdImage;
+      packages.x86_64-linux.images.pumpkin = self.pumpkin-image.config.system.build.sdImage;
 
       pumpkin-image-pkgsCross =
         nixpkgs.legacyPackages.x86_64-linux.pkgsCross.aarch64-multiplatform.nixos
           {
             imports = [
               "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
-              nixosModules.pumpkin
+              self.nixosModules.pumpkin
             ];
           };
 
       # NOTE: using pkgsCross will rebuild entire dependency chain from
       # scratch, which can takes comically long.
-      packages.aarch64-darwin.images.pumpkin = pumpkin-image-pkgsCross.config.system.build.sdImage;
+      packages.aarch64-darwin.images.pumpkin = self.pumpkin-image-pkgsCross.config.system.build.sdImage;
+
+      deploy.nodes =
+        mapToAttrs
+          [
+            "aarch64-darwin"
+            "x86_64-linux"
+          ]
+          (system: system + "-pumpkin")
+          (
+            system:
+            let
+              targetSystem = "aarch64-linux";
+              deploy-rs =
+                let
+                  pkgs = nixpkgs.legacyPackages."${targetSystem}";
+                in
+                import nixpkgs {
+                  system = targetSystem;
+                  overlays = [
+                    inputs.deploy-rs.overlays.default
+                    (self: super: {
+                      deploy-rs = {
+                        inherit (pkgs) deploy-rs;
+                        lib = super.deploy-rs.lib;
+                      };
+                    })
+                  ];
+                };
+            in
+            {
+              hostname = "pumpkin";
+              profiles.system = {
+                user = "root";
+                path = deploy-rs.deploy-rs.lib.activate.nixos self.nixosConfigurations.pumpkin;
+              };
+              remoteBuild = system == "aarch64-darwin";
+            }
+          );
+
+      apps = forAllSystems (
+        system:
+        let
+          pkgs = nixpkgs.legacyPackages."${system}";
+        in
+        {
+          deploy.pumpkin = {
+            type = "app";
+            program = pkgs.lib.getExe (
+              pkgs.writeShellScriptBin "deploy-pumpkin" ''
+                #!${pkgs.bash}/bin/bash
+                # FIXME: can we remove --skip-checks? why is peggy check failing on darwin?
+                ${pkgs.deploy-rs}/bin/deploy path:.#${system}-pumpkin --skip-checks
+              ''
+            );
+          };
+        }
+      );
+
+      # FIXME: haven't tested this yet, removable if not working
+      checks = forAllSystems (system: {
+        deploy = builtins.mapAttrs (
+          system: deployLib: deployLib.deployChecks self.deploy
+        ) inputs.deploy-rs.lib;
+      });
     };
 }
