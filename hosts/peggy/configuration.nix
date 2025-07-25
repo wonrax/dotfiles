@@ -4,6 +4,7 @@
 
 {
   config,
+  pkgs,
   ...
 }:
 
@@ -33,6 +34,27 @@
     enable = true;
     customIcons = [ ];
   };
+
+  # -- Enable the boot splash screen. -- #
+  boot.plymouth = {
+    enable = true;
+    theme = "spinner_alt";
+    themePackages = with pkgs; [
+      (adi1090x-plymouth-themes.override {
+        selected_themes = [ "spinner_alt" ];
+      })
+    ];
+  };
+  # Enable "Silent boot"
+  boot.consoleLogLevel = 3;
+  boot.initrd.verbose = false;
+  boot.kernelParams = [
+    "quiet"
+    "splash"
+    "boot.shell_on_fail"
+    "udev.log_priority=3"
+    "rd.systemd.show_status=auto"
+  ];
 
   networking.hostName = "peggy";
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
