@@ -2,7 +2,7 @@
 
 # Build SD image command
 def "nix build-sd" [host: string = "pumpkin"] {
-    nix build path:.#images.($host)
+    nix build path:.#($host)-image
 
     if ($env.LAST_EXIT_CODE == 0) {
         ls result/sd-image/ | where name =~ ".img$" | get name | first
@@ -41,7 +41,7 @@ def "nix flash-sd" [device: string = "/dev/sdb"] {
 
 # Deploy nix configuration to remote host
 def "nix deploy" [host: string = "pumpkin"] {
-    nix run .#deploy.($host)
+    nix run .#deploy-($host)
     # TODO: for building directly on target host, we need to use nixos-rebuild
     # since nh currently has a bug where it doesn't build on --build-host
     # properly

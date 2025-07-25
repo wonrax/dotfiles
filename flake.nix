@@ -162,7 +162,7 @@
       # Use qemu to build the pumpkin image on x86_64-linux
       # requires `boot.binfmt.emulatedSystems = [ "aarch64-linux" ];`
       # TODO: detect if emulatedSystems is set, and if not, throw an error
-      packages.x86_64-linux.images.pumpkin = self.pumpkin-image.config.system.build.sdImage;
+      packages.x86_64-linux.pumpkin-image = self.pumpkin-image.config.system.build.sdImage;
 
       pumpkin-image-pkgsCross =
         nixpkgs.legacyPackages.x86_64-linux.pkgsCross.aarch64-multiplatform.nixos
@@ -175,7 +175,7 @@
 
       # NOTE: using pkgsCross will rebuild entire dependency chain from
       # scratch, which can takes comically long.
-      packages.aarch64-darwin.images.pumpkin = self.pumpkin-image-pkgsCross.config.system.build.sdImage;
+      packages.aarch64-darwin.pumpkin-image = self.pumpkin-image-pkgsCross.config.system.build.sdImage;
 
       deploy.nodes =
         mapToAttrs
@@ -221,24 +221,21 @@
           pkgs = nixpkgs.legacyPackages."${system}";
         in
         {
-          deploy.pumpkin = {
+          deploy-pumpkin = {
             type = "app";
             program = pkgs.lib.getExe (
               pkgs.writeShellScriptBin "deploy-pumpkin" ''
                 #!${pkgs.bash}/bin/bash
-                # FIXME: can we remove --skip-checks? why is peggy check failing on darwin?
-                ${pkgs.deploy-rs}/bin/deploy path:.#${system}-pumpkin --skip-checks
+                ${pkgs.deploy-rs}/bin/deploy path:.#${system}-pumpkin
               ''
             );
           };
         }
       );
 
-      # FIXME: haven't tested this yet, removable if not working
-      checks = forAllSystems (system: {
-        deploy = builtins.mapAttrs (
-          system: deployLib: deployLib.deployChecks self.deploy
-        ) inputs.deploy-rs.lib;
-      });
+      # deploy-rs checks
+      checks = builtins.mapAttrs (
+        system: deployLib: deployLib.deployChecks self.deploy
+      ) inputs.deploy-rs.lib;
     };
 }

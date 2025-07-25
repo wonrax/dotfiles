@@ -482,6 +482,7 @@
 
         # Latest commit of vim-zellij-navigator supports multi-modifier combos
         # but not yet released, so we build it from source.
+        # FIXME: latest version is released, use the released binary instead
         vim-zellij-navigator = craneLib.buildPackage {
           src = pkgsRust.fetchFromGitHub {
             owner = "hiasr";
@@ -572,8 +573,6 @@
       # MacOS clang to build properly
       gcc
 
-      # NOTE: won't build on MacOS, but haven't tested on linux, if fail to
-      # build, remove it from the list and install using npm
       unstablePkgs.opencode
     ];
 

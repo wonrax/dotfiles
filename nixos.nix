@@ -146,7 +146,7 @@
   {
     home-manager.useUserPackages = true;
     home-manager.extraSpecialArgs = {
-      inherit user unstablePkgs;
+      inherit user unstablePkgs inputs;
     };
     home-manager.users.${user.username} = {
       imports = [
