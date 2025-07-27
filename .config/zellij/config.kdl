@@ -8,61 +8,63 @@ keybinds {
     shared_except "locked" {
         bind "Alt h" {
             MessagePlugin "vim-zellij-navigator" {
-                name "move_focus";
-                payload "left";
-                move_mod "alt";
-            };
+                name "move_focus"
+                payload "left"
+                move_mod "alt"
+            }
         }
         bind "Alt j" {
             MessagePlugin "vim-zellij-navigator" {
-                name "move_focus";
-                payload "down";
-                move_mod "alt";
-            };
+                name "move_focus"
+                payload "down"
+                move_mod "alt"
+            }
         }
         bind "Alt k" {
             MessagePlugin "vim-zellij-navigator" {
-                name "move_focus";
-                payload "up";
-                move_mod "alt";
-            };
+                name "move_focus"
+                payload "up"
+                move_mod "alt"
+            }
         }
         bind "Alt l" {
             MessagePlugin "vim-zellij-navigator" {
-                name "move_focus";
-                payload "right";
-                move_mod "alt";
-            };
+                name "move_focus"
+                payload "right"
+                move_mod "alt"
+            }
         }
         bind "Ctrl Alt h" {
             MessagePlugin "vim-zellij-navigator" {
-                name "resize";
-                payload "left";
-                resize_mod "ctrl+alt";
-            };
+                name "resize"
+                payload "left"
+                resize_mod "ctrl+alt"
+            }
         }
         bind "Ctrl Alt j" {
             MessagePlugin "vim-zellij-navigator" {
-                name "resize";
-                payload "down";
-                resize_mod "ctrl+alt";
-            };
+                name "resize"
+                payload "down"
+                resize_mod "ctrl+alt"
+            }
         }
         bind "Ctrl Alt k" {
             MessagePlugin "vim-zellij-navigator" {
-                name "resize";
-                payload "up";
-                resize_mod "ctrl+alt";
-            };
+                name "resize"
+                payload "up"
+                resize_mod "ctrl+alt"
+            }
         }
         bind "Ctrl Alt l" {
             MessagePlugin "vim-zellij-navigator" {
-                name "resize";
-                payload "right";
-                resize_mod "ctrl+alt";
-            };
+                name "resize"
+                payload "right"
+                resize_mod "ctrl+alt"
+            }
         }
-        bind "Ctrl q" { Quit; }
+        bind "Ctrl q" {
+            Quit
+        }
     }
     tmux {
         bind "Ctrl ;" {
@@ -82,43 +84,43 @@ keybinds {
             SwitchToMode "Normal"
         }
         bind "Tab" {
-            ToggleTab;
+            ToggleTab
             SwitchToMode "Normal"
         }
         bind "1" {
-            GoToTab 1;
+            GoToTab 1
             SwitchToMode "Normal"
         }
         bind "2" {
-            GoToTab 2;
+            GoToTab 2
             SwitchToMode "Normal"
         }
         bind "3" {
-            GoToTab 3;
+            GoToTab 3
             SwitchToMode "Normal"
         }
         bind "4" {
-            GoToTab 4;
+            GoToTab 4
             SwitchToMode "Normal"
         }
         bind "5" {
-            GoToTab 5;
+            GoToTab 5
             SwitchToMode "Normal"
         }
         bind "6" {
-            GoToTab 6;
+            GoToTab 6
             SwitchToMode "Normal"
         }
         bind "7" {
-            GoToTab 7;
+            GoToTab 7
             SwitchToMode "Normal"
         }
         bind "8" {
-            GoToTab 8;
+            GoToTab 8
             SwitchToMode "Normal"
         }
         bind "9" {
-            GoToTab 9;
+            GoToTab 9
             SwitchToMode "Normal"
         }
     }
@@ -176,9 +178,9 @@ plugins {
     configuration location="zellij:configuration"
     plugin-manager location="zellij:plugin-manager"
     about location="zellij:about"
+    vim-zellij-navigator location="https://github.com/hiasr/vim-zellij-navigator/releases/latest/download/vim-zellij-navigator.wasm" {
 
-    vim-zellij-navigator location="https://github.com/hiasr/vim-zellij-navigator/releases/download/0.2.1/vim-zellij-navigator.wasm" { }
-
+    }
     zjstatus-hints location="https://github.com/b0o/zjstatus-hints/releases/latest/download/zjstatus-hints.wasm" {
         max_length "0"
         overflow_str ""
@@ -188,3 +190,4 @@ plugins {
 load_plugins {
     zjstatus-hints
 }
+
