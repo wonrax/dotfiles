@@ -14,6 +14,8 @@
     "flakes"
   ];
 
+  boot.initrd.systemd.enable = true; # SystemD as PID1 for faster Plymouth and TTY resolution initialization
+
   # Bootloader.
   # boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
@@ -36,15 +38,7 @@
   };
 
   # -- Enable the boot splash screen. -- #
-  boot.plymouth = {
-    enable = true;
-    theme = "spinner_alt";
-    themePackages = with pkgs; [
-      (adi1090x-plymouth-themes.override {
-        selected_themes = [ "spinner_alt" ];
-      })
-    ];
-  };
+  boot.plymouth.enable = true;
   # Enable "Silent boot"
   boot.consoleLogLevel = 3;
   boot.initrd.verbose = false;
