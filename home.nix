@@ -487,7 +487,6 @@
       fish
       nh
       difftastic
-      unstablePkgs.goose-cli
 
       htop
       btop
@@ -546,6 +545,7 @@
   # You can update home Manager without changing this value. See
   # the home Manager release notes for a list of state version
   # changes in each release.
+  # FIXME: move this to host specific config instead of shared one
   home.stateVersion = "24.11";
 
   # Let home Manager install and manage itself.
