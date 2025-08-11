@@ -99,7 +99,7 @@ return {
               {
                 function()
                   if not require('copilot.client').is_disabled() then
-                    return ''
+                    return '  '
                   end
                   return ''
                 end,

@@ -35,6 +35,12 @@ return {
                 --   enable = false,
                 -- },
               },
+              procMacro = {
+                ignored = {
+                  ['napi-derive'] = { 'napi' },
+                },
+              },
+              diagnostics = { disabled = { 'proc-macro-disabled' } },
             },
           },
         },

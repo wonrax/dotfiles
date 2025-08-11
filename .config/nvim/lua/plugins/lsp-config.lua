@@ -67,14 +67,10 @@ return {
         ltex_plus = {
           settings = {
             ltex = {
-              dictionary = {
-                -- TODO: move the dictionary to a file instead, see
-                -- https://ltex-plus.github.io/ltex-plus/settings.html#ltexdictionary
-                ['en-US'] = {
-                  'neovim',
-                  'nvim',
-                  'WebUI',
-                },
+              configurationTarget = {
+                dictionary = 'workspaceFolderExternalFile',
+                disabledRules = 'workspaceFolderExternalFile',
+                hiddenFalsePositives = 'workspaceFolderExternalFile',
               },
             },
           },
@@ -114,6 +110,11 @@ return {
         -- by the server configuration above. Useful when disabling
         -- certain features of an LSP (for example, turning off formatting for tsserver)
         server.capabilities = capabilities
+        server.on_attach = function()
+          if server_name == 'ltex_plus' then
+            require('ltex_extra').setup()
+          end
+        end
         vim.lsp.config(server_name, server)
       end
 
