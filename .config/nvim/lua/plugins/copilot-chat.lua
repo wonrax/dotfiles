@@ -13,7 +13,7 @@ local floating_window_opts = {
 return {
   {
     'CopilotC-Nvim/CopilotChat.nvim',
-    branch = 'main',
+    version = '*',
     dependencies = {
       {
         'zbirenbaum/copilot.lua',
@@ -48,7 +48,7 @@ return {
       { 'nvim-telescope/telescope.nvim' },
     },
     opts = {
-      model = 'claude-sonnet-4',
+      model = 'gpt-5',
       show_help = true,
       auto_follow_cursor = false,
       clear_chat_on_new_prompt = false,
@@ -96,16 +96,9 @@ return {
       {
         '<leader>cp',
         function()
-          local actions = require 'CopilotChat.actions'
-          require('CopilotChat.integrations.telescope').pick(actions.prompt_actions())
-        end,
-        desc = 'Prompt actions',
-      },
-      {
-        '<leader>cp',
-        function()
-          local actions = require 'CopilotChat.actions'
-          require('CopilotChat.integrations.telescope').pick(actions.prompt_actions { selection = require('CopilotChat.select').visual })
+          require('CopilotChat').select_prompt {
+            selection = require('CopilotChat.select').visual or require('CopilotChat.select').line,
+          }
         end,
         mode = { 'v', 'x', 'n' },
         desc = 'Prompt actions',
@@ -115,13 +108,9 @@ return {
         '<leader>cv',
         function()
           local chat = require 'CopilotChat'
-          local select = require 'CopilotChat.select'
 
           chat.toggle {
-            selection = function(source)
-              return select.visual(source) or nil
-            end,
-            context = 'buffer',
+            selection = require('CopilotChat.select').visual or require('CopilotChat.select').line,
           }
         end,
         mode = { 'v', 'x', 'n' },
@@ -131,13 +120,9 @@ return {
         '<leader>ci',
         function()
           local chat = require 'CopilotChat'
-          local select = require 'CopilotChat.select'
 
           chat.toggle {
-            selection = function(source)
-              return select.visual(source) or nil
-            end,
-            context = 'buffer',
+            selection = require('CopilotChat.select').visual or require('CopilotChat.select').line,
             window = floating_window_opts,
           }
         end,
@@ -150,67 +135,38 @@ return {
 
       chat.setup(vim.tbl_deep_extend('force', opts, {
         prompts = {
-          -- Code related prompts
-          Explain = {
-            prompt = '> /COPILOT_EXPLAIN\n\nWrite an explanation for the selected code as paragraphs of text.',
-          },
-          Review = {
-            prompt = '> /COPILOT_REVIEW\n\nReview the selected code.',
-            -- see config.lua for implementation
-          },
-          Fix = {
-            prompt = '> /COPILOT_GENERATE\n\nThere is a problem in this code. Rewrite the code to show it with the bug fixed.',
-          },
-          Optimize = {
-            prompt = '> /COPILOT_GENERATE\n\nOptimize the selected code to improve performance and readability.',
-          },
-          Docs = {
-            prompt = '> /COPILOT_GENERATE\n\nPlease add documentation comments to the selected code.',
-          },
-          Tests = {
-            prompt = '> /COPILOT_GENERATE\n\nPlease generate tests for my code.',
-          },
-          Commit = {
-            prompt = "> #jjlog:20\n#jj:diff\n\nWrite commit message for the change following the convention of the provided commit history. If there's no inherent style, fallback to conventional commit message. Make sure the title has around 72 characters and message is wrapped at 72 characters. Wrap the whole message in code block with language gitcommit. DO NOT add to the response explanation or anything other than the git commit itself.",
-            window = floating_window_opts,
-          },
-          ChatWithVisual = {
-            description = 'Ask Copilot to help with the selected code.',
-            context = 'buffer',
-          },
-          ChatInline = {
-            window = floating_window_opts,
-            description = 'Ask Copilot to help with the selected code in a floating window.',
-            context = 'buffer',
-          },
           -- Text related prompts
-          Summarize = {
-            prompt = '/COPILOT_EXPLAIN\n\nSummarize the selected text.',
-            description = 'Summarize the text',
-            window = floating_window_opts,
-          },
-          Spelling = {
-            prompt = '/COPILOT_GENERATE\n\nCorrect any grammar and spelling errors in the following text.',
-            description = 'Correct spelling and grammar',
-            window = floating_window_opts,
-          },
           Wording = {
-            prompt = '/COPILOT_GENERATE\n\nImprove the grammar and wording of the following text.',
+            prompt = '#buffer\nImprove the grammar and wording of the selected text.',
             description = 'Improve grammar and wording',
-            window = floating_window_opts,
           },
           Concise = {
-            prompt = '/COPILOT_GENERATE\n\nRewrite the following text to make it more concise.',
+            prompt = '#buffer\nRewrite the selected text to make it more concise.',
             description = 'Make the text more concise',
-            window = floating_window_opts,
+          },
+          Grammar = {
+            prompt = '#buffer\nCheck the selected text for grammar errors and suggest corrections.',
+            description = 'Check grammar',
           },
         },
-        contexts = {
+        functions = {
           jjlog = {
+            description = 'Sample jj log lines for commit style context',
+            uri = 'jjlog://{n}',
+            schema = {
+              type = 'object',
+              required = { 'n' },
+              properties = {
+                n = {
+                  type = 'integer',
+                  minimum = 1,
+                  description = 'Number of commit lines to include',
+                },
+              },
+            },
             resolve = function(input)
-              input = input or '20'
-              local N = tonumber(input)
-              local M = 10 * N -- Fetch 10x more commits than needed for sampling pool
+              local n = tonumber(input and input.n) or 20
+              local M = 10 * n -- Fetch 10x more commits than needed for sampling pool
               local cmd = {
                 'jj',
                 'log',
@@ -243,7 +199,7 @@ return {
 
               -- Weighted random selection without replacement
               local selected = {}
-              for _ = 1, N do
+              for _ = 1, n do
                 if #commits == 0 then
                   break
                 end
@@ -275,19 +231,32 @@ return {
 
               return {
                 {
-                  content = content,
-                  filename = 'jjlog_sampled_' .. input .. '_commits',
-                  filetype = 'text',
+                  uri = 'jjlog://' .. tostring(n),
+                  mimetype = 'text/plain',
+                  data = content,
                 },
               }
             end,
           },
           jj = {
+            description = 'Run jj commands and return output',
+            uri = 'jj://{cmd}',
+            schema = {
+              type = 'object',
+              required = { 'cmd' },
+              properties = {
+                cmd = {
+                  type = 'string',
+                  enum = { 'diff' },
+                  description = 'jj subcommand to run',
+                },
+              },
+            },
             resolve = function(input)
-              input = input or 'diff'
+              local cmd_key = (input and input.cmd) or 'diff'
               local cmd
 
-              if input == 'diff' then
+              if cmd_key == 'diff' then
                 cmd = {
                   'jj',
                   'diff',
@@ -296,17 +265,16 @@ return {
                   'ui.diff.tool=["git", "--no-pager", "diff", "--no-color", "$left", "$right"]',
                 }
               else
-                -- Handle other jj commands if needed
-                cmd = { 'jj', input }
+                cmd = { 'jj', cmd_key }
               end
 
               local out = require('CopilotChat.utils').system(cmd)
 
               return {
                 {
-                  content = out.stdout,
-                  filename = 'jj_' .. input,
-                  filetype = 'diff',
+                  uri = 'jj://' .. cmd_key,
+                  mimetype = 'text/plain',
+                  data = out.stdout,
                 },
               }
             end,
