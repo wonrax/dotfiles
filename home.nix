@@ -525,6 +525,7 @@
           haskell-language-server
         ]
       ))
+      gnupg
 
       # .::= Fonts =::.
       cascadia-code

@@ -92,32 +92,32 @@
       # Standalone home-manager configuration, for systems where you don't want
       # to use NixOS but still want to use home-manager, e.g. macOS without
       # nix-darwin.
-      packages.aarch64-darwin = {
-        # TODO: libsqlite3 is not yet managed by home-manager, gotta install it
-        # manually using brew
-        homeConfigurations.${user.username} = home-manager.lib.homeManagerConfiguration {
-          pkgs = nixpkgs.legacyPackages.aarch64-darwin;
-          extraSpecialArgs = {
-            unstablePkgs = nixpkgs-unstable.legacyPackages.aarch64-darwin;
-            inherit user inputs;
-          };
-          modules = [
-            ./home.nix
-            {
-              # NOTE: ssh agent must be enabled and configured manually in
-              # 1password on macos for now
-              programs.git = {
-                extraConfig = {
-                  gpg.ssh.program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
+      # TODO: libsqlite3 is not yet managed by home-manager, gotta install it
+      # manually using brew
+      legacyPackages.aarch64-darwin.homeConfigurations.${user.username} =
+        home-manager.lib.homeManagerConfiguration
+          {
+            pkgs = nixpkgs.legacyPackages.aarch64-darwin;
+            extraSpecialArgs = {
+              unstablePkgs = nixpkgs-unstable.legacyPackages.aarch64-darwin;
+              inherit user inputs;
+            };
+            modules = [
+              ./home.nix
+              {
+                # NOTE: ssh agent must be enabled and configured manually in
+                # 1password on macos for now
+                programs.git = {
+                  extraConfig = {
+                    gpg.ssh.program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
+                  };
                 };
-              };
-              programs.jujutsu = {
-                settings.signing.backends.ssh.program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
-              };
-            }
-          ];
-        };
-      };
+                programs.jujutsu = {
+                  settings.signing.backends.ssh.program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
+                };
+              }
+            ];
+          };
 
       nixosModules.pumpkin = {
         imports = [
@@ -164,18 +164,19 @@
       # TODO: detect if emulatedSystems is set, and if not, throw an error
       packages.x86_64-linux.pumpkin-image = self.pumpkin-image.config.system.build.sdImage;
 
-      pumpkin-image-pkgsCross =
-        nixpkgs.legacyPackages.x86_64-linux.pkgsCross.aarch64-multiplatform.nixos
-          {
-            imports = [
-              "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
-              self.nixosModules.pumpkin
-            ];
-          };
+      # TODO: failing checks
+      # pumpkin-image-pkgsCross =
+      #   nixpkgs.legacyPackages.aarch64-darwin.pkgsCross.aarch64-multiplatform.nixos
+      #     {
+      #       imports = [
+      #         "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
+      #         self.nixosModules.pumpkin
+      #       ];
+      #     };
 
       # NOTE: using pkgsCross will rebuild entire dependency chain from
       # scratch, which can takes comically long.
-      packages.aarch64-darwin.pumpkin-image = self.pumpkin-image-pkgsCross.config.system.build.sdImage;
+      # packages.aarch64-darwin.pumpkin-image = self.pumpkin-image-pkgsCross.config.system.build.sdImage;
 
       deploy.nodes =
         mapToAttrs
@@ -211,7 +212,11 @@
                 user = "root";
                 path = deploy-rs.deploy-rs.lib.activate.nixos self.nixosConfigurations.pumpkin;
               };
-              remoteBuild = system == "aarch64-darwin";
+              remoteBuild =
+                !(builtins.elem system [
+                  "aarch64-linux"
+                  "x86_64-linux"
+                ]);
             }
           );
 
