@@ -1,0 +1,229 @@
+{
+  pkgs,
+  lib,
+  config,
+  ...
+}:
+
+{
+  # Runtime
+  virtualisation.podman = {
+    enable = true;
+    autoPrune.enable = true;
+    dockerCompat = true;
+  };
+
+  environment.etc."policy.json".text = ''
+    {
+      "default": [{"type": "insecureAcceptAnything"}]
+    }
+  '';
+
+  # make sure mounted directories are created first
+  systemd.tmpfiles.rules = [
+    "d /etc/wrx-sh/www/wrx.sh 0775 root root -"
+    "d /etc/wrx-sh/www/files.wrx.sh 0775 root root -"
+    "d /var/wrx-sh/api 0774 root root -"
+
+    "d /etc/open-webui 0774 root root -"
+    "d /var/open-webui/data 0774 root root -"
+  ];
+
+  # Enable container name DNS for all Podman networks.
+  networking.firewall.interfaces =
+    let
+      matchAll = if !config.networking.nftables.enable then "podman+" else "podman*";
+    in
+    {
+      "${matchAll}".allowedUDPPorts = [ 53 ];
+    };
+
+  virtualisation.oci-containers.backend = "podman";
+
+  # # Containers
+  virtualisation.oci-containers.containers."open-webui" = {
+    image = "ghcr.io/open-webui/open-webui:main";
+    environmentFiles = [
+      "/etc/open-webui/.env"
+    ];
+    environment = {
+      ENV = "prod";
+      WEBUI_AUTH = "true";
+      ENABLE_SIGNUP = "true";
+      ENABLE_LOGIN_FORM = "true";
+      DEFAULT_USER_ROLE = "pending";
+      ENABLE_MESSAGE_RATING = "false";
+      DATABASE_POOL_SIZE = "10";
+      ENABLE_OLLAMA_API = "false";
+      # The two options below helps significantly reducing RAM usage (from
+      # 600MB to 240MB)
+      # https://docs.openwebui.com/tutorials/tips/reduce-ram-usage
+      AUDIO_STT_ENGINE = "openai";
+      RAG_EMBEDDING_ENGINE = "ollama";
+    };
+    ports = [
+      "8080:8080"
+    ];
+    volumes = [
+      "/var/open-webui/data:/app/backend/data:rw"
+    ];
+    log-driver = "journald";
+    extraOptions = [
+      "--network=wrx-sh_default"
+    ];
+  };
+
+  systemd.services."podman-open-webui" = {
+    serviceConfig = {
+      Restart = lib.mkOverride 90 "always";
+    };
+    after = [
+      "podman-network-wrx-sh_default.service"
+      "postgresql.service"
+    ];
+    requires = [
+      "podman-network-wrx-sh_default.service"
+      "postgresql.service"
+    ];
+    partOf = [
+      "podman-compose-wrx-sh-root.target"
+    ];
+    wantedBy = [
+      "podman-compose-wrx-sh-root.target"
+    ];
+  };
+
+  virtualisation.oci-containers.containers."schema-migrator" = {
+    image = "ghcr.io/wonrax/wrx-sh-migrator:latest";
+    environmentFiles = [
+      "/etc/wrx-sh/.env"
+    ];
+    log-driver = "journald";
+    extraOptions = [
+      "--network=wrx-sh_default"
+    ];
+  };
+
+  systemd.services."podman-schema-migrator" = {
+    serviceConfig = {
+      Type = lib.mkForce "oneshot";
+      Restart = lib.mkForce "no";
+      RemainAfterExit = true;
+    };
+    after = [
+      "podman-network-wrx-sh_default.service"
+      "postgresql.service"
+    ];
+    requires = [
+      "podman-network-wrx-sh_default.service"
+      "postgresql.service"
+    ];
+    partOf = [
+      "podman-compose-wrx-sh-root.target"
+    ];
+    wantedBy = [
+      "podman-compose-wrx-sh-root.target"
+    ];
+  };
+
+  virtualisation.oci-containers.containers."wrx-sh-api" = {
+    image = "ghcr.io/wonrax/wrx-sh-api:latest";
+    workdir = "/";
+    ports = [
+      "3000:3000"
+    ];
+    environmentFiles = [
+      "/etc/wrx-sh/.env"
+    ];
+    environment = {
+      # hf-hub expects a $HOME dir, but nixos does not define one
+      HOME = "/";
+    };
+    dependsOn = [
+      "schema-migrator"
+    ];
+    log-driver = "journald";
+    extraOptions = [
+      "--network=wrx-sh_default"
+    ];
+  };
+
+  systemd.services."podman-wrx-sh-api" = {
+    serviceConfig = {
+      Restart = lib.mkOverride 90 "always";
+      ProtectSystem = "";
+    };
+    after = [
+      "podman-network-wrx-sh_default.service"
+      "postgresql.service"
+    ];
+    requires = [
+      "podman-network-wrx-sh_default.service"
+      "postgresql.service"
+    ];
+    partOf = [
+      "podman-compose-wrx-sh-root.target"
+    ];
+    wantedBy = [
+      "podman-compose-wrx-sh-root.target"
+    ];
+  };
+
+  virtualisation.oci-containers.containers."wrx-sh-www" = {
+    image = "ghcr.io/wonrax/wrx-sh-www:latest";
+    volumes = [
+      "/etc/wrx-sh/www/wrx.sh:/.mount:rw"
+    ];
+    log-driver = "journald";
+    extraOptions = [
+      "--network-alias=www"
+      "--network=wrx-sh_default"
+    ];
+  };
+
+  systemd.services."podman-wrx-sh-www" = {
+    serviceConfig = {
+      Restart = lib.mkForce "no";
+      Type = lib.mkForce "oneshot"; # only used to copy the files to mounted volume
+      RemainAfterExit = true;
+    };
+    after = [
+      "podman-network-wrx-sh_default.service"
+    ];
+    requires = [
+      "podman-network-wrx-sh_default.service"
+    ];
+    partOf = [
+      "podman-compose-wrx-sh-root.target"
+    ];
+    wantedBy = [
+      "podman-compose-wrx-sh-root.target"
+    ];
+  };
+
+  # Networks
+  systemd.services."podman-network-wrx-sh_default" = {
+    path = [ pkgs.podman ];
+    serviceConfig = {
+      Restart = lib.mkForce "no";
+      Type = "oneshot";
+      RemainAfterExit = true;
+      ExecStop = "podman network rm -f wrx-sh_default";
+    };
+    script = ''
+      podman network inspect wrx-sh_default || podman network create wrx-sh_default
+    '';
+    partOf = [ "podman-compose-wrx-sh-root.target" ];
+    wantedBy = [ "podman-compose-wrx-sh-root.target" ];
+  };
+
+  # Root service
+  # When started, this will automatically create all resources and start
+  # the containers. When stopped, this will teardown all resources.
+  systemd.targets."podman-compose-wrx-sh-root" = {
+    unitConfig = {
+      Description = "Root target generated by compose2nix.";
+    };
+    wantedBy = [ "multi-user.target" ];
+  };
+}

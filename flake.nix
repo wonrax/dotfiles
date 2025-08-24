@@ -35,6 +35,11 @@
       url = "github:serokell/deploy-rs";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -44,6 +49,7 @@
       nixpkgs-unstable,
       opnix,
       nixpkgs,
+      disko,
       ...
     }@inputs:
     let
@@ -178,8 +184,21 @@
       # scratch, which can takes comically long.
       # packages.aarch64-darwin.pumpkin-image = self.pumpkin-image-pkgsCross.config.system.build.sdImage;
 
+      nixosConfigurations.yorgos = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        specialArgs = {
+          inherit user inputs;
+          unstablePkgs = nixpkgs-unstable.legacyPackages.x86_64-linux;
+        };
+        modules = [
+          disko.nixosModules.disko
+          opnix.nixosModules.default
+          ./hosts/yorgos
+        ];
+      };
+
       deploy.nodes =
-        mapToAttrs
+        (mapToAttrs
           [
             "aarch64-darwin"
             "x86_64-linux"
@@ -218,7 +237,50 @@
                   "x86_64-linux"
                 ]);
             }
-          );
+          )
+        )
+        // (mapToAttrs
+          [
+            "aarch64-darwin"
+            "x86_64-linux"
+          ]
+          (system: system + "-yorgos")
+          (
+            system:
+            let
+              targetSystem = "x86_64-linux";
+              deploy-rs =
+                let
+                  pkgs = nixpkgs.legacyPackages."${targetSystem}";
+                in
+                import nixpkgs {
+                  system = targetSystem;
+                  overlays = [
+                    inputs.deploy-rs.overlays.default
+                    (self: super: {
+                      deploy-rs = {
+                        inherit (pkgs) deploy-rs;
+                        lib = super.deploy-rs.lib;
+                      };
+                    })
+                  ];
+                };
+            in
+            {
+              sshUser = "root";
+              hostname = "yorgos";
+              profiles.system = {
+                user = "root";
+                path = deploy-rs.deploy-rs.lib.activate.nixos self.nixosConfigurations.yorgos;
+              };
+              remoteBuild =
+                !(builtins.elem system [
+                  "aarch64-linux"
+                  "x86_64-linux"
+                ]);
+            }
+          )
+        );
 
       apps = forAllSystems (
         system:
@@ -231,7 +293,17 @@
             program = pkgs.lib.getExe (
               pkgs.writeShellScriptBin "deploy-pumpkin" ''
                 #!${pkgs.bash}/bin/bash
-                ${pkgs.deploy-rs}/bin/deploy path:.#${system}-pumpkin
+                ${pkgs.deploy-rs}/bin/deploy path:.#${system}-pumpkin --skip-checks
+              ''
+            );
+          };
+
+          deploy-yorgos = {
+            type = "app";
+            program = pkgs.lib.getExe (
+              pkgs.writeShellScriptBin "deploy-yorgos" ''
+                #!${pkgs.bash}/bin/bash
+                ${pkgs.deploy-rs}/bin/deploy path:.#${system}-yorgos --skip-checks
               ''
             );
           };

@@ -49,3 +49,7 @@ def "nix deploy" [host: string = "pumpkin"] {
     # nixos-rebuild switch --flake path:.#pumpkin --target-host pumpkin --build-host pumpkin --fast --sudo
 }
 
+# Install nixos on freshly created VPS (OS independent, e.g. can start from Ubuntu or Debian)
+# https://github.com/nix-community/nixos-anywhere/blob/main/docs/quickstart.md
+# nix run github:nix-community/nixos-anywhere -- --flake .#hetzner-cloud --target-host root@hetzner-cloud --build-on-remote
+

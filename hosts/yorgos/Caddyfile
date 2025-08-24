@@ -1,0 +1,71 @@
+(request-logging) {
+	log {
+		output stdout
+		format filter {
+			request>headers>Cookie delete
+			wrap json {
+				time_format iso8601
+			}
+		}
+	}
+}
+
+hhai.dev {
+	import request-logging
+
+	redir https://wrx.sh{uri} permanent
+}
+
+llm.hhai.dev {
+	redir https://c.wrx.sh{uri} permanent
+}
+
+files.hhai.dev {
+	redir https://files.wrx.sh{uri} permanent
+}
+
+wrx.sh {
+	import request-logging
+
+	handle_path /api/* {
+		reverse_proxy localhost:3000 {
+			# Trust all incoming X-Forwarded-For headers since we're behind
+			# Cloudflare
+			trusted_proxies 0.0.0.0/0
+		}
+	}
+
+	handle {
+		root * /etc/wrx-sh/www/wrx.sh
+		try_files {path}.html
+
+		file_server {
+			disable_canonical_uris
+			precompressed zstd gzip
+		}
+
+		route {
+			header /_astro/* Cache-Control "max-age=31536000, immutable"
+		}
+	}
+
+	encode zstd gzip
+}
+
+c.wrx.sh {
+    reverse_proxy localhost:8080
+    route {
+        header /_app/immutable/* Cache-Control "max-age=31536000, immutable"
+    }
+}
+
+files.wrx.sh {
+	root * /etc/wrx-sh/www/files.wrx.sh
+	file_server {
+		browse
+	}
+	header Access-Control-Allow-Origin "*"
+
+	encode zstd gzip
+}
+
