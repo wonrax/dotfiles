@@ -307,7 +307,7 @@
             program = pkgs.lib.getExe (
               pkgs.writeShellScriptBin "deploy-yorgos" ''
                 #!${pkgs.bash}/bin/bash
-                ${pkgs.deploy-rs}/bin/deploy path:.#${system}-yorgos --skip-checks
+                ${pkgs.deploy-rs}/bin/deploy .#${system}-yorgos --skip-checks
               ''
             );
           };

@@ -16,6 +16,7 @@
     ./caddy.nix
     ./website.nix
     ./open-webui.nix
+    ./db-backup.nix
   ];
 
   networking.hostName = "yorgos";
