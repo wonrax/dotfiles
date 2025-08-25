@@ -2,6 +2,7 @@
   config,
   lib,
   user,
+  pkgs,
   ...
 }:
 
@@ -56,6 +57,14 @@ in
       }
     ];
 
+    environment.systemPackages =
+      with pkgs;
+      map lib.lowPrio [
+        curl
+        git
+        neovim
+      ];
+
     services.onepassword-secrets = {
       enable = cfg.opnix.enable;
       tokenFile = "/etc/opnix-token";
@@ -73,6 +82,7 @@ in
       authKeyFile = "/etc/tailscale/authkey";
       extraSetFlags = [
         "--ssh"
+        "--advertise-exit-node"
       ];
     };
 
@@ -111,6 +121,9 @@ in
       options = "--delete-older-than 30d";
     };
 
-    virtualisation.podman.autoPrune.enable = true;
+    virtualisation.podman = {
+      autoPrune.enable = true;
+      dockerCompat = true;
+    };
   };
 }

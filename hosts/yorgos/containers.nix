@@ -7,12 +7,9 @@
 
 {
   # Runtime
-  virtualisation.podman = {
-    enable = true;
-    autoPrune.enable = true;
-    dockerCompat = true;
-  };
+  virtualisation.podman.enable = true;
 
+  # Allow pulling arbitrary images from the internet.
   environment.etc."policy.json".text = ''
     {
       "default": [{"type": "insecureAcceptAnything"}]
@@ -23,7 +20,6 @@
   systemd.tmpfiles.rules = [
     "d /etc/wrx-sh/www/wrx.sh 0775 root root -"
     "d /etc/wrx-sh/www/files.wrx.sh 0775 root root -"
-    "d /var/wrx-sh/api 0774 root root -"
 
     "d /etc/open-webui 0774 root root -"
     "d /var/open-webui/data 0774 root root -"

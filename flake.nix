@@ -111,6 +111,8 @@
             modules = [
               ./home.nix
               {
+                home.stateVersion = "24.11";
+
                 # NOTE: ssh agent must be enabled and configured manually in
                 # 1password on macos for now
                 programs.git = {

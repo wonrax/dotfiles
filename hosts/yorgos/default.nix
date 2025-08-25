@@ -32,11 +32,6 @@
 
   services.openssh.enable = true;
 
-  environment.systemPackages = map lib.lowPrio [
-    pkgs.curl
-    pkgs.gitMinimal
-  ];
-
   users.users.root.openssh.authorizedKeys.keys = [
     user.ssh-pub-key
   ]

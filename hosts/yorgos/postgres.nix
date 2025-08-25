@@ -7,7 +7,7 @@
 {
   services.postgresql = {
     enable = true;
-    package = unstablePkgs.postgresql_18;
+    package = unstablePkgs.postgresql_18; # TODO: use stable version when available
     settings = {
       port = 5432;
       listen_addresses = lib.mkForce "*";
