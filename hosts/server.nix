@@ -44,6 +44,7 @@ in
       };
       environmentFiles = mkOption {
         type = types.listOf types.path;
+        default = [ ];
         description = ''
           List of environment files to load for the Vector service. This can be
           used to provide secrets or configuration options via environment
@@ -54,6 +55,16 @@ in
   };
 
   config = {
+    assertions = [
+      {
+        assertion = cfg.vector.environmentFiles != [ ];
+        message = lib.concatStrings [
+          "Set services.vector.environmentFiles when services.vector.enable = true. "
+          "A license key is required."
+        ];
+      }
+    ];
+
     nix.settings = {
       experimental-features = [
         "nix-command"
@@ -209,7 +220,7 @@ in
           AmbientCapabilities = "CAP_NET_BIND_SERVICE";
           # This group is required for accessing journald.
           SupplementaryGroups = "systemd-journal";
-          EnvironmentFile = if cfg.vector.enable then cfg.vector.environmentFiles else [ ];
+          EnvironmentFile = cfg.vector.environmentFiles;
         };
       unitConfig = {
         StartLimitIntervalSec = 10;
