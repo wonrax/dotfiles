@@ -57,5 +57,10 @@
 
   virtualisation.oci-containers.backend = "podman";
 
+  server.vector = {
+    enable = true;
+    environmentFiles = [ /etc/vector/.env ];
+  };
+
   system.stateVersion = "25.05";
 }

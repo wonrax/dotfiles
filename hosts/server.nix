@@ -33,6 +33,24 @@ in
         use 1Password Secrets in your NixOS configuration.
       '';
     };
+
+    vector = {
+      enable = mkOption {
+        type = types.bool;
+        default = false;
+        description = ''
+          Enable the Vector log and metrics collector service.
+        '';
+      };
+      environmentFiles = mkOption {
+        type = types.listOf types.path;
+        description = ''
+          List of environment files to load for the Vector service. This can be
+          used to provide secrets or configuration options via environment
+          variables.
+        '';
+      };
+    };
   };
 
   config = {
@@ -49,6 +67,8 @@ in
     };
 
     boot.loader.grub.configurationLimit = 16;
+
+    time.timeZone = "Asia/Ho_Chi_Minh";
 
     swapDevices = [
       {
@@ -137,6 +157,63 @@ in
       timerConfig = {
         OnCalendar = "hourly";
         Persistent = true;
+      };
+    };
+
+    systemd.services.vector = {
+      enable = cfg.vector.enable;
+      description = "Vector event and log aggregator";
+      wantedBy = [ "multi-user.target" ];
+      after = [ "network-online.target" ];
+      requires = [ "network-online.target" ];
+      serviceConfig =
+        let
+          vectorSettings = {
+            sources = {
+              journald.type = "journald";
+              vector_metrics.type = "internal_metrics";
+              host_metrics.type = "host_metrics";
+            };
+
+            sinks = {
+              newrelic_metrics = {
+                type = "new_relic";
+                inputs = [
+                  "vector_metrics"
+                  "host_metrics"
+                ];
+                account_id = "4240358";
+                api = "metrics";
+                license_key = "$NRIA_LICENSE_KEY";
+                region = "eu";
+              };
+              newrelic_logs = {
+                type = "new_relic";
+                inputs = [ "journald" ];
+                account_id = "4240358";
+                api = "logs";
+                license_key = "$NRIA_LICENSE_KEY";
+                region = "eu";
+              };
+            };
+          };
+          format = pkgs.formats.toml { };
+          conf = format.generate "vector.toml" vectorSettings;
+        in
+        {
+          ExecStart = "${lib.getExe pkgs.vector} --config ${conf}  --graceful-shutdown-limit-secs 30";
+          DynamicUser = true;
+          Restart = "always";
+          StateDirectory = "vector";
+          ExecReload = "${pkgs.coreutils}/bin/kill -HUP $MAINPID";
+          AmbientCapabilities = "CAP_NET_BIND_SERVICE";
+          # This group is required for accessing journald.
+          SupplementaryGroups = "systemd-journal";
+          EnvironmentFile = if cfg.vector.enable then cfg.vector.environmentFiles else [ ];
+        };
+      unitConfig = {
+        StartLimitIntervalSec = 10;
+        StartLimitBurst = 5;
       };
     };
   };
