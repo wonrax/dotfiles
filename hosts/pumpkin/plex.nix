@@ -9,7 +9,7 @@
 
   virtualisation.oci-containers.containers = {
     plex = {
-      image = "linuxserver/plex:latest";
+      image = "docker.io/linuxserver/plex:latest";
       autoStart = true;
       ports = [
         "9000:32400"
@@ -26,6 +26,9 @@
         "/var/lib/plex/config:/config"
         "/home/${user.username}/hdd01:/media"
       ];
+      labels = {
+        "io.containers.autoupdate" = "registry";
+      };
     };
   };
 }

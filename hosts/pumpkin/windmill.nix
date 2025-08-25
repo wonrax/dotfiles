@@ -40,6 +40,9 @@ let
       "--memory=256m"
     ];
     dependsOn = [ "windmill-server" ];
+    labels = {
+      "io.containers.autoupdate" = "registry";
+    };
   };
 
   workersForGroup =
@@ -109,6 +112,9 @@ in
       environment = {
         MODE = "server";
       };
+      labels = {
+        "io.containers.autoupdate" = "registry";
+      };
     };
 
     # LSP Service
@@ -120,10 +126,13 @@ in
       ];
       volumes = [ "/var/lib/windmill/lsp-cache:/pyls/.cache" ];
       dependsOn = [ "windmill-server" ];
+      labels = {
+        "io.containers.autoupdate" = "registry";
+      };
     };
 
     caddy = {
-      image = "caddy:2";
+      image = "docker.io/caddy:2";
       autoStart = true;
       ports = [
         "8000:80"
@@ -135,6 +144,9 @@ in
         "windmill-server"
         "windmill-lsp"
       ];
+      labels = {
+        "io.containers.autoupdate" = "registry";
+      };
     };
   }
   // (workersForGroup "default" windmill.workerGroups.default.replicas)

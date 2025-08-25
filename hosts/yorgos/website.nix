@@ -1,42 +1,16 @@
 {
   pkgs,
   lib,
-  config,
   ...
 }:
 
 {
-  # Runtime
-  virtualisation.podman.enable = true;
-
-  # Allow pulling arbitrary images from the internet.
-  environment.etc."policy.json".text = ''
-    {
-      "default": [{"type": "insecureAcceptAnything"}]
-    }
-  '';
-
   # make sure mounted directories are created first
   systemd.tmpfiles.rules = [
     "d /etc/wrx-sh/www/wrx.sh 0775 root root -"
     "d /etc/wrx-sh/www/files.wrx.sh 0775 root root -"
-
-    "d /etc/open-webui 0774 root root -"
-    "d /var/open-webui/data 0774 root root -"
   ];
 
-  # Enable container name DNS for all Podman networks.
-  networking.firewall.interfaces =
-    let
-      matchAll = if !config.networking.nftables.enable then "podman+" else "podman*";
-    in
-    {
-      "${matchAll}".allowedUDPPorts = [ 53 ];
-    };
-
-  virtualisation.oci-containers.backend = "podman";
-
-  # # Containers
   virtualisation.oci-containers.containers."open-webui" = {
     image = "ghcr.io/open-webui/open-webui:main";
     environmentFiles = [
@@ -67,6 +41,9 @@
     extraOptions = [
       "--network=wrx-sh_default"
     ];
+    labels = {
+      "io.containers.autoupdate" = "registry";
+    };
   };
 
   systemd.services."podman-open-webui" = {
@@ -147,7 +124,6 @@
   systemd.services."podman-wrx-sh-api" = {
     serviceConfig = {
       Restart = lib.mkOverride 90 "always";
-      ProtectSystem = "";
     };
     after = [
       "podman-network-wrx-sh_default.service"

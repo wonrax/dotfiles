@@ -1,8 +1,7 @@
 {
   modulesPath,
-  lib,
-  pkgs,
   user,
+  config,
   ...
 }@args:
 {
@@ -15,7 +14,8 @@
 
     ./postgres.nix
     ./caddy.nix
-    ./containers.nix
+    ./website.nix
+    ./open-webui.nix
   ];
 
   networking.hostName = "yorgos";
@@ -36,6 +36,26 @@
     user.ssh-pub-key
   ]
   ++ (args.extraPublicKeys or [ ]); # this is used for unit-testing this module and can be removed if not needed
+
+  virtualisation.podman.enable = true;
+
+  # Allow pulling arbitrary container images from the internet.
+  environment.etc."policy.json".text = ''
+    {
+      "default": [{"type": "insecureAcceptAnything"}]
+    }
+  '';
+
+  # Enable container name DNS for all Podman networks.
+  networking.firewall.interfaces =
+    let
+      matchAll = if !config.networking.nftables.enable then "podman+" else "podman*";
+    in
+    {
+      "${matchAll}".allowedUDPPorts = [ 53 ];
+    };
+
+  virtualisation.oci-containers.backend = "podman";
 
   system.stateVersion = "25.05";
 }

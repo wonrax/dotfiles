@@ -125,5 +125,19 @@ in
       autoPrune.enable = true;
       dockerCompat = true;
     };
+
+    systemd.services.podman-auto-update = {
+      enable = config.virtualisation.podman.enable;
+      wantedBy = [ "multi-user.target" ];
+    };
+
+    systemd.timers.podman-auto-update = {
+      enable = config.virtualisation.podman.enable;
+      description = "Periodic Podman container auto-update";
+      timerConfig = {
+        OnCalendar = "hourly";
+        Persistent = true;
+      };
+    };
   };
 }
