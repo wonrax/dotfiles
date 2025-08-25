@@ -109,7 +109,7 @@
               inherit user inputs;
             };
             modules = [
-              ./home.nix
+              ./home/desktop.nix
               {
                 home.stateVersion = "24.11";
 
@@ -142,7 +142,9 @@
 
       nixosConfigurations.pumpkin = nixpkgs.lib.nixosSystem {
         system = "aarch64-linux";
-        specialArgs = { inherit user; };
+        specialArgs = {
+          inherit user inputs;
+        };
         modules = [
           self.nixosModules.pumpkin
           # We won't import the generated configuration in sd image builds

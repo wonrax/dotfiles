@@ -82,6 +82,8 @@ let
   ));
 in
 {
+  virtualisation.podman.enable = true;
+  virtualisation.oci-containers.backend = "podman";
   # required by default workers that spawn containers to run jobs, making
   # /var/run/docker.sock available to the workers
   virtualisation.podman.dockerSocket.enable = true;

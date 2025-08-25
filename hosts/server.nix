@@ -3,6 +3,7 @@
   lib,
   user,
   pkgs,
+  inputs,
   ...
 }:
 
@@ -14,6 +15,10 @@ let
   cfg = config.server;
 in
 {
+  imports = [
+    inputs.home-manager.nixosModules.home-manager
+  ];
+
   options.server = {
     swapSize = mkOption {
       type = types.ints.unsigned;
@@ -94,6 +99,8 @@ in
         curl
         git
         neovim
+        nh
+        tmux
       ];
 
     services.onepassword-secrets = {
@@ -145,6 +152,7 @@ in
         "docker"
         "podman"
       ];
+      shell = pkgs.nushell;
     };
 
     nix.gc = {
@@ -226,6 +234,18 @@ in
         StartLimitIntervalSec = 10;
         StartLimitBurst = 5;
       };
+    };
+
+    home-manager.useUserPackages = true;
+    home-manager.extraSpecialArgs = {
+      inherit user;
+    };
+    home-manager.users.${user.username} = {
+      imports = [
+        ../home/nushell.nix
+        ../home/starship.nix
+        ../home/zoxide.nix
+      ];
     };
   };
 }

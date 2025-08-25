@@ -26,9 +26,6 @@
         tmux
       ];
 
-      # Enable ZSH so that it's available on login
-      programs.zsh.enable = true;
-
       # Enable docker
       virtualisation.docker.enable = true;
 
@@ -63,8 +60,6 @@
           # alsamixer
           alsa-utils
         ];
-
-        shell = pkgs.zsh;
       };
 
       programs._1password.enable = true;
@@ -150,7 +145,7 @@
     };
     home-manager.users.${user.username} = {
       imports = [
-        ./home.nix
+        ./home/desktop.nix
         (
           { pkgs, ... }:
           let

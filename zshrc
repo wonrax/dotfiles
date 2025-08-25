@@ -161,8 +161,6 @@ export PATH=$PATH:$DOTFILES/bin
 # diffstatic
 export DFT_DISPLAY=inline
 
-source $DOTFILES/alias
-
 if [[ -a ~/.localrc ]]
 then
   source ~/.localrc

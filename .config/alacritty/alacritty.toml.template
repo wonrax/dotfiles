@@ -1,4 +1,0 @@
-general.import = [
-  "~/.dotfiles/.config/alacritty/alacritty-light.toml"
-]
-
