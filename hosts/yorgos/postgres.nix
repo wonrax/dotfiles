@@ -15,7 +15,7 @@
     ensureDatabases = [ ];
     authentication = pkgs.lib.mkOverride 10 ''
       #type database  DBuser  auth-method
-      local all       all     trust
+      local all       all     peer
 
       # TYPE  DATABASE     USER      ADDRESS        METHOD
       host    all          all       0.0.0.0/0      password

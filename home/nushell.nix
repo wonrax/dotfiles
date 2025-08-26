@@ -153,4 +153,6 @@
       show_banner
     '';
   };
+
+  home.packages = with pkgs; [ bat ];
 }

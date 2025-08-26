@@ -64,6 +64,7 @@ in
     serviceConfig = {
       EnvironmentFile = "/etc/wrx-sh/.env";
       Type = "oneshot";
+      User = "postgres";
       ExecStart = backupScript;
       ProtectSystem = "strict";
       ProtectHome = true;
