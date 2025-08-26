@@ -173,6 +173,7 @@ in
     systemd.timers.podman-auto-update = {
       enable = config.virtualisation.podman.enable;
       description = "Periodic Podman container auto-update";
+      wantedBy = [ "timers.target" ];
       timerConfig = {
         OnCalendar = "hourly";
         Persistent = true;
