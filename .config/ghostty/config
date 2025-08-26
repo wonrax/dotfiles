@@ -1,5 +1,8 @@
 command = ~/.nix-profile/bin/nu
 
+# ghostty isn't in the terminfo database yet
+term = xterm-256color
+
 theme = light:rose-pine-dawn,dark:nightfox
 
 window-padding-x = 8

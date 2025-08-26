@@ -47,7 +47,6 @@
 
       $env.SHELL = "${pkgs.nushell}/bin/nu"
       $env.EDITOR = 'lean-nvim'
-      $env.TERM = 'xterm-256color' # ghostty isn't in the terminfo database yet
       $env.config.show_banner = false
 
       let zoxide_completer = {|spans|
