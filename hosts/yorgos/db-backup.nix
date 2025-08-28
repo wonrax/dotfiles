@@ -6,23 +6,52 @@ let
   prefix = "wrx-sh-postgres-backup/";
   filename = "yorgos-backup";
   numVersionsToKeep = 5; # 0 disables pruning
+  notifyChannelId = "1410446590472224888";
 
   backupScript = pkgs.writeShellScript "db-backup.sh" ''
     set -euo pipefail
+    set -a
 
     : "''${AWS_ACCESS_KEY_ID:?AWS_ACCESS_KEY_ID must be set}"
     : "''${AWS_SECRET_ACCESS_KEY:?AWS_SECRET_ACCESS_KEY must be set}"
+    : "''${DISCORD_TOKEN:?DISCORD_TOKEN must be set}"
 
     now="''$(date +%Y%m%d%H%M%S)"
     file_ext="sql.gz"
+    backup_filename="''${now}-${filename}.''${file_ext}"
+    fullpath="${bucketName}/${prefix}''${backup_filename}"
+    s3_url="s3://''${fullpath}"
 
-    fullpath="${bucketName}/${prefix}''${now}-${filename}.''${file_ext}"
-
-    echo "Backing up database and uploading to s3://''${fullpath}..."
+    echo "Backing up database and uploading to ''${s3_url}..."
 
     pg_dumpall -U postgres \
       | gzip \
-      | aws s3 cp - "s3://''${fullpath}" --region "${region}"
+      | aws s3 cp - "''${s3_url}" --region "${region}"
+
+    # Get the size of the uploaded file
+    file_size_bytes="''$(aws s3api head-object --bucket "${bucketName}" --key "${prefix}''${backup_filename}" --region "${region}" --query 'ContentLength' --output text)"
+    file_size_mb="''$(echo "scale=2; ''${file_size_bytes} / 1024 / 1024" | bc)"
+
+    discord_content=$(echo '${
+      builtins.toJSON {
+        content = ''
+          ✅ yorgos database has been backed up
+
+          **File:** `$backup_filename`
+          **Size:** $file_size_mb MB
+          **S3 URL:** `$s3_url`
+        '';
+      }
+    }' | envsubst)
+
+    # Send Discord notification
+    echo "Sending Discord notification..."
+    curl -H "Content-Type: application/json" \
+         -H "Authorization: Bot ''${DISCORD_TOKEN}" \
+         -X POST \
+         -d "$discord_content" \
+         "https://discord.com/api/v10/channels/${notifyChannelId}/messages" \
+      || echo "Failed to send Discord notification"
 
     if [ "${builtins.toString numVersionsToKeep}" = "0" ]; then
       echo "Retention disabled; keeping all versions."
@@ -43,7 +72,7 @@ let
         | xargs -r -I {} aws s3 rm "s3://${bucketName}/{}" --region "${region}"
     fi
 
-    echo "success"
+    exit 0
   '';
 
 in
@@ -54,8 +83,11 @@ in
     wants = [ "network-online.target" ];
     path = with pkgs; [
       awscli2
+      bc
       coreutils
+      curl
       findutils
+      envsubst
       gnugrep
       gzip
       unstablePkgs.postgresql_18 # use the same postgres version as the server
