@@ -134,6 +134,7 @@
       nodejs_22
       rustup
       go
+      deno
       uv
       nixfmt-rfc-style
       kdlfmt
