@@ -69,3 +69,7 @@ files.wrx.sh {
 	encode zstd gzip
 }
 
+plex.wrx.sh {
+    reverse_proxy 100.92.183.69:9000
+}
+

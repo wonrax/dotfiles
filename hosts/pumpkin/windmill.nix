@@ -66,8 +66,8 @@ let
   # Enhanced Caddyfile configuration
   caddyfile = pkgs.writeText "Caddyfile" ''
     :80 {
-      reverse_proxy /ws/* host.docker.internal:8003
-      reverse_proxy /* host.docker.internal:8001
+      reverse_proxy /ws/* host.containers.internal:8003
+      reverse_proxy /* host.containers.internal:8001
     }
   '';
 

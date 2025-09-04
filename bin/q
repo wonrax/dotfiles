@@ -70,5 +70,5 @@ export def main [
         error make {msg: "Error: No input provided"}
     }
 
-    opencode run --model github-copilot/gpt-5 $final_system_prompts $user_prompt
+    opencode run --model github-copilot/claude-sonnet-4 $final_system_prompts $user_prompt
 }
