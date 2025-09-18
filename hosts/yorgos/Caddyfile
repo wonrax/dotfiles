@@ -53,10 +53,10 @@ wrx.sh {
 }
 
 c.wrx.sh {
-    reverse_proxy localhost:8080
-    route {
-        header /_app/immutable/* Cache-Control "max-age=31536000, immutable"
-    }
+	reverse_proxy localhost:8080
+	route {
+		header /_app/immutable/* Cache-Control "max-age=31536000, immutable"
+	}
 }
 
 files.wrx.sh {
@@ -70,6 +70,20 @@ files.wrx.sh {
 }
 
 plex.wrx.sh {
-    reverse_proxy 100.92.183.69:9000
+	reverse_proxy 100.92.183.69:9000
 }
 
+i.wrx.sh {
+	handle /static {
+		reverse_proxy https://us-assets.i.posthog.com:443 {
+			header_up Host us-assets.i.posthog.com
+			header_down -Access-Control-Allow-Origin
+		}
+	}
+	handle {
+		reverse_proxy https://us.i.posthog.com:443 {
+			header_up Host us.i.posthog.com
+			header_down -Access-Control-Allow-Origin
+		}
+	}
+}
