@@ -1,4 +1,3 @@
-# TODO: enable nix periodic GC
 # TODO: enable swap
 # TODO: reorganize modules and their dependencies so that they are easier to
 # manage
@@ -16,6 +15,11 @@
     { pkgs, ... }:
     {
       nixpkgs.config.allowUnfree = true;
+
+      nix.gc = {
+        automatic = true;
+        options = "--delete-older-than 30d";
+      };
 
       environment.systemPackages = with pkgs; [
         vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
