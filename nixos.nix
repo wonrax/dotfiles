@@ -121,6 +121,7 @@
   {
     # This configures the service to only run for a specific user
     services.xremap = {
+      enable = true;
       /*
         NOTE: since this sample configuration does not have any DE,
         xremap needs to be started manually by systemctl --user start xremap
