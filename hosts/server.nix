@@ -232,7 +232,7 @@ in
                 # vector.service but this is future-proofing in case we want to
                 # include more units later
                 group_by = "{{ _SYSTEMD_UNIT }}";
-                ratio = 0.01; # 1% sample
+                ratio = 0.1; # 1% sample
               };
             };
 

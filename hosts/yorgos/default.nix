@@ -17,12 +17,13 @@
     ./website.nix
     ./open-webui.nix
     ./db-backup.nix
+    ./windmill.nix
   ];
 
   networking.hostName = "yorgos";
 
   server.swapSize = 4 * 1024; # 4 GiB swap file
-  server.opnix.enable = false;
+  server.opnix.enable = true;
 
   boot.loader.grub = {
     # no need to set devices, disko will add all devices that have a EF02 partition to the list already

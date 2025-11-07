@@ -90,7 +90,7 @@ in
 
   services.onepassword-secrets.secrets = {
     windmill = {
-      reference = "op://host-pumpkin/windmill/envfile";
+      reference = "op://host-yorgos/windmill/envfile";
       owner = user.username;
       services = secretDependentServices;
     };
