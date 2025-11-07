@@ -75,6 +75,15 @@ return {
             },
           },
         },
+        zls = {
+          settings = {
+            -- Whether to enable build-on-save diagnostics
+            --
+            -- Further information about build-on save:
+            -- https://zigtools.org/zls/guides/build-on-save/
+            enable_build_on_save = true,
+          },
+        },
       }
 
       -- nvim-java needs to be setup before lspconfig
@@ -95,6 +104,7 @@ return {
         'nil_ls',
         'prismals',
         'ts_ls',
+        'zls',
       })
 
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
