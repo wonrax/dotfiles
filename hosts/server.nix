@@ -195,6 +195,35 @@ in
               host_metrics.type = "host_metrics";
             };
 
+            transforms = {
+              journald_parsed = {
+                type = "remap";
+                inputs = [ "journald" ];
+                source = ''
+                  structured, err =
+                    parse_syslog(.message) ??
+                    parse_common_log(.message) ??
+                    parse_key_value(.message)
+                  if err != null {
+                    . = merge(., structured)
+                  }
+                '';
+              };
+              journald_sampled = {
+                type = "sample";
+                inputs = [ "journald_parsed" ];
+                exclude = {
+                  type = "vrl";
+                  source = ''._SYSTEMD_UNIT != "vector.service"'';
+                };
+                # technically group_by is noop since we only include
+                # vector.service but this is future-proofing in case we want to
+                # include more units later
+                group_by = "{{ _SYSTEMD_UNIT }}";
+                ratio = 0.01; # 1% sample
+              };
+            };
+
             sinks = {
               newrelic_metrics = {
                 type = "new_relic";
@@ -209,7 +238,7 @@ in
               };
               newrelic_logs = {
                 type = "new_relic";
-                inputs = [ "journald" ];
+                inputs = [ "journald_sampled" ];
                 account_id = "4240358";
                 api = "logs";
                 license_key = "$NRIA_LICENSE_KEY";
