@@ -192,7 +192,19 @@ in
             sources = {
               journald.type = "journald";
               vector_metrics.type = "internal_metrics";
-              host_metrics.type = "host_metrics";
+              host_metrics = {
+                type = "host_metrics";
+                collectors = [
+                  "cpu"
+                  "disk"
+                  "filesystem"
+                  "load"
+                  "host"
+                  "memory"
+                  "network"
+                  "tcp"
+                ];
+              };
             };
 
             transforms = {
