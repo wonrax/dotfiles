@@ -17,7 +17,6 @@ return {
     dependencies = {
       {
         'zbirenbaum/copilot.lua',
-        commit = '49807c6d963ff0f1cb5110d3672732f3734965e6',
         lazy = false,
         opts = {
           suggestion = {
@@ -48,7 +47,7 @@ return {
       { 'nvim-telescope/telescope.nvim' },
     },
     opts = {
-      model = 'gpt-5',
+      model = 'claude-opus-4.5',
       show_help = true,
       auto_follow_cursor = false,
       clear_chat_on_new_prompt = false,

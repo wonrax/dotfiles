@@ -6,6 +6,7 @@ return {
     -- this to use the prebuilt binary, i.e. just only 'make'.
     build = 'make',
     version = '*',
+    enabled = false, -- currently prevents blink from working
     opts = {
       mac_window_bar = false,
       has_line_number = true,
