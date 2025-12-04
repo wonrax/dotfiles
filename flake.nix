@@ -80,41 +80,53 @@
         # 1password general SSH key
         ssh-pub-key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILcVnyW/bNR+hbNQ4utoprtSm8ONNFMER9lgLT9u9rVu";
       };
+
+      commonSpecialArgs = arch: {
+        unstablePkgs = nixpkgs-unstable.legacyPackages.${arch};
+        inherit
+          inputs
+          user
+          home-manager
+          ;
+      };
     in
     {
       nixosConfigurations.peggy = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
-        specialArgs = {
-          inherit user;
-        };
-        modules =
-          import ./nixos.nix {
-            unstablePkgs = nixpkgs-unstable.legacyPackages.x86_64-linux;
-            inherit
-              inputs
-              user
-              home-manager
-              ;
-          }
-          ++ [
-            ./hosts/peggy
-            inputs.minegrub-theme.nixosModules.default
-            inputs.minegrub-world-sel-theme.nixosModules.default
-          ];
+        specialArgs = commonSpecialArgs "x86_64-linux";
+        modules = import ./nixos.nix (commonSpecialArgs "x86_64-linux") ++ [
+          ./hosts/peggy
+          inputs.minegrub-theme.nixosModules.default
+          inputs.minegrub-world-sel-theme.nixosModules.default
+        ];
       };
 
       darwinConfigurations = {
         wonraxs-macbook-air = darwin.lib.darwinSystem {
           system = "aarch64-darwin";
-          specialArgs = {
-            unstablePkgs = nixpkgs-unstable.legacyPackages.aarch64-darwin;
-            inherit
-              inputs
-              user
-              home-manager
-              ;
-          };
-          modules = [ ./darwin.nix ];
+          specialArgs = commonSpecialArgs "aarch64-darwin";
+          modules = [
+            ./darwin.nix
+            {
+              system.stateVersion = 6;
+              home-manager.users.${user.username} = {
+                home.stateVersion = "25.11";
+              };
+            }
+          ];
+        };
+        wonraxs-work-macbook = darwin.lib.darwinSystem {
+          system = "aarch64-darwin";
+          specialArgs = commonSpecialArgs "aarch64-darwin";
+          modules = [
+            ./darwin.nix
+            {
+              system.stateVersion = 6;
+              home-manager.users.${user.username} = {
+                home.stateVersion = "24.11";
+              };
+            }
+          ];
         };
       };
 
@@ -151,12 +163,9 @@
         modules = [
           "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
           self.nixosModules.pumpkin
-          (
-            { ... }:
-            {
-              sdImage.compressImage = false;
-            }
-          )
+          {
+            sdImage.compressImage = false;
+          }
         ];
       };
 

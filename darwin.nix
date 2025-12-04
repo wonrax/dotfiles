@@ -24,7 +24,6 @@
   };
   home-manager.users.${user.username} = {
     imports = [ ./home/desktop.nix ];
-    home.stateVersion = "25.11"; # TODO: move this to host specific
 
     home.sessionVariables = {
       # I don't have time for this bro, will fix later
@@ -105,6 +104,4 @@
       remapCapsLockToEscape = true;
     };
   };
-
-  system.stateVersion = 6; # TODO: move this to host specific
 }

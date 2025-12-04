@@ -1,4 +1,4 @@
-command = ~/.nix-profile/bin/nu
+command = /etc/profiles/per-user/wonrax/bin/nu
 
 # ghostty isn't in the terminfo database yet
 term = xterm-256color
