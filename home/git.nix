@@ -2,9 +2,9 @@
 {
   programs.git = {
     enable = true;
-    userName = user.username;
-    userEmail = user.email;
-    extraConfig = {
+    settings = {
+      user.name = user.username;
+      user.email = user.email;
       user.signingKey = user.ssh-pub-key;
 
       pull.rebase = false;

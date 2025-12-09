@@ -2,13 +2,18 @@
   description = "wonrax's nix* configuration";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
 
     nixpkgs-vlc.url = "github:NixOS/nixpkgs/a9858885e197f984d92d7fe64e9fff6b2e488d40";
 
     home-manager = {
-      url = "github:nix-community/home-manager/release-25.05";
+      url = "github:nix-community/home-manager/release-25.11";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    darwin = {
+      url = "github:nix-darwin/nix-darwin/nix-darwin-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -52,6 +57,7 @@
       opnix,
       nixpkgs,
       disko,
+      darwin,
       ...
     }@inputs:
     let
@@ -97,37 +103,20 @@
           ];
       };
 
-      # Standalone home-manager configuration, for systems where you don't want
-      # to use NixOS but still want to use home-manager, e.g. macOS without
-      # nix-darwin.
-      # TODO: libsqlite3 is not yet managed by home-manager, gotta install it
-      # manually using brew
-      legacyPackages.aarch64-darwin.homeConfigurations.${user.username} =
-        home-manager.lib.homeManagerConfiguration
-          {
-            pkgs = nixpkgs.legacyPackages.aarch64-darwin;
-            extraSpecialArgs = {
-              unstablePkgs = nixpkgs-unstable.legacyPackages.aarch64-darwin;
-              inherit user inputs;
-            };
-            modules = [
-              ./home/desktop.nix
-              {
-                home.stateVersion = "24.11";
-
-                # NOTE: ssh agent must be enabled and configured manually in
-                # 1password on macos for now
-                programs.git = {
-                  extraConfig = {
-                    gpg.ssh.program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
-                  };
-                };
-                programs.jujutsu = {
-                  settings.signing.backends.ssh.program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
-                };
-              }
-            ];
+      darwinConfigurations = {
+        wonraxs-macbook-air = darwin.lib.darwinSystem {
+          system = "aarch64-darwin";
+          specialArgs = {
+            unstablePkgs = nixpkgs-unstable.legacyPackages.aarch64-darwin;
+            inherit
+              inputs
+              user
+              home-manager
+              ;
           };
+          modules = [ ./darwin.nix ];
+        };
+      };
 
       nixosModules.pumpkin = {
         imports = [

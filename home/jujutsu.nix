@@ -31,7 +31,8 @@
           ];
         };
       };
-      ui.diff.format = "git"; # so that delta can parse it
+      # not sure why this doesn't work anymore
+      # ui.diff-formatter = "git"; # so that delta can parse it
       ui.pager = [
         "${pkgs.delta}/bin/delta"
         "--true-color"

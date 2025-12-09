@@ -72,14 +72,6 @@
         '';
   };
 
-  # allowUnfree is also enabled for nixos configuration but we need to enable
-  # it here as well since home-manager.useUserPackages = true making it a user
-  # configuration. If you want the nixos configuration to also affect
-  # home-manager configuration, you can set home-manager.useGlobalPkgs = true
-  # in nixos configuration. Explanation:
-  # https://discourse.nixos.org/t/home-manager-useuserpackages-useglobalpkgs-settings/
-  nixpkgs.config.allowUnfree = true;
-
   programs.ghostty = {
     enable = pkgs.stdenv.isLinux; # ghostty package is currently marked as broken on MacOS
   };
@@ -106,7 +98,6 @@
       nix
 
       # .::= Productivity =::.
-      alacritty
       unstablePkgs.neovim
       tmux
       gh
@@ -115,6 +106,7 @@
       fish
       nh
       difftastic
+      unstablePkgs.opencode
 
       htop
       btop
@@ -163,8 +155,6 @@
       # Leave clang on MacOS alone, apparently crates like aws-lc-sys need
       # MacOS clang to build properly
       gcc
-
-      unstablePkgs.opencode
     ];
 
   # Let home Manager install and manage itself.

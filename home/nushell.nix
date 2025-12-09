@@ -21,6 +21,7 @@
               "/usr/local/bin",
               "~/go/bin",
               "~/.local/bin"
+              "/etc/profiles/per-user/wonrax/bin"
 
               # These two should have lower priority than the above since
               # sometimes I want to use external package managers like npm or
