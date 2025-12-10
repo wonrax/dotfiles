@@ -55,6 +55,10 @@ return {
           -- BG color for current line selection
           bg3 = '#ebe7e1',
         },
+        nightfox = {
+          -- BG color for current line selection
+          bg3 = '#2c2c47',
+        },
       },
       groups = {
         all = {

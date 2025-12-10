@@ -80,21 +80,18 @@
     LC_TIME = "en_GB.UTF-8";
   };
 
-  # Enable the KDE Plasma Desktop Environment.
-  # services.displayManager.sddm.enable = true;
-  # services.desktopManager.plasma6.enable = true;
-
   # Enable OpenGL
   hardware.graphics = {
     enable = true;
   };
 
+  services.displayManager.gdm.enable = true;
+  services.desktopManager.gnome.enable = true;
+
   services.xserver = {
     # Enable the X11 windowing system.
     # You can disable this if you're only using the Wayland session.
     enable = true;
-    displayManager.gdm.enable = true;
-    desktopManager.gnome.enable = true;
 
     # Load nvidia driver for Xorg and Wayland
     videoDrivers = [ "nvidia" ];

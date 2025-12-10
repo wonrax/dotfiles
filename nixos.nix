@@ -183,7 +183,7 @@
             # TODO: also config SSH for 1password, see example in:
             # https://github.com/cbr9/dotfiles/blob/617144/modules/home-manager/ssh/default.nix
             programs.git = {
-              extraConfig = {
+              settings = {
                 gpg.ssh.program = "${pkgs._1password-gui}/bin/op-ssh-sign";
               };
             };
