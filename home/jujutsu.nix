@@ -31,23 +31,31 @@
           ];
         };
       };
-      # not sure why this doesn't work anymore
-      # ui.diff-formatter = "git"; # so that delta can parse it
-      ui.pager = [
-        "${pkgs.delta}/bin/delta"
-        "--true-color"
-        "always"
-        "--hunk-header-decoration-style"
-        "blue"
-        "--width=-2" # use terminal width minus 2
-        "--file-style=bold"
-        "--file-decoration-style"
-        "omit"
-        "--line-numbers-right-format"
-        "{np} "
-        "--line-numbers-left-format"
-        "{nm} "
-      ];
+      ui = {
+        default-command = [ "log" ];
+        # FIXME: this doesn't work though, log shows signature unknown
+        # https://github.com/jj-vcs/jj/issues/6915#issuecomment-3621860671
+        show-cryptographic-signatures = true;
+        diff-formatter = ":git"; # so that delta can parse it
+        pager = [
+          "${pkgs.delta}/bin/delta"
+          "--true-color"
+          "always"
+          "--hunk-header-decoration-style"
+          "blue"
+          "--width=-2" # use terminal width minus 2
+          "--file-style=bold"
+          "--file-decoration-style"
+          "omit"
+          "--line-numbers-right-format"
+          "{np} "
+          "--line-numbers-left-format"
+          "{nm} "
+        ];
+      };
+      colors."diff token" = {
+        underline = false;
+      };
     };
   };
 

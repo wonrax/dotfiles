@@ -47,6 +47,11 @@
     };
 
     nix.url = "github:NixOS/nix/latest-release";
+
+    starship-jj = {
+      url = "gitlab:lanastara_foss/starship-jj";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -89,12 +94,19 @@
           home-manager
           ;
       };
+
+      overlays = final: prev: {
+        starship-jj = inputs.starship-jj.packages.${final.stdenv.hostPlatform.system}.default;
+      };
     in
     {
       nixosConfigurations.peggy = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         specialArgs = commonSpecialArgs "x86_64-linux";
         modules = import ./nixos.nix (commonSpecialArgs "x86_64-linux") ++ [
+          {
+            nixpkgs.overlays = [ overlays ];
+          }
           ./hosts/peggy
           inputs.minegrub-theme.nixosModules.default
           inputs.minegrub-world-sel-theme.nixosModules.default
@@ -108,6 +120,7 @@
           modules = [
             ./darwin.nix
             {
+              nixpkgs.overlays = [ overlays ];
               system.stateVersion = 6;
               home-manager.users.${user.username} = {
                 home.stateVersion = "25.11";
@@ -121,6 +134,7 @@
           modules = [
             ./darwin.nix
             {
+              nixpkgs.overlays = [ overlays ];
               system.stateVersion = 6;
               home-manager.users.${user.username} = {
                 home.stateVersion = "24.11";
@@ -132,6 +146,9 @@
 
       nixosModules.pumpkin = {
         imports = [
+          {
+            nixpkgs.overlays = [ overlays ];
+          }
           opnix.nixosModules.default
           ./hosts/pumpkin
 
@@ -195,6 +212,9 @@
           unstablePkgs = nixpkgs-unstable.legacyPackages.x86_64-linux;
         };
         modules = [
+          {
+            nixpkgs.overlays = [ overlays ];
+          }
           disko.nixosModules.disko
           opnix.nixosModules.default
           ./hosts/yorgos
