@@ -51,7 +51,7 @@
   system = {
     primaryUser = user.username;
     defaults = {
-      NSGlobalDomain.KeyRepeat = 999;
+      NSGlobalDomain.KeyRepeat = 2;
       dock = {
         autohide = true;
         showhidden = false;
