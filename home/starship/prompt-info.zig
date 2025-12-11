@@ -5,6 +5,14 @@ const File = std.fs.File;
 
 const is_darwin = builtin.os.tag == .macos;
 
+// MARK: - Constants
+
+const state_dir = ".local/state/starship-prompt";
+const media_max_display_len: usize = 30;
+const stale_threshold_secs: i64 = 3600; // 1 hour
+
+// MARK: - Main
+
 pub fn main() !void {
     var args = std.process.args();
     _ = args.next(); // skip program name
@@ -15,12 +23,8 @@ pub fn main() !void {
     };
 
     if (std.mem.eql(u8, cmd, "--check-darwin")) {
-        // Comptime check - on darwin this is a no-op exit 0
-        // On other platforms, exit 1
-        if (!is_darwin) {
-            std.process.exit(1);
-        }
-        return;
+        // Comptime platform check: exit 0 on macOS, exit 1 otherwise
+        if (!is_darwin) std.process.exit(1);
     } else if (std.mem.eql(u8, cmd, "--uptime")) {
         try printUptime();
     } else if (std.mem.eql(u8, cmd, "--memory")) {
@@ -29,16 +33,13 @@ pub fn main() !void {
         } else {
             try printMemoryLinux();
         }
+    } else if (std.mem.eql(u8, cmd, "--media")) {
+        try printMedia();
     } else if (std.mem.eql(u8, cmd, "--rotating")) {
         try printRotating();
     } else {
         try printUsage();
     }
-}
-
-fn getStdoutWriter() File.Writer {
-    var buf: [4096]u8 = undefined;
-    return File.Writer.initStreaming(File.stdout(), &buf);
 }
 
 fn printUsage() !void {
@@ -47,40 +48,49 @@ fn printUsage() !void {
     try w.interface.writeAll(
         \\Usage: prompt-info <command>
         \\Commands:
-        \\  --check-darwin  Exit 0 on macOS, 1 otherwise (comptime)
+        \\  --check-darwin  Exit 0 on macOS, 1 otherwise
         \\  --uptime        Print session uptime (e.g., "1h 23m")
         \\  --memory        Print memory usage (e.g., "12.5/16GB")
+        \\  --media         Print currently playing media info
         \\  --rotating      Print next rotating info item (round-robin)
         \\
     );
     try w.interface.flush();
 }
 
+// MARK: - Path Helpers
+
+fn getStatePath(comptime filename: []const u8, out_buf: []u8) ?[]const u8 {
+    const home = posix.getenv("HOME") orelse return null;
+    const path = std.fmt.bufPrint(out_buf, "{s}/" ++ state_dir ++ "/" ++ filename, .{home}) catch return null;
+    return path;
+}
+
+fn readFileContent(path: []const u8, buf: []u8) ?[]const u8 {
+    const file = std.fs.openFileAbsolute(path, .{}) catch return null;
+    defer file.close();
+    const len = file.readAll(buf) catch return null;
+    return buf[0..len];
+}
+
+// MARK: - Session Uptime
+
 fn printUptime() !void {
     var buf: [4096]u8 = undefined;
     var w = File.Writer.initStreaming(File.stdout(), &buf);
 
-    const home = posix.getenv("HOME") orelse return;
-
     var path_buf: [std.fs.max_path_bytes]u8 = undefined;
-    const path = std.fmt.bufPrint(&path_buf, "{s}/.local/state/starship-prompt/start", .{home}) catch return;
-
-    const file = std.fs.openFileAbsolute(path, .{}) catch {
-        try w.interface.writeAll("0s");
-        try w.interface.flush();
-        return;
-    };
-    defer file.close();
+    const path = getStatePath("start", &path_buf) orelse return;
 
     var file_buf: [32]u8 = undefined;
-    const len = file.readAll(&file_buf) catch {
+    const content = readFileContent(path, &file_buf) orelse {
         try w.interface.writeAll("0s");
         try w.interface.flush();
         return;
     };
 
-    const content = std.mem.trim(u8, file_buf[0..len], &std.ascii.whitespace);
-    const start_time = std.fmt.parseInt(i64, content, 10) catch {
+    const trimmed = std.mem.trim(u8, content, &std.ascii.whitespace);
+    const start_time = std.fmt.parseInt(i64, trimmed, 10) catch {
         try w.interface.writeAll("0s");
         try w.interface.flush();
         return;
@@ -103,11 +113,12 @@ fn printUptime() !void {
     try w.interface.flush();
 }
 
+// MARK: - Memory (Darwin)
+
 fn printMemoryDarwin() !void {
     var buf: [4096]u8 = undefined;
     var w = File.Writer.initStreaming(File.stdout(), &buf);
 
-    // Get page size
     const page_size = std.c.sysconf(@intFromEnum(std.c._SC.PAGESIZE));
     if (page_size < 0) {
         try w.interface.writeAll("?/?GB");
@@ -115,22 +126,20 @@ fn printMemoryDarwin() !void {
         return;
     }
 
-    // Get total physical memory via sysctl
+    // Get total physical memory via sysctl (CTL_HW=6, HW_MEMSIZE=24)
     var total_mem: u64 = 0;
     var size: usize = @sizeOf(u64);
-    const mib = [_]c_int{ 6, 24 }; // CTL_HW, HW_MEMSIZE
-    const rc = std.c.sysctl(@constCast(&mib), 2, &total_mem, &size, null, 0);
-    if (rc != 0) {
+    const mib = [_]c_int{ 6, 24 };
+    if (std.c.sysctl(@constCast(&mib), 2, &total_mem, &size, null, 0) != 0) {
         try w.interface.writeAll("?/?GB");
         try w.interface.flush();
         return;
     }
 
-    // Run vm_stat to get memory pages info
+    // Run vm_stat to get memory page counts
     var child = std.process.Child.init(&[_][]const u8{"vm_stat"}, std.heap.page_allocator);
     child.stdout_behavior = .Pipe;
     child.stderr_behavior = .Close;
-
     child.spawn() catch {
         try w.interface.writeAll("?/?GB");
         try w.interface.flush();
@@ -149,22 +158,21 @@ fn printMemoryDarwin() !void {
         try w.interface.flush();
         return;
     };
-
     _ = child.wait() catch {};
 
-    // Parse vm_stat output
+    // Parse vm_stat output for relevant page counts
     var pages_active: u64 = 0;
     var pages_wired: u64 = 0;
     var pages_compressed: u64 = 0;
 
     var lines = std.mem.splitScalar(u8, vm_buf[0..len], '\n');
     while (lines.next()) |line| {
-        if (std.mem.indexOf(u8, line, "Pages active:")) |_| {
-            pages_active = parseVmStatValue(line);
-        } else if (std.mem.indexOf(u8, line, "Pages wired down:")) |_| {
-            pages_wired = parseVmStatValue(line);
-        } else if (std.mem.indexOf(u8, line, "Pages occupied by compressor:")) |_| {
-            pages_compressed = parseVmStatValue(line);
+        if (std.mem.indexOf(u8, line, "Pages active:") != null) {
+            pages_active = parseColonValue(line);
+        } else if (std.mem.indexOf(u8, line, "Pages wired down:") != null) {
+            pages_wired = parseColonValue(line);
+        } else if (std.mem.indexOf(u8, line, "Pages occupied by compressor:") != null) {
+            pages_compressed = parseColonValue(line);
         }
     }
 
@@ -176,28 +184,22 @@ fn printMemoryDarwin() !void {
     try w.interface.flush();
 }
 
-fn parseVmStatValue(line: []const u8) u64 {
-    // Find the colon and parse the number after it
+/// Parses "Label: 12345." format, returning the numeric value
+fn parseColonValue(line: []const u8) u64 {
     const colon_pos = std.mem.indexOf(u8, line, ":") orelse return 0;
     const value_part = std.mem.trim(u8, line[colon_pos + 1 ..], &std.ascii.whitespace);
-    // Remove trailing period if present
     const clean = std.mem.trimRight(u8, value_part, ".");
     return std.fmt.parseInt(u64, clean, 10) catch 0;
 }
+
+// MARK: - Memory (Linux)
 
 fn printMemoryLinux() !void {
     var buf: [4096]u8 = undefined;
     var w = File.Writer.initStreaming(File.stdout(), &buf);
 
-    const file = std.fs.openFileAbsolute("/proc/meminfo", .{}) catch {
-        try w.interface.writeAll("?/?GB");
-        try w.interface.flush();
-        return;
-    };
-    defer file.close();
-
     var file_buf: [4096]u8 = undefined;
-    const len = file.readAll(&file_buf) catch {
+    const content = readFileContent("/proc/meminfo", &file_buf) orelse {
         try w.interface.writeAll("?/?GB");
         try w.interface.flush();
         return;
@@ -206,7 +208,7 @@ fn printMemoryLinux() !void {
     var mem_total: u64 = 0;
     var mem_available: u64 = 0;
 
-    var lines = std.mem.splitScalar(u8, file_buf[0..len], '\n');
+    var lines = std.mem.splitScalar(u8, content, '\n');
     while (lines.next()) |line| {
         if (std.mem.startsWith(u8, line, "MemTotal:")) {
             mem_total = parseMemInfoValue(line);
@@ -223,17 +225,90 @@ fn printMemoryLinux() !void {
     try w.interface.flush();
 }
 
+/// Parses "MemTotal: 12345678 kB" format
 fn parseMemInfoValue(line: []const u8) u64 {
-    // Format: "MemTotal:       12345678 kB"
     const colon_pos = std.mem.indexOf(u8, line, ":") orelse return 0;
     const after_colon = std.mem.trim(u8, line[colon_pos + 1 ..], &std.ascii.whitespace);
-    // Find first space to get just the number
     const space_pos = std.mem.indexOf(u8, after_colon, " ") orelse after_colon.len;
     return std.fmt.parseInt(u64, after_colon[0..space_pos], 10) catch 0;
 }
 
-// Stale threshold in seconds (1 hour)
-const STALE_THRESHOLD: i64 = 3600;
+// MARK: - Media
+
+const MediaInfo = struct {
+    title: []const u8,
+    artist: []const u8,
+    isPlaying: bool,
+    timestamp: i64,
+};
+
+fn printMedia() !void {
+    var buf: [4096]u8 = undefined;
+    var w = File.Writer.initStreaming(File.stdout(), &buf);
+
+    var path_buf: [std.fs.max_path_bytes]u8 = undefined;
+    const path = getStatePath("media.json", &path_buf) orelse return;
+
+    var json_buf: [4096]u8 = undefined;
+    const json_content = readFileContent(path, &json_buf) orelse {
+        try w.interface.flush();
+        return;
+    };
+
+    const parsed = std.json.parseFromSlice(MediaInfo, std.heap.page_allocator, json_content, .{}) catch {
+        try w.interface.flush();
+        return;
+    };
+    defer parsed.deinit();
+
+    const media = parsed.value;
+
+    // Build display string: "title - artist" or just "title"
+    var display_buf: [256]u8 = undefined;
+    var display_len: usize = 0;
+
+    // Copy title
+    const title_len = @min(media.title.len, display_buf.len);
+    @memcpy(display_buf[0..title_len], media.title[0..title_len]);
+    display_len = title_len;
+
+    // Append artist if present
+    if (media.artist.len > 0 and display_len + 3 + media.artist.len <= display_buf.len) {
+        @memcpy(display_buf[display_len .. display_len + 3], " - ");
+        display_len += 3;
+        const artist_len = @min(media.artist.len, display_buf.len - display_len);
+        @memcpy(display_buf[display_len .. display_len + artist_len], media.artist[0..artist_len]);
+        display_len += artist_len;
+    }
+
+    // Truncate if needed
+    const truncated = display_len > media_max_display_len;
+    const display = display_buf[0..@min(display_len, media_max_display_len)];
+
+    // Output: icon + text
+    const icon = if (media.isPlaying) "\u{f04b} " else "\u{f04c} "; // Font Awesome play/pause
+    try w.interface.writeAll(icon);
+    try w.interface.writeAll(display);
+    if (truncated) try w.interface.writeAll("...");
+
+    // Show age indicator if paused
+    if (!media.isPlaying) {
+        const age_secs = std.time.timestamp() - media.timestamp;
+        if (age_secs > 0) {
+            const age_hours = @divFloor(age_secs, 3600);
+            const age_mins = @divFloor(@mod(age_secs, 3600), 60);
+            if (age_hours >= 1) {
+                try w.interface.print(" ({d}h ago)", .{age_hours});
+            } else if (age_mins >= 1) {
+                try w.interface.print(" ({d}m ago)", .{age_mins});
+            }
+        }
+    }
+
+    try w.interface.flush();
+}
+
+// MARK: - Rotating Info
 
 const RotatingItem = struct {
     type: []const u8,
@@ -249,73 +324,47 @@ fn printRotating() !void {
     var buf: [4096]u8 = undefined;
     var w = File.Writer.initStreaming(File.stdout(), &buf);
 
-    const home = posix.getenv("HOME") orelse return;
-
-    // Read the rotating.json file
     var json_path_buf: [std.fs.max_path_bytes]u8 = undefined;
-    const json_path = std.fmt.bufPrint(&json_path_buf, "{s}/.local/state/starship-prompt/rotating.json", .{home}) catch return;
+    const json_path = getStatePath("rotating.json", &json_path_buf) orelse return;
 
-    const json_file = std.fs.openFileAbsolute(json_path, .{}) catch {
-        // No file yet, output nothing
-        try w.interface.flush();
-        return;
-    };
-    defer json_file.close();
+    var index_path_buf: [std.fs.max_path_bytes]u8 = undefined;
+    const index_path = getStatePath("index", &index_path_buf) orelse return;
 
     var json_buf: [8192]u8 = undefined;
-    const json_len = json_file.readAll(&json_buf) catch {
+    const json_content = readFileContent(json_path, &json_buf) orelse {
         try w.interface.flush();
         return;
     };
 
-    // Parse JSON using std.json
-    const parsed = std.json.parseFromSlice(RotatingData, std.heap.page_allocator, json_buf[0..json_len], .{}) catch {
+    const parsed = std.json.parseFromSlice(RotatingData, std.heap.page_allocator, json_content, .{}) catch {
         try w.interface.flush();
         return;
     };
     defer parsed.deinit();
 
     const items = parsed.value.items;
-
     if (items.len == 0) {
         try w.interface.flush();
         return;
     }
 
-    // Read and update index file
-    var index_path_buf: [std.fs.max_path_bytes]u8 = undefined;
-    const index_path = std.fmt.bufPrint(&index_path_buf, "{s}/.local/state/starship-prompt/index", .{home}) catch return;
-
+    // Read current index
+    var index_buf: [32]u8 = undefined;
     var current_index: usize = 0;
-
-    // Try to read existing index
-    if (std.fs.openFileAbsolute(index_path, .{})) |index_file| {
-        defer index_file.close();
-        var index_buf: [32]u8 = undefined;
-        const index_len = index_file.readAll(&index_buf) catch 0;
-        if (index_len > 0) {
-            const content = std.mem.trim(u8, index_buf[0..index_len], &std.ascii.whitespace);
-            current_index = std.fmt.parseInt(usize, content, 10) catch 0;
-        }
-    } else |_| {}
-
-    // Wrap around if needed
+    if (readFileContent(index_path, &index_buf)) |content| {
+        const trimmed = std.mem.trim(u8, content, &std.ascii.whitespace);
+        current_index = std.fmt.parseInt(usize, trimmed, 10) catch 0;
+    }
     current_index = current_index % items.len;
 
-    // Get the current item
     const item = items[current_index];
 
-    // Check if stale (more than 1 hour old)
-    const now = std.time.timestamp();
-    const age_seconds = now - item.updated;
-    const is_stale = age_seconds > STALE_THRESHOLD;
-
-    // Output the value
+    // Output value with optional stale indicator
     try w.interface.writeAll(item.value);
 
-    // Add stale indicator if needed
-    if (is_stale) {
-        const age_hours = @divFloor(age_seconds, 3600);
+    const age_secs = std.time.timestamp() - item.updated;
+    if (age_secs > stale_threshold_secs) {
+        const age_hours = @divFloor(age_secs, 3600);
         if (age_hours >= 1) {
             try w.interface.print(" ({d}h ago)", .{age_hours});
         }
@@ -323,14 +372,12 @@ fn printRotating() !void {
 
     try w.interface.flush();
 
-    // Write next index
+    // Persist next index
     const next_index = (current_index + 1) % items.len;
-
-    // Create/truncate index file and write new index
-    if (std.fs.createFileAbsolute(index_path, .{ .truncate = true })) |new_index_file| {
-        defer new_index_file.close();
-        var index_write_buf: [32]u8 = undefined;
-        const index_str = std.fmt.bufPrint(&index_write_buf, "{d}", .{next_index}) catch return;
-        _ = new_index_file.write(index_str) catch {};
+    if (std.fs.createFileAbsolute(index_path, .{ .truncate = true })) |file| {
+        defer file.close();
+        var idx_buf: [32]u8 = undefined;
+        const idx_str = std.fmt.bufPrint(&idx_buf, "{d}", .{next_index}) catch return;
+        _ = file.write(idx_str) catch {};
     } else |_| {}
 }

@@ -7,20 +7,7 @@
   ...
 }:
 let
-  session-uptime-daemon = pkgs.stdenv.mkDerivation {
-    pname = "session-uptime-daemon";
-    version = "1.0.0";
-    src = ./home/starship/session-uptime-daemon.swift;
-    dontUnpack = true;
-    nativeBuildInputs = [ pkgs.swift ];
-    buildPhase = ''
-      swiftc -O -o session-uptime-daemon $src
-    '';
-    installPhase = ''
-      mkdir -p $out/bin
-      cp session-uptime-daemon $out/bin/
-    '';
-  };
+  starship-daemon = import ./home/starship/daemon.nix { inherit pkgs; };
 
   fetch-starship-prompt-info = pkgs.writeShellScriptBin "fetch-starship-prompt-info" ''
     ${pkgs.nushell}/bin/nu ${./home/starship/fetch-starship-prompt-info.nu}
@@ -83,19 +70,22 @@ in
     };
   };
 
-  environment.systemPackages = with pkgs; [ google-chrome ];
+  environment.systemPackages = with pkgs; [
+    google-chrome
+    discord
+    telegram-desktop
+  ];
 
-  # Session uptime tracking daemon (listens for screen lock/unlock events)
-  launchd.user.agents.session-uptime-daemon = {
+  # Starship prompt daemon (session tracking & media info)
+  launchd.user.agents.starship-daemon = {
     serviceConfig = {
-      ProgramArguments = [ "${session-uptime-daemon}/bin/session-uptime-daemon" ];
+      ProgramArguments = [ "${starship-daemon}/bin/starship-daemon" ];
       KeepAlive = true;
       RunAtLoad = true;
       StandardOutPath = starshipLogPath;
       StandardErrorPath = starshipLogPath;
       EnvironmentVariables = {
-        SESSION_LOCK_THRESHOLD = "1800"; # 30 minutes
-        # ensure logs are written immediately without having to fflush in code
+        # Ensure logs are written immediately
         NSUnbufferedIO = "YES";
       };
     };

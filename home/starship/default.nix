@@ -31,6 +31,7 @@ in
       # https://starship.rs/presets/pure-preset
       format = lib.replaceStrings [ "\n" ] [ "" ] ''
         ''${custom.memory}
+        ''${custom.media}
         $line_break
         $time
         ''${custom.uptime}
@@ -86,6 +87,17 @@ in
           format = "[MEM $output]($style) ";
           style = "bright-black";
           when = true;
+        };
+        media = {
+          shell = [
+            "${prompt-info}/bin/prompt-info"
+            "--media"
+          ];
+          use_stdin = false;
+          format = "[$output]($style)";
+          style = "bright-black";
+          when = true;
+          os = "macos";
         };
         rotating = {
           shell = [
