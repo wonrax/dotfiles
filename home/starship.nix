@@ -1,5 +1,26 @@
 { lib, pkgs, ... }:
 let
+  uptime-script = pkgs.writeShellScript "starship-uptime" ''
+    start_file="$HOME/.local/state/session-uptime/start"
+    if [ -f "$start_file" ]; then
+      start=$(cat "$start_file")
+      now=$(date +%s)
+      diff=$((now - start))
+      hours=$((diff / 3600))
+      mins=$(((diff % 3600) / 60))
+      secs=$((diff % 60))
+      if [ $hours -gt 0 ]; then
+        printf "%dh %dm" $hours $mins
+      elif [ $mins -gt 0 ]; then
+        printf "%dm" $mins
+      else
+        printf "%ds" $secs
+      fi
+    else
+      printf "0s"
+    fi
+  '';
+
   memory-script = pkgs.writeShellScript "starship-memory" ''
     if [ "$(uname)" = "Darwin" ]; then
       pagesize=$(sysctl -n hw.pagesize)
@@ -26,6 +47,7 @@ in
       # https://starship.rs/presets/pure-preset
       format = lib.replaceStrings [ "\n" ] [ "" ] ''
         $time
+        ''${custom.uptime}
         ''${custom.memory}
         $line_break
         $username
@@ -54,10 +76,16 @@ in
       time = {
         disabled = false;
         format = "[$time]($style) ";
-        style = "bold-blue";
+        style = "bold blue";
         time_format = "%H:%M:%S";
       };
       custom = {
+        uptime = {
+          command = "${uptime-script}";
+          format = "[\\[active for $output\\]]($style) ";
+          style = "bright-blue";
+          when = ''bash -c "[ $(uname) = Darwin ]"'';
+        };
         memory = {
           command = "${memory-script}";
           format = "[MEM $output]($style) ";

@@ -6,6 +6,22 @@
   inputs,
   ...
 }:
+let
+  session-uptime-daemon = pkgs.stdenv.mkDerivation {
+    pname = "session-uptime-daemon";
+    version = "1.0.0";
+    src = ./session-uptime-daemon.swift;
+    dontUnpack = true;
+    nativeBuildInputs = [ pkgs.swift ];
+    buildPhase = ''
+      swiftc -O -o session-uptime-daemon $src
+    '';
+    installPhase = ''
+      mkdir -p $out/bin
+      cp session-uptime-daemon $out/bin/
+    '';
+  };
+in
 {
   nixpkgs.config.allowUnfree = true;
   nix.settings.experimental-features = [
@@ -43,6 +59,20 @@
   };
 
   environment.systemPackages = with pkgs; [ google-chrome ];
+
+  # Session uptime tracking daemon
+  launchd.user.agents.session-uptime-daemon = {
+    serviceConfig = {
+      ProgramArguments = [ "${session-uptime-daemon}/bin/session-uptime-daemon" ];
+      KeepAlive = true;
+      RunAtLoad = true;
+      StandardOutPath = "/tmp/session-uptime-daemon.log";
+      StandardErrorPath = "/tmp/session-uptime-daemon.log";
+      EnvironmentVariables = {
+        SESSION_LOCK_THRESHOLD = "1800"; # 30 minutes
+      };
+    };
+  };
 
   # Add ability to used TouchID for sudo authentication
   security.pam.services.sudo_local.touchIdAuth = true;
