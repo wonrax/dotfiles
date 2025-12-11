@@ -30,10 +30,6 @@
       DYLD_LIBRARY_PATH = "${pkgs.lib.makeLibraryPath (with pkgs; [ sqlite ])}:$DYLD_LIBRARY_PATH";
     };
 
-    home.packages = with pkgs; [
-      google-chrome
-    ];
-
     # NOTE: ssh agent must be enabled and configured manually in
     # 1password on macos for now
     programs.git = {
@@ -45,6 +41,8 @@
       settings.signing.backends.ssh.program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
     };
   };
+
+  environment.systemPackages = with pkgs; [ google-chrome ];
 
   # Add ability to used TouchID for sudo authentication
   security.pam.services.sudo_local.touchIdAuth = true;
