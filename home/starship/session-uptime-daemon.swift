@@ -11,7 +11,7 @@ let lockThresholdSeconds: TimeInterval = {
 }()
 
 let stateDir = FileManager.default.homeDirectoryForCurrentUser
-  .appendingPathComponent(".local/state/session-uptime")
+  .appendingPathComponent(".local/state/starship-prompt")
 let lockFile = stateDir.appendingPathComponent("lock")
 let startFile = stateDir.appendingPathComponent("start")
 

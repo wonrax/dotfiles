@@ -10,7 +10,7 @@ let
   session-uptime-daemon = pkgs.stdenv.mkDerivation {
     pname = "session-uptime-daemon";
     version = "1.0.0";
-    src = ./session-uptime-daemon.swift;
+    src = ./home/starship/session-uptime-daemon.swift;
     dontUnpack = true;
     nativeBuildInputs = [ pkgs.swift ];
     buildPhase = ''
@@ -21,6 +21,13 @@ let
       cp session-uptime-daemon $out/bin/
     '';
   };
+
+  fetch-starship-prompt-info = pkgs.writeShellScriptBin "fetch-starship-prompt-info" ''
+    ${pkgs.nushell}/bin/nu ${./home/starship/fetch-starship-prompt-info.nu}
+  '';
+
+  # Shared log file for starship prompt daemons
+  starshipLogPath = "/tmp/starship-prompt.log";
 in
 {
   nixpkgs.config.allowUnfree = true;
@@ -60,16 +67,32 @@ in
 
   environment.systemPackages = with pkgs; [ google-chrome ];
 
-  # Session uptime tracking daemon
+  # Session uptime tracking daemon (listens for screen lock/unlock events)
   launchd.user.agents.session-uptime-daemon = {
     serviceConfig = {
       ProgramArguments = [ "${session-uptime-daemon}/bin/session-uptime-daemon" ];
       KeepAlive = true;
       RunAtLoad = true;
-      StandardOutPath = "/tmp/session-uptime-daemon.log";
-      StandardErrorPath = "/tmp/session-uptime-daemon.log";
+      StandardOutPath = starshipLogPath;
+      StandardErrorPath = starshipLogPath;
       EnvironmentVariables = {
         SESSION_LOCK_THRESHOLD = "1800"; # 30 minutes
+      };
+    };
+  };
+
+  # Fetch starship prompt info (PR reviews, weather, etc.) every 5 minutes
+  launchd.user.agents.fetch-starship-prompt-info = {
+    serviceConfig = {
+      ProgramArguments = [ "${fetch-starship-prompt-info}/bin/fetch-starship-prompt-info" ];
+      StartInterval = 300; # 5 minutes
+      RunAtLoad = true;
+      StandardOutPath = starshipLogPath;
+      StandardErrorPath = starshipLogPath;
+      EnvironmentVariables = {
+        # Ensure gh CLI can find its config
+        HOME = "/Users/${user.username}";
+        PATH = "/etc/profiles/per-user/${user.username}/bin:/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin:/usr/bin:/bin";
       };
     };
   };

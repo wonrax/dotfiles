@@ -1,54 +1,40 @@
 { lib, pkgs, ... }:
 let
-  uptime-script = pkgs.writeShellScript "starship-uptime" ''
-    start_file="$HOME/.local/state/session-uptime/start"
-    if [ -f "$start_file" ]; then
-      start=$(cat "$start_file")
-      now=$(date +%s)
-      diff=$((now - start))
-      hours=$((diff / 3600))
-      mins=$(((diff % 3600) / 60))
-      secs=$((diff % 60))
-      if [ $hours -gt 0 ]; then
-        printf "%dh %dm" $hours $mins
-      elif [ $mins -gt 0 ]; then
-        printf "%dm" $mins
-      else
-        printf "%ds" $secs
-      fi
-    else
-      printf "0s"
-    fi
-  '';
+  prompt-info = pkgs.stdenv.mkDerivation {
+    pname = "prompt-info";
+    version = "1.0.0";
+    src = ./prompt-info.zig;
+    dontUnpack = true;
+    nativeBuildInputs = [ pkgs.zig ];
+    buildPhase = ''
+      export XDG_CACHE_HOME="$TMPDIR/zig-cache"
+      mkdir -p "$XDG_CACHE_HOME"
+      zig build-exe $src -O ReleaseFast -fno-error-tracing --name prompt-info
+    '';
+    installPhase = ''
+      mkdir -p $out/bin
+      cp prompt-info $out/bin/
+    '';
+  };
 
-  memory-script = pkgs.writeShellScript "starship-memory" ''
-    if [ "$(uname)" = "Darwin" ]; then
-      pagesize=$(sysctl -n hw.pagesize)
-      total=$(sysctl -n hw.memsize)
-      vm_stat | awk -v ps="$pagesize" -v t="$total" '
-        /Pages active/ {a=$3}
-        /Pages wired/ {w=$4}
-        /occupied by compressor/ {c=$5}
-        END {
-          gsub(/\./, "", a); gsub(/\./, "", w); gsub(/\./, "", c)
-          used = (a + w + c) * ps
-          printf "%.1f/%.0fGB", used/1024/1024/1024, t/1024/1024/1024
-        }'
-    else
-      awk '/MemTotal/ {t=$2} /MemAvailable/ {a=$2} END {printf "%.1f/%.0fGB", (t-a)/1024/1024, t/1024/1024}' /proc/meminfo
-    fi
+  fetch-starship-prompt-info = pkgs.writeShellScriptBin "fetch-starship-prompt-info" ''
+    ${pkgs.nushell}/bin/nu ${./fetch-starship-prompt-info.nu}
   '';
 in
 {
+  home.packages = [ fetch-starship-prompt-info ];
+
   programs.starship = {
     enable = true;
     enableNushellIntegration = true;
     settings = {
       # https://starship.rs/presets/pure-preset
       format = lib.replaceStrings [ "\n" ] [ "" ] ''
+        ''${custom.memory}
+        $line_break
         $time
         ''${custom.uptime}
-        ''${custom.memory}
+        ''${custom.rotating}
         $line_break
         $username
         $hostname
@@ -81,14 +67,33 @@ in
       };
       custom = {
         uptime = {
-          command = "${uptime-script}";
-          format = "[\\[active for $output\\]]($style) ";
+          shell = [
+            "${prompt-info}/bin/prompt-info"
+            "--uptime"
+          ];
+          use_stdin = false;
+          format = "[\\[$output session\\]]($style) ";
           style = "bright-blue";
-          when = ''bash -c "[ $(uname) = Darwin ]"'';
+          when = true;
+          os = "macos";
         };
         memory = {
-          command = "${memory-script}";
+          shell = [
+            "${prompt-info}/bin/prompt-info"
+            "--memory"
+          ];
+          use_stdin = false;
           format = "[MEM $output]($style) ";
+          style = "bright-black";
+          when = true;
+        };
+        rotating = {
+          shell = [
+            "${prompt-info}/bin/prompt-info"
+            "--rotating"
+          ];
+          use_stdin = false;
+          format = "[$output]($style) ";
           style = "bright-black";
           when = true;
         };
@@ -106,5 +111,4 @@ in
       };
     };
   };
-
 }

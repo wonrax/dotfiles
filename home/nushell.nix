@@ -27,7 +27,7 @@
               # sometimes I want to use external package managers like npm or
               # cargo because they provide more up-to-date versions of the
               # packages.
-              "~/.nix-profile/bin",
+              "~/.nix-profile/bin", # this doesn't use anymore because HM is using global packages
               "/nix/var/nix/profiles/default/bin",
           ] | each { |p| path expand }) ++ $env.PATH
 

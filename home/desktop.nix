@@ -19,7 +19,7 @@
     ./git.nix
     ./jujutsu.nix
     ./nushell.nix
-    ./starship.nix
+    ./starship
     ./zoxide.nix
   ];
 
