@@ -28,6 +28,24 @@ let
 
   # Shared log file for starship prompt daemons
   starshipLogPath = "/tmp/starship-prompt.log";
+
+  # Log files to rotate and their max line counts
+  logsToRotate = {
+    "${starshipLogPath}" = 1000;
+  };
+
+  rotateLog = pkgs.writeScript "rotate-logs.nu" ''
+    #!${pkgs.nushell}/bin/nu
+
+    let logs = '${builtins.toJSON logsToRotate}' | from json
+
+    $logs | transpose path lines | each {|row|
+      if ($row.path | path exists) {
+        ${pkgs.coreutils}/bin/tail -n $row.lines $row.path | save -f $"($row.path).tmp"
+        mv $"($row.path).tmp" $row.path
+      }
+    }
+  '';
 in
 {
   nixpkgs.config.allowUnfree = true;
@@ -77,6 +95,8 @@ in
       StandardErrorPath = starshipLogPath;
       EnvironmentVariables = {
         SESSION_LOCK_THRESHOLD = "1800"; # 30 minutes
+        # ensure logs are written immediately without having to fflush in code
+        NSUnbufferedIO = "YES";
       };
     };
   };
@@ -85,7 +105,7 @@ in
   launchd.user.agents.fetch-starship-prompt-info = {
     serviceConfig = {
       ProgramArguments = [ "${fetch-starship-prompt-info}/bin/fetch-starship-prompt-info" ];
-      StartInterval = 300; # 5 minutes
+      StartInterval = 1800; # 30 minutes
       RunAtLoad = true;
       StandardOutPath = starshipLogPath;
       StandardErrorPath = starshipLogPath;
@@ -93,7 +113,22 @@ in
         # Ensure gh CLI can find its config
         HOME = "/Users/${user.username}";
         PATH = "/etc/profiles/per-user/${user.username}/bin:/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin:/usr/bin:/bin";
+        # ensure logs are written immediately without having to fflush in code
+        NSUnbufferedIO = "YES";
       };
+    };
+  };
+
+  # Rotate log files daily at midnight
+  launchd.user.agents.rotate-logs = {
+    serviceConfig = {
+      ProgramArguments = [ "${rotateLog}" ];
+      StartCalendarInterval = [
+        {
+          Hour = 0;
+          Minute = 0;
+        }
+      ];
     };
   };
 
