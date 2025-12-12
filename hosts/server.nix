@@ -285,8 +285,6 @@ in
     home-manager.users.${user.username} = {
       imports = [
         ../home/nushell.nix
-        ../home/starship.nix
-        ../home/zoxide.nix
       ];
     };
   };

@@ -151,12 +151,6 @@
           }
           opnix.nixosModules.default
           ./hosts/pumpkin
-
-          # TODO: by importing gitignored files, we had to use file:. in flake
-          # arg. This means that other gitignored files will also be copied
-          # into the nix store, which can be huge.
-          # Fix this by using proper secret management solutions for nix
-          ./pi-secrets.nix
         ];
       };
 
@@ -180,6 +174,12 @@
         modules = [
           "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
           self.nixosModules.pumpkin
+
+          # TODO: by importing gitignored files, we had to use `file:.` in
+          # flake arg. This means that other gitignored files will also be
+          # copied into the nix store, which can be huge.
+          # Fix this by using proper secret management solutions for nix
+          ./pi-secrets.nix
           {
             sdImage.compressImage = false;
           }
@@ -317,7 +317,7 @@
             program = pkgs.lib.getExe (
               pkgs.writeShellScriptBin "deploy-pumpkin" ''
                 #!${pkgs.bash}/bin/bash
-                ${pkgs.deploy-rs}/bin/deploy path:.#${system}-pumpkin --skip-checks
+                ${pkgs.deploy-rs}/bin/deploy .#${system}-pumpkin --skip-checks
               ''
             );
           };
