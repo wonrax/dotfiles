@@ -13,6 +13,48 @@ let
     ${pkgs.nushell}/bin/nu ${./home/starship/fetch-starship-prompt-info.nu}
   '';
 
+  boring-notch = pkgs.stdenv.mkDerivation rec {
+    pname = "boringNotch";
+    version = "2.7.3";
+
+    src = pkgs.fetchurl {
+      url = "https://github.com/TheBoredTeam/boring.notch/releases/download/v${version}/boringNotch.dmg";
+      sha256 = "sha256-I3hjglSNM8WbMJ21WOUTqS4/lbY9YRVE3N310ZbkZpg=";
+    };
+
+    # No build inputs needed - we use macOS native hdiutil
+    dontBuild = true;
+    dontFixup = true;
+
+    unpackPhase = ''
+      # Mount the DMG
+      mkdir -p mount
+      # FIXME: impure alert!
+      # build from source instead since it's open source?
+      /usr/bin/hdiutil attach -nobrowse -readonly $src -mountpoint ./mount
+
+      # Copy contents
+      mkdir -p contents
+      cp -r ./mount/* ./contents/ || true
+
+      # Unmount
+      /usr/bin/hdiutil detach ./mount
+    '';
+
+    sourceRoot = "contents";
+
+    installPhase = ''
+      mkdir -p $out/Applications
+      cp -r *.app $out/Applications/ || cp -r boringNotch.app $out/Applications/
+    '';
+
+    meta = with pkgs.lib; {
+      description = "Boring Notch - a notch replacement app for macOS";
+      homepage = "https://github.com/TheBoredTeam/boring.notch";
+      platforms = platforms.darwin;
+    };
+  };
+
   # Shared log file for starship prompt daemons
   starshipLogPath = "/tmp/starship-prompt.log";
 
@@ -74,6 +116,7 @@ in
     google-chrome
     discord
     telegram-desktop
+    boring-notch
   ];
 
   # Starship prompt daemon (session tracking & media info)
