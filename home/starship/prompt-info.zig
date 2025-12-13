@@ -263,6 +263,12 @@ fn printMedia() !void {
 
     const media = parsed.value;
 
+    // Omit media entirely if both artist and title are empty
+    if (media.title.len == 0 and media.artist.len == 0) {
+        try w.interface.flush();
+        return;
+    }
+
     // Build display string: "title - artist" or just "title"
     var display_buf: [256]u8 = undefined;
     var display_len: usize = 0;

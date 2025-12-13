@@ -2,7 +2,7 @@
 let
   prompt-info = pkgs.stdenv.mkDerivation {
     pname = "prompt-info";
-    version = "1.0.0";
+    version = "1.0.1";
     src = ./prompt-info.zig;
     dontUnpack = true;
     nativeBuildInputs = [ pkgs.zig ];
