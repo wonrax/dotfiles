@@ -117,6 +117,7 @@ in
     discord
     telegram-desktop
     boring-notch
+    raycast
   ];
 
   # Starship prompt daemon (session tracking & media info)
