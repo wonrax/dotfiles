@@ -23,7 +23,10 @@
     };
 
     minegrub-theme.url = "github:Lxtharia/minegrub-theme";
-    minegrub-world-sel-theme.url = "github:Lxtharia/minegrub-world-sel-theme";
+    minegrub-world-sel-theme = {
+      url = "github:Lxtharia/minegrub-world-sel-theme";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
 
     opnix = {
       url = "github:brizzbuzz/opnix";
@@ -46,7 +49,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    nix.url = "github:NixOS/nix/latest-release";
+    nix = {
+      url = "github:NixOS/nix/latest-release";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     starship-jj = {
       url = "gitlab:lanastara_foss/starship-jj";
@@ -227,14 +233,14 @@
             "aarch64-darwin"
             "x86_64-linux"
           ]
-          (system: system + "-pumpkin")
+          (system: "from-${system}-to-pumpkin")
           (
             system:
             let
               targetSystem = "aarch64-linux";
               deploy-rs =
                 let
-                  pkgs = nixpkgs.legacyPackages."${targetSystem}";
+                  pkgs = nixpkgs.legacyPackages.${targetSystem};
                 in
                 import nixpkgs {
                   system = targetSystem;
@@ -268,7 +274,7 @@
             "aarch64-darwin"
             "x86_64-linux"
           ]
-          (system: system + "-yorgos")
+          (system: "from-${system}-to-yorgos")
           (
             system:
             let
@@ -317,7 +323,7 @@
             program = pkgs.lib.getExe (
               pkgs.writeShellScriptBin "deploy-pumpkin" ''
                 #!${pkgs.bash}/bin/bash
-                ${pkgs.deploy-rs}/bin/deploy .#${system}-pumpkin --skip-checks
+                ${pkgs.deploy-rs}/bin/deploy .#from-${system}-to-pumpkin
               ''
             );
           };
@@ -327,7 +333,7 @@
             program = pkgs.lib.getExe (
               pkgs.writeShellScriptBin "deploy-yorgos" ''
                 #!${pkgs.bash}/bin/bash
-                ${pkgs.deploy-rs}/bin/deploy .#${system}-yorgos --skip-checks
+                ${pkgs.deploy-rs}/bin/deploy .#from-${system}-to-yorgos
               ''
             );
           };
