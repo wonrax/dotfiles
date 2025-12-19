@@ -199,6 +199,11 @@
   (
     # Systemd services
     { pkgs, ... }:
+    let
+      fetch-starship-prompt-info = pkgs.writeShellScriptBin "fetch-starship-prompt-info" ''
+        ${pkgs.nushell}/bin/nu ${./home/starship/fetch-starship-prompt-info.nu}
+      '';
+    in
     {
       users.users.${user.username}.extraGroups = [ "docker" ];
 
@@ -270,6 +275,33 @@
           amixer -c 1 sset "Auto-Mute Mode" Disabled || true
           amixer -c 2 sset "Auto-Mute Mode" Disabled || true
         '';
+      };
+
+      # Starship prompt info fetcher (PR reviews, weather, etc.)
+      systemd.user.services.fetch-starship-prompt-info = {
+        enable = true;
+        description = "Fetch starship prompt info";
+        path = with pkgs; [ nushell ];
+        serviceConfig = {
+          Type = "oneshot";
+          ExecStart = "${fetch-starship-prompt-info}/bin/fetch-starship-prompt-info";
+          # Ensure gh CLI can find its config
+          Environment = [
+            "HOME=/home/${user.username}"
+          ];
+        };
+        wantedBy = [ "default.target" ];
+      };
+
+      systemd.user.timers.fetch-starship-prompt-info = {
+        enable = true;
+        description = "Fetch starship prompt info every 30 minutes";
+        timerConfig = {
+          OnBootSec = "1m";
+          OnUnitActiveSec = "30m";
+          Unit = "fetch-starship-prompt-info.service";
+        };
+        wantedBy = [ "timers.target" ];
       };
     }
   )
