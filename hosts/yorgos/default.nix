@@ -2,6 +2,7 @@
   modulesPath,
   user,
   config,
+  lib,
   ...
 }@args:
 {
@@ -33,6 +34,15 @@
   };
 
   services.openssh.enable = true;
+  services.cockpit = {
+    enable = true;
+    settings = {
+      WebService = {
+        AllowUnencrypted = true;
+        Origins = lib.mkForce "*";
+      };
+    };
+  };
 
   users.users.root.openssh.authorizedKeys.keys = [
     user.ssh-pub-key

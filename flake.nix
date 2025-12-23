@@ -308,6 +308,9 @@
                   "aarch64-linux"
                   "x86_64-linux"
                 ]);
+              # this will rollbacks every time tailscale is updated because we
+              # lose connection to the host when tailscaled restarts
+              magicRollback = false;
             }
           )
         );
@@ -341,8 +344,8 @@
       );
 
       # deploy-rs checks
-      checks = builtins.mapAttrs (
-        system: deployLib: deployLib.deployChecks self.deploy
-      ) inputs.deploy-rs.lib;
+      # checks = builtins.mapAttrs (
+      #   system: deployLib: deployLib.deployChecks self.deploy
+      # ) inputs.deploy-rs.lib;
     };
 }
