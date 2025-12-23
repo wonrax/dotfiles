@@ -88,17 +88,22 @@
         }
         keybindings: [
           {
-            name: complete_history_hint_or_cycle_backward
-            modifier: shift
-            keycode: backtab
+            name: complete_history_hint
+            modifier: control
+            keycode: char_l
             mode: [ emacs, vi_insert, vi_normal ]
             event: {
               until: [
                 { send: historyhintcomplete }
-                { send: menuprevious }
-                { send: left }
               ]
             }
+          }
+          {
+            name: insert_newline
+            modifier: control
+            keycode: char_j
+            mode: [ emacs, vi_insert ]
+            event: { edit: InsertNewline }
           }
         ]
         completions: {
