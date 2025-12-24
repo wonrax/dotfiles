@@ -19,6 +19,7 @@
     ./open-webui.nix
     ./db-backup.nix
     ./windmill.nix
+    ./affine.nix
   ];
 
   networking.hostName = "yorgos";

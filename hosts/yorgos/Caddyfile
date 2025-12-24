@@ -10,20 +10,6 @@
 	}
 }
 
-hhai.dev {
-	import request-logging
-
-	redir https://wrx.sh{uri} permanent
-}
-
-llm.hhai.dev {
-	redir https://c.wrx.sh{uri} permanent
-}
-
-files.hhai.dev {
-	redir https://files.wrx.sh{uri} permanent
-}
-
 wrx.sh {
 	import request-logging
 
@@ -71,6 +57,10 @@ files.wrx.sh {
 
 plex.wrx.sh {
 	reverse_proxy 100.92.183.69:9000
+}
+
+a.wrx.sh {
+	reverse_proxy localhost:3010
 }
 
 i.wrx.sh {
