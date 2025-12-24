@@ -30,9 +30,6 @@ in
     settings = {
       # https://starship.rs/presets/pure-preset
       format = lib.replaceStrings [ "\n" ] [ "" ] ''
-        ''${custom.memory}
-        ''${custom.media}
-        $line_break
         $time
         ''${custom.uptime}
         ''${custom.rotating}
