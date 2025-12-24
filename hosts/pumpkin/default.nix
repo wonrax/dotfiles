@@ -1,4 +1,4 @@
-{ user, ... }:
+{ user, config, ... }:
 {
   imports = [
     ../server.nix
@@ -6,6 +6,7 @@
     ./plex.nix
     ./qbittorrent.nix
     ./vector.nix
+    ./qui.nix
   ];
 
   nixpkgs.config.allowUnfree = true;
@@ -33,6 +34,19 @@
     enable = true;
     wifi.powersave = false;
   };
+
+  # Enable container name DNS for all Podman networks.
+  # Also allow qBittorrent WebUI access from containers.
+  networking.firewall.interfaces =
+    let
+      matchAll = if !config.networking.nftables.enable then "podman+" else "podman*";
+    in
+    {
+      "${matchAll}" = {
+        allowedUDPPorts = [ 53 ];
+        allowedTCPPorts = [ 10000 ]; # qBittorrent WebUI
+      };
+    };
 
   networking.hostName = "pumpkin";
 }
