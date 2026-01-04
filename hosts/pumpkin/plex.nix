@@ -29,6 +29,7 @@
       volumes = [
         "/var/lib/plex/config:/config"
         "/home/${user.username}/hdd01:/media"
+        "/home/${user.username}/hdd02:/media2"
       ];
       labels = {
         "io.containers.autoupdate" = "registry";
