@@ -14,12 +14,20 @@
   fileSystems."/home/${user.username}/hdd01" = {
     device = "/dev/disk/by-uuid/ffbfae01-03f6-4d45-a29a-63ab1e25f76a";
     fsType = "ext4";
-    options = [ "nofail" ];
+    options = [
+      "nofail"
+      "x-systemd.mount-timeout=30"
+    ];
   };
   fileSystems."/home/${user.username}/hdd02" = {
     device = "/dev/disk/by-uuid/951fb1dc-6f5d-4af6-a6ec-042addb70405";
     fsType = "ext4";
-    options = [ "nofail" ];
+    options = [
+      "nofail"
+      # shorter timeout because this drive uses external USB enclosure with its
+      # own power source, should be always available when the system is on
+      "x-systemd.mount-timeout=10"
+    ];
   };
 
   server.swapSize = 4 * 1024; # 4 GiB swap file
