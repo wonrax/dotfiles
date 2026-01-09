@@ -323,7 +323,7 @@
             program = pkgs.lib.getExe (
               pkgs.writeShellScriptBin "deploy-pumpkin" ''
                 #!${pkgs.bash}/bin/bash
-                ${pkgs.deploy-rs}/bin/deploy .#from-${system}-to-pumpkin --auto-rollback false --magic-rollback false
+                ${pkgs.deploy-rs}/bin/deploy .#from-${system}-to-pumpkin --auto-rollback false --magic-rollback false --skip-checks
               ''
             );
           };
