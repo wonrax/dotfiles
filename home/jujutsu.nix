@@ -14,11 +14,23 @@
         name = user.username;
         email = user.email;
       };
-      aliases.difft = [
-        "diff"
-        "--tool"
-        "difft"
-      ];
+      aliases = {
+        difft = [
+          "diff"
+          "--tool"
+          "difft"
+        ];
+        # take the closest ancestor bookmark and move them the current change
+        # https://github.com/jj-vcs/jj/discussions/2425#discussioncomment-11425112
+        tug = [
+          "bookmark"
+          "move"
+          "--from"
+          "heads(::@- & bookmarks())"
+          "--to"
+          "@-"
+        ];
+      };
       merge-tools = {
         difft = {
           program = "${pkgs.difftastic}/bin/difft";
