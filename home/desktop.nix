@@ -107,6 +107,7 @@
       nh
       difftastic
       unstablePkgs.opencode
+      unstablePkgs.codex
 
       htop
       btop
