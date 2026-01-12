@@ -37,7 +37,20 @@
           "--"
           "bash"
           "-c"
-          "jj tug && bookmark=$(jj bookmark list -r @- --template 'name ++ \"\\n\"' | head -n 1) && if [ -z \"$bookmark\" ]; then echo 'No bookmark found at @-'; exit 1; fi; jj git push -b \"$bookmark\" --dry-run && read -p \"Confirm push bookmark '$bookmark'? [y/N] \" -n 1 -r && echo && [[ $REPLY =~ ^[Yy]$ ]] && jj git push -b \"$bookmark\""
+          ''
+            jj tug
+            bookmark=$(jj bookmark list -r @- --template 'name ++ "\n"' | head -n 1)
+            if [ -z "$bookmark" ]; then
+              echo "No bookmark found at @-"
+              exit 1
+            fi
+            jj git push -b "$bookmark" --dry-run
+            read -p "Confirm push bookmark '$bookmark'? [y/N] " -n 1 -r
+            echo
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
+              jj git push -b "$bookmark"
+            fi
+          ''
         ];
       };
       merge-tools = {

@@ -89,5 +89,5 @@ export def main [
         error make {msg: "Error: No input provided"}
     }
 
-    opencode run --model github-copilot/claude-opus-4.5 $final_system_prompts $user_prompt
+    opencode run --model github-copilot/gemini-3-flash-preview $final_system_prompts $user_prompt
 }
