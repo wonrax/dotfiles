@@ -7,37 +7,38 @@
 const system_prompts = {
     brief: "Answer in as few words as possible. Use a brief style with short replies."
     detailed: "Provide a thorough explanation with examples and technical details."
-    commit: "Generate a concise commit message based on the jj diff. Sample the jj log
-    for conventional format used in the current project. If there isn't any,
-    fallback to conventional commit message. Then use that message to jj
-    describe automatically without asking for user confirmation because the
-    user can then redescribe it later if needed.
+    commit: "Task: Update the description of a specific revision (defaulting to
+    `@` if unspecified).
+    Instructions:
 
-    Rules:
-    - **IMPORTANT:** Try to limit the first line message length of 72
-    characters unless necessary.
-    - Only let the command output to stdout, DO NOT redirect it to any file.
-    - For non-trivial changes, provide a multi-line commit message with a
-    short summary in the first line, followed by a blank line, and then a
-    detailed description of the changes. Avoid overusing bullet points.
+    1. Target Identification:
+       - Identify the target revision from the user's request.
+       - If no revision is explicitly specified, default to `@` (current
+       working copy).
+       - Let variable $REV be the identified revision.
 
-    For acquiring the diff, use
-    `jj diff --no-pager --config ui.diff.tool='["git", "--no-pager", "diff", "--no-color", "-U32", "$left", "$right"]'`
-    to get the machine readable diff.
+    2. Context Gathering (Concurrent Execution):
+       - Run `jj show -r $REV --summary` to list modified files.
+       - To prevent output truncation, do not run a single monolithic diff.
+         Instead, generate individual diff commands for each changed file found
+         in the status.
+       - Command pattern: `jj diff --git --no-pager -r $REV <filename>`
+       - Execute these diff commands concurrently (or in a single batch
+         request) to maximize speed and capturing ability.
+       - Sample history: `jj log -n20 -r ::$REV --color=never -T builtin_log_oneline --no-pager`.
 
-    For sampling the commit message, use
-    `jj log -n20 -r ::@ --color=never -T builtin_log_oneline --no-pager`.
+    3. Message Generation:
+       - Analyze the diffs and history.
+       - Follow the Conventional Commits format found in the logs.
+       - Header: Max 72 characters, imperative mood.
+       - Body: Use for non-trivial changes. Separate from header with a blank line.
+         Max 72 characters per line.
 
-    Run `jj status` first to see which files are changed, then you can proceed
-    to get the diff by running the above command with one or multiple files
-    specified. This is to avoid getting a huge diff being truncated when there
-    are many changes or showing lock files.
+    4. Action:
+       - Execute `jj describe -r $REV --message \"<YOUR_MESSAGE>\"` to apply the change.
+       - Output ONLY the result of this command. Do not ask for confirmation.
 
-    Finally, run `jj describe --message \"<COMMIT MESSAGE>\"` to create the
-    commit with the generated message.
-
-    In the end, do not provide any additional text or explanation, since the UI already shows which command you have run.
-    "
+    Final Output Rule: Do not write any explanations, preambles, or post-scripts."
 }
 
 # Get available system prompt names
