@@ -118,6 +118,7 @@ in
     telegram-desktop
     boring-notch
     raycast
+    monitorcontrol
   ];
 
   # Starship prompt daemon (session tracking & media info)
