@@ -75,6 +75,8 @@
         polkitPolicyOwners = [ user.username ];
       };
 
+      programs.steam.enable = true;
+
       i18n.inputMethod = {
         enable = true;
         type = "ibus";
