@@ -1,5 +1,4 @@
 {
-  unstablePkgs,
   pkgs,
   lib,
   ...
@@ -7,7 +6,7 @@
 {
   services.postgresql = {
     enable = true;
-    package = unstablePkgs.postgresql_18; # TODO: use stable version when available
+    package = pkgs.postgresql_18;
     settings = {
       port = 5432;
       listen_addresses = lib.mkForce "*";
@@ -20,6 +19,7 @@
       # TYPE  DATABASE     USER      ADDRESS        METHOD
       host    all          all       0.0.0.0/0      password
     '';
+    extensions = [ pkgs.postgresql18Packages.pgvector ];
   };
 
   networking.firewall.allowedTCPPorts = [
