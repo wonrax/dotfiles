@@ -34,6 +34,10 @@
         "!${preStartScript}";
 
       ExecStart = "${pkgs.qbittorrent-nox}/bin/qbittorrent-nox";
+      RequiresMountsFor = [
+        "/home/${user.username}/hdd01"
+        "/home/${user.username}/hdd02"
+      ];
     };
 
     environment = {

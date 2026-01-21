@@ -36,4 +36,13 @@
       };
     };
   };
+
+  systemd.services."podman-plex" = {
+    serviceConfig = {
+      RequiresMountsFor = [
+        "/home/${user.username}/hdd01"
+        "/home/${user.username}/hdd02"
+      ];
+    };
+  };
 }

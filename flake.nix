@@ -68,6 +68,8 @@
       url = "github:sodiboo/niri-flake";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
+
+    nixos-hardware.url = "github:NixOS/nixos-hardware/master";
   };
 
   outputs =
@@ -165,6 +167,8 @@
           {
             nixpkgs.overlays = [ overlays ];
           }
+          # enable better hardware support for rpi4 rather than generic aarch64
+          inputs.nixos-hardware.nixosModules.raspberry-pi-4
           opnix.nixosModules.default
           ./hosts/pumpkin
         ];
@@ -343,7 +347,7 @@
             program = pkgs.lib.getExe (
               pkgs.writeShellScriptBin "deploy-yorgos" ''
                 #!${pkgs.bash}/bin/bash
-                ${pkgs.deploy-rs}/bin/deploy .#from-${system}-to-yorgos
+                ${pkgs.deploy-rs}/bin/deploy .#from-${system}-to-yorgos --auto-rollback false --magic-rollback false --skip-checks
               ''
             );
           };
