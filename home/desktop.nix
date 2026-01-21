@@ -141,12 +141,6 @@
         # wanted by tmux window name
         ppkgs.libtmux
       ]))
-      (haskellPackages.ghcWithPackages (
-        hspkgs: with hspkgs; [
-          cabal-install
-          haskell-language-server
-        ]
-      ))
       gnupg
 
       # .::= Fonts =::.
