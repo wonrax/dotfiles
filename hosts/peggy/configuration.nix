@@ -85,8 +85,17 @@
     enable = true;
   };
 
-  services.displayManager.gdm.enable = true;
-  services.desktopManager.gnome.enable = true;
+  # services.displayManager.gdm.enable = true;
+  # services.desktopManager.gnome.enable = true;
+  # services.desktopManager.plasma6.enable = true;
+
+  # niri & dank-material-shell
+  imports = [
+    ../../nixos/niri.nix
+    ../../nixos/dms.nix
+  ];
+  programs.niri.enable = true;
+  wonrax.dank-material-shell.enable = true;
 
   services.xserver = {
     # Enable the X11 windowing system.

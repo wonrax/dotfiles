@@ -24,7 +24,6 @@
       environment.systemPackages = with pkgs; [
         vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
         git
-        gnome-tweaks
         xclip
         unzip
         tmux
@@ -79,17 +78,19 @@
 
       i18n.inputMethod = {
         enable = true;
-        type = "ibus";
-        ibus.engines = with pkgs.ibus-engines; [
-          bamboo
-        ];
+        type = "fcitx5";
+        fcitx5 = {
+          addons = with pkgs; [
+            kdePackages.fcitx5-unikey
+          ];
+          waylandFrontend = true;
+        };
       };
 
       # NixOS does not follow the XDG Base Directory Specification by default
       # Tracking issue: https://github.com/NixOS/nixpkgs/issues/224525
       environment.variables = {
         XDG_CACHE_HOME = "$HOME/.cache";
-        XDG_CONFIG_DIRS = "/etc/xdg";
         XDG_CONFIG_HOME = "$HOME/.config";
         XDG_DATA_HOME = "$HOME/.local/share";
         XDG_STATE_HOME = "$HOME/.local/state";
@@ -101,20 +102,6 @@
         enable = true;
         flake = "/home/wonrax/.dotfiles";
       };
-    }
-  )
-
-  (
-    # Gnome extensions
-    { pkgs, ... }:
-    {
-      environment.systemPackages = with pkgs.gnomeExtensions; [
-        tray-icons-reloaded
-        user-themes
-        dash-to-dock
-        caffeine
-      ];
-
     }
   )
 
@@ -156,32 +143,7 @@
         ./home/desktop.nix
         (
           { pkgs, ... }:
-          let
-            rofi-launchers = pkgs.callPackage ./rofi.nix { };
-          in
           {
-            home.packages = with pkgs; [
-              rofi
-              rofi-launchers.package
-            ];
-
-            dconf.settings = {
-              "org/gnome/settings-daemon/plugins/media-keys" = {
-                custom-keybindings = [
-                  "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/"
-                ];
-              };
-              "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0" = {
-                # Super + Space
-                # NOTE: if this does not work, try disabling the default
-                # binding (likely input switching) in the GNOME settings and
-                # then re-switch configuration
-                binding = "<Super>space";
-                command = pkgs.lib.getExe rofi-launchers.launch;
-                name = "Launch ulauncher";
-              };
-            };
-
             # TODO: also config SSH for 1password, see example in:
             # https://github.com/cbr9/dotfiles/blob/617144/modules/home-manager/ssh/default.nix
             programs.git = {
@@ -231,34 +193,6 @@
       };
       # https://github.com/tailscale/tailscale/issues/4432#issuecomment-1112819111
       networking.firewall.checkReversePath = "loose";
-
-      # ==== Ulauncher ====
-      # TODO: find a way to group all things related to a module (e.g.
-      # ulauncher) into a single module and not spread them across multiple
-      # modules
-      systemd.user.services."net.launchpad.ulauncher" = {
-        enable = false; # Disabled because we're using rofi instead
-        wantedBy = [
-          "graphical-session.target"
-          "multi-user.target"
-        ];
-        after = [ "graphical-session.target" ];
-        environment = {
-          GDK_BACKEND = "x11";
-        };
-        serviceConfig = {
-          Type = "dbus";
-          BusName = "io.ulauncher.Ulauncher";
-          # A hack to fix ulauncher unable to find the installed apps
-          # https://github.com/NixOS/nixpkgs/issues/214668#issuecomment-1722569860
-          ExecStart = pkgs.writeShellScript "ulauncher-env-wrapper.sh" ''
-            export PATH="''${XDG_BIN_HOME}:$HOME/.nix-profile/bin:/etc/profiles/per-user/$USER/bin:/nix/var/nix/profiles/default/bin:/run/current-system/sw/bin"
-            exec ${pkgs.ulauncher}/bin/ulauncher --hide-window
-          '';
-          Restart = "on-failure";
-          RestartSec = "1";
-        };
-      };
 
       # Disable alsamixer's auto-mute mode so that it does not mute the
       # speakers when headphones are plugged in
