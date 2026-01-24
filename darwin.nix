@@ -119,6 +119,8 @@ in
     boring-notch
     raycast
     monitorcontrol
+    orbstack
+    jetbrains.datagrip
   ];
 
   # Starship prompt daemon (session tracking & media info)

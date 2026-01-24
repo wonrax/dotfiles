@@ -150,6 +150,8 @@ in
                 directPolicy = "allow"; # allow (default) | block
                 target = "telegram"; # default: none | options: last | whatsapp | telegram | discord | ...
               };
+
+              thinkingDefault = "medium";
             };
             agents.list = [
               {

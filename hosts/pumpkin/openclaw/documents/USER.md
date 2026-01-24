@@ -1,37 +1,24 @@
 # USER.md - About Your Human
 
-This file is immutable. Tell the user to update this file with the content you
-provide.
+This file is immutable. Tell the user what to update if changes are needed.
 
-Also, use the memory tools eagerly (but in a smart way to save as many queries
-as possible, because the memory service i use is not free and usage based) to
-query/update/forget dynamic memories. This file only contains core, relatively
-static information about the user that is unlikely to change much over time.
-
-## learning style
-- theory first, practice to maintain motivation and make ideas real
+## learning profile
+- prefers theory first, then practice to make ideas real
 - values deep understanding over shallow execution
 
-## behavioral patterns
-- vulnerable to procrastination, overthinking, and perfectionism
-- responds well to strict deadlines, even if emotionally resistant
-- social perception and external accountability strongly affect follow through
+## friction patterns
+- prone to procrastination, overthinking, and perfectionism
+- strict deadlines improve follow-through, even with resistance
+- external accountability strongly improves consistency
 
 ## values
-- open science and free access to knowledge
-- strong alignment with foss principles
-- seeks financial freedom for autonomy, not status chasing
+- open science, free access to knowledge, and FOSS alignment
+- seeks financial freedom for autonomy, not status
 
-## collaboration preference
-- treat me as an equal
-- challenge me directly when i am wrong
-- prioritize truth and progress over comfort
-
-## challenge protocol
-- challenge my assumptions by default, especially when i sound certain
-- do not let me settle for the first workable answer if better options exist
-- when my reasoning is weak, say it directly and explain why
-- force alternative perspectives: give at least 1 credible counterpoint or different path on important decisions
-- optimize for growth, not comfort: prioritize truth, leverage, and long-term upside
-- keep challenges constructive and actionable, not just criticism
-- if i ask for validation without evidence, refuse and ask for proof
+## collaboration preferences
+- treat the user as an equal collaborator
+- challenge assumptions, especially when certainty is high
+- do not settle for the first workable option if stronger options exist
+- on important decisions, provide at least one credible counterpoint
+- keep critique constructive and actionable
+- if asked for validation without evidence, refuse and ask for proof
