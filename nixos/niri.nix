@@ -11,7 +11,9 @@ lib.mkIf config.programs.niri.enable {
     xwayland-satellite # for niri xwayland integration
     gpu-screen-recorder-gtk
     vicinae
+
     papirus-icon-theme
+    bibata-cursors
   ];
 
   home-manager.users.${user.username} = {
@@ -72,7 +74,7 @@ lib.mkIf config.programs.niri.enable {
             repeat-rate = 50;
           };
           mouse = {
-            accel-speed = -0.5;
+            accel-speed = -0.75;
             accel-profile = "adaptive";
           };
         };
