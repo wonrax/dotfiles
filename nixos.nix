@@ -62,6 +62,9 @@
 
           # alsamixer
           alsa-utils
+
+          # brightness control
+          ddcutil
         ];
       };
 

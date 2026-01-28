@@ -84,6 +84,8 @@
   hardware.graphics = {
     enable = true;
   };
+  # For controlling external monitor brightness
+  hardware.i2c.enable = true;
 
   # services.displayManager.gdm.enable = true;
   # services.desktopManager.gnome.enable = true;
