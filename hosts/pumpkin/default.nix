@@ -30,6 +30,15 @@
     ];
   };
 
+  boot.kernelParams = [
+    # disable UAS for the two drives above. this causes minor performance
+    # degradation but at least they hopefully won't randomly disconnect anymore
+    # this also fixes services starting up before the drives are mounted, thus
+    # causing missing files / directories (e.g. Plex library, qBittorrent)
+    # https://github.com/raspberrypi/linux/issues/3070#issuecomment-786726238
+    "usb-storage.quirks=0080:a001:u,152d:0562:u"
+  ];
+
   server.swapSize = 4 * 1024; # 4 GiB swap file
   server.opnix.enable = true;
 
