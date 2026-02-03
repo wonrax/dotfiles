@@ -113,7 +113,7 @@ in
   };
 
   environment.systemPackages = with pkgs; [
-    google-chrome
+    # google-chrome # insecure since nixpkgs#0ced72606737c5c5ea4bed41565258bab4b4070e
     discord
     telegram-desktop
     boring-notch
