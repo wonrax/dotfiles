@@ -54,6 +54,16 @@
     source = "${inputs.nix}/misc/fish/completion.fish";
   };
 
+  xdg.configFile."opencode/skills" = {
+    source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/.config/opencode/skills";
+    recursive = true; # link recursively
+    executable = false;
+  };
+
+  xdg.configFile."opencode/AGENTS.md" = {
+    source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/.config/opencode/AGENTS.md";
+  };
+
   home.activation = {
     # Make sure that the dotfiles are cloned in the correct location so that
     # the configuration can be linked and binaries are available
