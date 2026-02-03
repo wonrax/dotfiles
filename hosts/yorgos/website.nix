@@ -63,6 +63,8 @@
     log-driver = "journald";
     extraOptions = [
       "--network=wrx-sh_default"
+      "--memory=2gb"
+      "--memory-reservation=500m"
     ];
   };
 

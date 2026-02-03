@@ -106,6 +106,7 @@
     with pkgs;
     [
       nix
+      nix-output-monitor
 
       # .::= Productivity =::.
       unstablePkgs.neovim
