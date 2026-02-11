@@ -2,7 +2,12 @@
 {
   programs.nushell = {
     enable = true;
-    environmentVariables = config.home.sessionVariables;
+    environmentVariables = config.home.sessionVariables // {
+      # fix for zellij not detecting session while inside nix devshell
+      # https://github.com/zellij-org/zellij/issues/3637#issuecomment-2983923630
+      # https://github.com/zellij-org/zellij/issues/3708#issuecomment-3028995196
+      ZELLIJ_SOCKET_DIR = "/tmp";
+    };
     configFile.text = ''
       # Convert PATH to a list if it's a string
       if ($env.PATH | describe) == "string" {

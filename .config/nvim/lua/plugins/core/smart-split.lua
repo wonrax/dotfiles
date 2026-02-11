@@ -2,6 +2,7 @@ return {
   {
     'mrjones2014/smart-splits.nvim',
     config = function()
+    version = '*',
       -- resizing splits
       -- these keymaps will also accept a range,
       -- for example `10<M-h>` will `resize_left` by `(10 * config.default_amount)`
