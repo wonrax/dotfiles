@@ -133,7 +133,6 @@ in
         ];
       };
 
-      spam-filter.resource = "file://${config.services.stalwart-mail.package}/etc/stalwart/spamfilter.toml";
       webadmin.resource = "file://${config.services.stalwart-mail.package.webadmin}/webadmin.zip";
       webadmin.path = "/var/cache/stalwart-mail";
 
