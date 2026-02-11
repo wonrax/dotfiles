@@ -112,7 +112,7 @@ in
           name = "name";
           description = "description";
           secret = "secret";
-          email = "email";
+          email = "address";
           quota = "quota";
           class = "type";
         };
