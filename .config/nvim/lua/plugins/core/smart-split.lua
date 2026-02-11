@@ -1,7 +1,11 @@
 return {
   {
     'mrjones2014/smart-splits.nvim',
-    config = function()
+    version = '*',
+    opts = {
+      log_level = 'trace',
+    },
+    config = function(opts)
       -- resizing splits
       -- these keymaps will also accept a range,
       -- for example `10<M-h>` will `resize_left` by `(10 * config.default_amount)`
@@ -22,6 +26,8 @@ return {
       -- vim.keymap.set('n', '<leader><leader>j', require('smart-splits').swap_buf_down)
       -- vim.keymap.set('n', '<leader><leader>k', require('smart-splits').swap_buf_up)
       -- vim.keymap.set('n', '<leader><leader>l', require('smart-splits').swap_buf_right)
+
+      return require('smart-splits').setup(opts)
     end,
   },
 }
