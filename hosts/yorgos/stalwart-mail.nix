@@ -146,6 +146,9 @@ in
         default = true;
       };
 
+      http = {
+        url = "protocol + '://' + config_get('server.hostname')";
+      };
       server = {
         hostname = stalwartDomain;
         tls = {
@@ -171,12 +174,18 @@ in
             bind = "[::]:993";
             tls.implicit = true;
           };
-          http = {
+          https = {
             # jmap, web interface
             protocol = "http";
             bind = "[::]:8081";
-            url = "https://${stalwartDomain}";
-            use-x-forwarded = true;
+            tls.implicit = true;
+            proxy = {
+              override = true;
+              trusted-networks = [
+                "127.0.0.0/8"
+                "::1"
+              ];
+            };
           };
           sieve = {
             protocol = "managesieve";

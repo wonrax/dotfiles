@@ -85,11 +85,13 @@ mail.wrx.sh {
 	}
 
 	# turn off automatic HTTPS by caddy
-	tls /var/lib/acme/mail.wrx.sh/fullchain.pem /var/lib/acme/mail.wrx.sh/key.pem
+	# tls /var/lib/acme/mail.wrx.sh/fullchain.pem /var/lib/acme/mail.wrx.sh/key.pem
 
-	reverse_proxy 127.0.0.1:8081 {
-		# Caddy automatically adds X-Forwarded-For headers by default,
-		# which matches Stalwart's "use-x-forwarded = true" setting.
+	reverse_proxy https://127.0.0.1:8081 {
+		transport http {
+			proxy_protocol v2
+			tls_insecure_skip_verify
+		}
 	}
 }
 
