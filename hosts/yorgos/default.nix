@@ -20,9 +20,24 @@
     ./db-backup.nix
     ./windmill.nix
     ./affine.nix
+    ./stalwart-mail.nix
   ];
 
   networking.hostName = "yorgos";
+  networking.domain = "wrx.sh";
+
+  networking = {
+    interfaces.enp1s0.ipv6.addresses = [
+      {
+        address = "2a01:4ff:2f0:3705::1";
+        prefixLength = 64;
+      }
+    ];
+    defaultGateway6 = {
+      address = "fe80::1";
+      interface = "enp1s0";
+    };
+  };
 
   server.swapSize = 4 * 1024; # 4 GiB swap file
   server.opnix.enable = true;

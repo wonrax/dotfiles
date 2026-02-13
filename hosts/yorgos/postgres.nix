@@ -18,6 +18,8 @@
 
       # TYPE  DATABASE     USER      ADDRESS        METHOD
       host    all          all       0.0.0.0/0      password
+      # IPv6
+      host    all          all       ::/0           password
     '';
     extensions = [ pkgs.postgresql18Packages.pgvector ];
   };

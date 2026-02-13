@@ -77,3 +77,19 @@ i.wrx.sh {
 		}
 	}
 }
+
+mail.wrx.sh {
+	handle /.well-known/acme-challenge/* {
+		root * /var/lib/acme/acme-challenge
+		file_server
+	}
+
+	# turn off automatic HTTPS by caddy
+	tls /var/lib/acme/mail.wrx.sh/fullchain.pem /var/lib/acme/mail.wrx.sh/key.pem
+
+	reverse_proxy 127.0.0.1:8081 {
+		# Caddy automatically adds X-Forwarded-For headers by default,
+		# which matches Stalwart's "use-x-forwarded = true" setting.
+	}
+}
+
