@@ -39,6 +39,10 @@ vim.keymap.set('n', '<leader>tp', function()
 end, { desc = 'Switch to previous tabpage' })
 
 vim.keymap.set('n', '<leader>bd', ':bn<cr>:bd#<cr>', { desc = 'Close current buffer without closing the window' })
+vim.keymap.set('n', '<leader>bfp', function()
+  local filepath = vim.fn.expand '%'
+  vim.fn.setreg('+', filepath)
+end, { desc = 'Copy the filepath to clipboard' })
 
 -- TODO: this does not work because there are multiple Esc mappings, which
 -- override each other.
