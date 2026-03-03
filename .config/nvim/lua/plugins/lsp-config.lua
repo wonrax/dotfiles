@@ -115,6 +115,12 @@ return {
         automatic_enable = true,
       }
 
+      -- List of servers that we don't want to be managed by mason
+      -- (but rather via nix devshell for example)
+      servers = vim.tbl_extend('force', servers, {
+        pyright = {},
+      })
+
       for server_name, server in pairs(servers) do
         -- This handles overriding only values explicitly passed
         -- by the server configuration above. Useful when disabling
@@ -127,6 +133,10 @@ return {
         end
         vim.lsp.config(server_name, server)
       end
+
+      -- mason-lspconfig auto-enables only the servers it manages, so explicitly
+      -- enable servers configured outside mason (like pyright from nix env).
+      vim.lsp.enable 'pyright'
 
       -- NOTE: disabled to use haskell-tools.nvim
       -- NOTE: won't use mason here because it uses ghcup to install hls and

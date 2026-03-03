@@ -60,7 +60,19 @@
     executable = false;
   };
 
+  # codex uses this
   xdg.configFile."opencode/AGENTS.md" = {
+    source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/.config/opencode/AGENTS.md";
+  };
+
+  # codex uses this
+  home.file.".agents/skills" = {
+    source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/.config/opencode/skills";
+    recursive = true; # link recursively
+    executable = false;
+  };
+
+  home.file.".codex/AGENTS.md" = {
     source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/.config/opencode/AGENTS.md";
   };
 
