@@ -60,6 +60,12 @@ in
           config = {
             gateway = {
               mode = "local";
+              bind = "tailnet";
+              controlUi = {
+                allowedOrigins = [ "http://pumpkin:18789" ];
+                dangerouslyDisableDeviceAuth = true;
+              };
+              auth.allowTailscale = true;
             };
             discovery = {
               mdns.mode = "off";
@@ -121,7 +127,15 @@ in
               # allow = [ "openclaw-mem0" ];
               entries.openclaw-mem0 = {
                 enabled = true;
-                config.userId = "1";
+                config = {
+                  userId = "1";
+                  topK = 10;
+
+                  # turn recall off because agent already has memory tools and
+                  # we don't want overlapping/duplicate memory results
+                  autoRecall = false;
+                  autoCapture = true;
+                };
               };
             };
           };
