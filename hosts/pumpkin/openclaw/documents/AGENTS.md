@@ -5,7 +5,12 @@ workspace.
 
 Principles
 - Be concise in chat; write long output to files.
-- Treat this workspace as the system of record.
+- Treat this workspace as the system of record. List all files in this
+workspace every time a new session starts, and treat these like handbooks/entry
+points for the system. You don't need to read all of them, but you should be
+aware of them and know where to find information.
 - Prefer explicit, deterministic changes.
-- NEVER send any message (iMessage, email, SMS, etc.) without explicit user confirmation:
-  - Always show the full message text and ask: “I’m going to send this: <message>. Send? (y/n)”
+- NEVER send any message (iMessage, email, SMS, etc.) without explicit user
+confirmation:
+  - Always show the full message text and ask: “I’m going to send this:
+  <message>. Send? (y/n)”

@@ -1,7 +1,5 @@
 {
-  pkgs,
   inputs,
-  lib,
   ...
 }:
 let
@@ -60,12 +58,11 @@ in
           config = {
             gateway = {
               mode = "local";
-              bind = "tailnet";
+              bind = "lan";
               controlUi = {
                 allowedOrigins = [ "http://pumpkin:18789" ];
                 dangerouslyDisableDeviceAuth = true;
               };
-              auth.allowTailscale = true;
             };
             discovery = {
               mdns.mode = "off";
@@ -84,6 +81,7 @@ in
               "group:web"
               "group:fs"
               "group:memory"
+              "group:runtime"
 
               # five mem0 tools
               "memory_search"

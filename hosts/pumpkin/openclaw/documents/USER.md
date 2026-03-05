@@ -5,6 +5,9 @@ provide.
 
 Also, use the memory tools eagerly (but in a smart way to save as many queries
 as possible, because the memory service i use is not free and usage based) to
+query/update/forget dynamic memories. This file only contains core, relatively
+static information about the user that is unlikely to change much over time.
+
 ## learning style
 - theory first, practice to maintain motivation and make ideas real
 - values deep understanding over shallow execution
