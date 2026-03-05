@@ -1,4 +1,8 @@
-{ user, config, ... }:
+{
+  user,
+  config,
+  ...
+}:
 {
   imports = [
     ../server.nix
@@ -7,6 +11,7 @@
     ./qbittorrent.nix
     ./vector.nix
     ./qui.nix
+    ./openclaw/default.nix
   ];
 
   nixpkgs.config.allowUnfree = true;
@@ -44,6 +49,7 @@
 
   system.stateVersion = "25.05";
   home-manager.users.${user.username}.home.stateVersion = "25.05";
+  home-manager.useGlobalPkgs = true;
 
   services.openssh.enable = true;
 

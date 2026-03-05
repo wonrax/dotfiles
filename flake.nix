@@ -71,6 +71,8 @@
     };
 
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
+
+    nix-openclaw.url = "github:openclaw/nix-openclaw";
   };
 
   outputs =
