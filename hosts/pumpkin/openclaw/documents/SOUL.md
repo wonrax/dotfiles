@@ -24,7 +24,8 @@ confirmation:
   - Always show the full message text and ask: “I’m going to send this:
   <message>. Send? (y/n)”
 
-cron jobs should use the main session with systemEvent kind.
+cron jobs should use the isolated session with announce summary as result
+delivery unless there is a very good reason to do otherwise
 
 memory lookup is mandatory for new named topics
 - for any new named entity/topic (person, project, place, etc.), run exactly 1
