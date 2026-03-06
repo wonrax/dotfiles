@@ -6,6 +6,10 @@ let
   user = {
     username = "openclaw";
   };
+  codingWorkspace = "/home/${user.username}/.openclaw/workspace-coding";
+  codingAgentDir = "/home/${user.username}/.openclaw/agents/coding/agent";
+  lifeTopicPeerId = "-1003508166716:topic:1";
+  codingTopicPeerId = "-1003508166716:topic:3";
 in
 {
   nixpkgs.overlays = [ inputs.nix-openclaw.overlays.default ];
@@ -30,10 +34,18 @@ in
       home.stateVersion = "25.11";
       home.packages = with pkgs; [
         openclaw
+
+        gh
+        jujutsu
       ];
 
       # https://github.com/openclaw/nix-openclaw/issues/50
       home.file.".openclaw/openclaw.json".force = true;
+      home.file.".openclaw/workspace-coding/AGENTS.md".source = ../../../.config/opencode/AGENTS.md;
+      home.file.".openclaw/workspace-coding/SOUL.md".source = ./documents/SOUL.md;
+      home.file.".openclaw/workspace-coding/USER.md".source = ./documents/USER.md;
+      home.file.".openclaw/workspace-coding/IDENTITY.md".source = ./documents/IDENTITY.md;
+      home.file.".openclaw/workspace-coding/TOOLS.md".source = ./documents/TOOLS.md;
       programs.openclaw = {
         toolNames = [ ]; # disable all extended tools
         bundledPlugins = {
@@ -70,9 +82,30 @@ in
 
             channels.telegram = {
               tokenFile = "/home/${user.username}/.secrets/telegram-openclaw-token";
+              dmPolicy = "allowlist";
               allowFrom = [ 653083546 ];
-              groups."*" = {
+              groupPolicy = "allowlist";
+              groupAllowFrom = [ 653083546 ];
+              groups."-1003508166716" = {
+                systemPrompt = ''
+                  On the first substantive turn of each new session in this group, ensure the workspace instruction files have been loaded.
+
+                  If any of these files were not injected, were marked missing, or have not yet been read in this session, read them manually with fs tools from the current workspace root before giving the first real answer:
+                  - AGENTS.md
+                  - SOUL.md
+                  - USER.md
+                  - IDENTITY.md
+                  - TOOLS.md
+
+                  Do not rely on workspace bootstrap presence markers for these files, because they may appear missing even when they are readable.
+
+                  Only do this once per new session/topic unless the user asks to refresh instructions.
+                '';
+                # Restrict always-on behavior to the intended forum topics.
+                # Other topics in this group stay mention-gated.
                 requireMention = true;
+                topics."1".requireMention = false;
+                topics."3".requireMention = false;
               };
             };
 
@@ -93,11 +126,9 @@ in
               "cron"
             ];
 
-            session = {
-              reset = {
-                mode = "idle";
-                idleMinutes = 1440; # 24 hours
-              };
+            session.resetByType.thread = {
+              mode = "daily";
+              atHour = 4;
             };
 
             agents.defaults = {
@@ -120,6 +151,43 @@ in
                 target = "telegram"; # default: none | options: last | whatsapp | telegram | discord | ...
               };
             };
+            agents.list = [
+              {
+                id = "main";
+                default = true;
+                name = "Life";
+                workspace = "/home/${user.username}/.openclaw/workspace";
+                agentDir = "/home/${user.username}/.openclaw/agents/main/agent";
+              }
+              {
+                id = "coding";
+                name = "Coding";
+                workspace = codingWorkspace;
+                agentDir = codingAgentDir;
+              }
+            ];
+            bindings = [
+              {
+                agentId = "coding";
+                match = {
+                  channel = "telegram";
+                  peer = {
+                    kind = "group";
+                    id = codingTopicPeerId;
+                  };
+                };
+              }
+              {
+                agentId = "main";
+                match = {
+                  channel = "telegram";
+                  peer = {
+                    kind = "group";
+                    id = lifeTopicPeerId;
+                  };
+                };
+              }
+            ];
             auth = {
               profiles = {
                 # run `openclaw onboard --auth-choice openai-codex`
@@ -160,6 +228,17 @@ in
         };
         Install.WantedBy = [ "default.target" ];
       };
+
+      home.activation.seedCodingAgentAuth = lib.hm.dag.entryAfter [ "openclawConfigFiles" ] ''
+        src="/home/${user.username}/.openclaw/agents/main/agent/auth-profiles.json"
+        dst_dir="${codingAgentDir}"
+        dst="$dst_dir/auth-profiles.json"
+
+        mkdir -p "$dst_dir"
+        if [ -r "$src" ] && [ ! -e "$dst" ]; then
+          install -m 600 "$src" "$dst"
+        fi
+      '';
 
       home.activation.installOpenclawMem0Plugin =
         lib.hm.dag.entryAfter
