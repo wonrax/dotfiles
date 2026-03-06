@@ -102,7 +102,7 @@ in
 
             agents.defaults = {
               model = {
-                primary = "openai-codex/gpt-5.3-codex";
+                primary = "openai-codex/gpt-5.4";
               };
 
               # disable tool call pruning because the instruction md files are
