@@ -93,9 +93,22 @@ in
               "cron"
             ];
 
+            session = {
+              reset = {
+                mode = "idle";
+                idleMinutes = 1440; # 24 hours
+              };
+            };
+
             agents.defaults = {
               model = {
                 primary = "openai-codex/gpt-5.3-codex";
+              };
+
+              # disable tool call pruning because the instruction md files are
+              # acquired via tools, and we want to keep those
+              contextPruning = {
+                mode = "off";
               };
 
               heartbeat = {
