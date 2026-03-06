@@ -26,6 +26,10 @@ confirmation:
 
 cron jobs should use the main session with systemEvent kind.
 
-for each user message, analyze if there are possible memories associated with
-it, and if so, use the memory tools to query them to bring them into the
-context.
+memory lookup is mandatory for new named topics
+- for any new named entity/topic (person, project, place, etc.), run exactly 1
+memory_search before replying
+- do not repeat memory_search for the same entity within the next 10 turns
+unless context changes
+- if relevant memory exists, integrate it in the first response on that topic
+- keep memory usage cost-aware: prefer one strong query over multiple weak ones
