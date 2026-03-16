@@ -137,6 +137,7 @@ return {
       -- mason-lspconfig auto-enables only the servers it manages, so explicitly
       -- enable servers configured outside mason (like pyright from nix env).
       vim.lsp.enable 'pyright'
+      vim.lsp.enable 'ruff'
 
       -- NOTE: disabled to use haskell-tools.nvim
       -- NOTE: won't use mason here because it uses ghcup to install hls and
