@@ -70,9 +70,9 @@ lib.mkIf config.programs.niri.enable {
         layout = {
           focus-ring = {
             width = 2;
-            active.color = "#888888";
+            active.color = "#0000ff";
           };
-          gaps = 8;
+          gaps = 6;
         };
         prefer-no-csd = true;
         input = {
