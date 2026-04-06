@@ -28,6 +28,9 @@ lib.mkIf config.programs.niri.enable {
           QT_QPA_PLATFORMTHEME = "gtk3";
           QT_QPA_PLATFORMTHEME_QT6 = "gtk3";
         };
+        cursor = {
+          theme = "Bibata-Modern-Classic";
+        };
         spawn-at-startup = [
           {
             argv = [
@@ -65,7 +68,10 @@ lib.mkIf config.programs.niri.enable {
           }
         ];
         layout = {
-          focus-ring.width = 3;
+          focus-ring = {
+            width = 2;
+            active.color = "#888888";
+          };
           gaps = 8;
         };
         prefer-no-csd = true;
@@ -74,7 +80,7 @@ lib.mkIf config.programs.niri.enable {
             repeat-rate = 50;
           };
           mouse = {
-            accel-speed = -0.75;
+            accel-speed = 0.25;
             accel-profile = "adaptive";
           };
         };
