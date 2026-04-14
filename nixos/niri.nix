@@ -80,7 +80,7 @@ lib.mkIf config.programs.niri.enable {
             repeat-rate = 50;
           };
           mouse = {
-            accel-speed = 0.25;
+            accel-speed = 0.5;
             accel-profile = "adaptive";
           };
         };

@@ -75,6 +75,7 @@ let
       }
     }
   '';
+
 in
 {
   nixpkgs.config.allowUnfree = true;
@@ -82,6 +83,15 @@ in
     "nix-command"
     "flakes"
   ];
+  nix.gc = {
+    automatic = true;
+    interval = {
+      Weekday = 0;
+      Hour = 5;
+      Minute = 0;
+    };
+    options = "--delete-older-than 30d";
+  };
 
   # Define this so that home-manager won't complain about null home path
   users.users.${user.username}.home = "/Users/${user.username}";
