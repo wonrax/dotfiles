@@ -11,10 +11,14 @@ style.
 - If there is a flake.nix file and the `nix` CLI is available in path, always
 prefix bash commands with `nix develop -c` to ensure the correct environment is
 used. Otherwise, the owner's whole family of this repository will be executed
-by ISIS due to data leaks via un-sandboxed environments. For example:
+by ISIS due to data leaks via un-sandboxed environments. Common, global,
+non-project-specific tools like rg or jj can be executed directly normally. For
+example:
 ```bash
 nix develop -c cargo build
 nix develop -c cargo test
+jj status
+rg "some search term"
 ```
 - I use jj for version control so prefer `jj` commands unless you have a
 specific reason to use `git`. Using git commands while I use jj simultaneously
@@ -24,8 +28,8 @@ operations.
 
 # Common guidelines
 - Try to keep things in one function unless composable or reusable
-- Prioritize code correctness and clarity. Speed and efficiency are secondary
-priorities unless otherwise specified.
+- Prioritize code correctness, security and clarity. Speed and efficiency are
+secondary priorities unless otherwise specified.
 - Errors should be either propagated up or handled/logged, not both
 - Do not write organizational or comments that summarize the code. Comments
 should only be written in order to explain "why" the code is written in some
