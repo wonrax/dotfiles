@@ -15,6 +15,7 @@
     { pkgs, ... }:
     {
       nixpkgs.config.allowUnfree = true;
+      nix.settings.trusted-users = [ user.username ];
 
       nix.gc = {
         automatic = true;
