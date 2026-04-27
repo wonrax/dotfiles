@@ -111,9 +111,10 @@
         ssh-pub-key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILcVnyW/bNR+hbNQ4utoprtSm8ONNFMER9lgLT9u9rVu";
       };
 
-      commonSpecialArgs = arch: {
+      commonSpecialArgs = user: arch: {
         unstablePkgs = nixpkgs-unstable.legacyPackages.${arch};
         inherit
+          user
           inputs
           home-manager
           ;
@@ -126,8 +127,8 @@
     {
       nixosConfigurations.peggy = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
-        specialArgs = commonSpecialArgs "x86_64-linux";
-        modules = import ./nixos.nix (commonSpecialArgs "x86_64-linux") ++ [
+        specialArgs = commonSpecialArgs user "x86_64-linux";
+        modules = import ./nixos.nix (commonSpecialArgs user "x86_64-linux") ++ [
           {
             nixpkgs.overlays = [ overlays ];
           }
@@ -140,7 +141,7 @@
       darwinConfigurations = {
         wonraxs-macbook-air = darwin.lib.darwinSystem {
           system = "aarch64-darwin";
-          specialArgs = commonSpecialArgs "aarch64-darwin";
+          specialArgs = commonSpecialArgs user "aarch64-darwin";
           modules = [
             ./darwin.nix
             {
@@ -165,9 +166,7 @@
           in
           darwin.lib.darwinSystem {
             system = "aarch64-darwin";
-            specialArgs = commonSpecialArgs "aarch64-darwin" // {
-              inherit user;
-            };
+            specialArgs = commonSpecialArgs user "aarch64-darwin";
             modules = [
               ./darwin.nix
               {
