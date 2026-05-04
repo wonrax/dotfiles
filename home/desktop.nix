@@ -44,11 +44,35 @@
     };
   };
 
-  xdg.configFile.ghostty = {
-    source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/.config/ghostty";
-    recursive = true; # link recursively
-    executable = false;
-  };
+  xdg.configFile."ghostty/config".text = ''
+    command = ${pkgs.nushell}/bin/nu
+
+    # ghostty isn't in the terminfo database yet
+    term = xterm-256color
+
+    theme = light:Rose Pine Dawn,dark:Nightfox
+
+    window-padding-x = 8
+    window-padding-y = 4,8
+    confirm-close-surface = false
+
+    font-family = "Cascadia Code NF"
+    font-feature = -calt
+    font-thicken = true
+    font-thicken-strength = 0
+    adjust-box-thickness = 50%
+    adjust-cell-height = 2
+    macos-option-as-alt = true
+
+    cursor-invert-fg-bg = false
+
+    config-file = config.local
+
+    custom-shader = ./cursor_blaze_no_trail.glsl
+  '';
+
+  xdg.configFile."ghostty/cursor_blaze_no_trail.glsl".source =
+    config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/.config/ghostty/cursor_blaze_no_trail.glsl";
 
   xdg.configFile."fish/completions/nix.fish" = {
     source = "${inputs.nix}/misc/fish/completion.fish";
@@ -73,6 +97,16 @@
   };
 
   home.file.".codex/AGENTS.md" = {
+    source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/.config/opencode/AGENTS.md";
+  };
+
+  home.file.".claude/skills" = {
+    source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/.config/opencode/skills";
+    recursive = true; # link recursively
+    executable = false;
+  };
+
+  home.file.".claude/CLAUDE.md" = {
     source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/.config/opencode/AGENTS.md";
   };
 

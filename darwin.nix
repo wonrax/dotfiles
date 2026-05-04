@@ -78,20 +78,22 @@ let
 
 in
 {
+  nix.enable = false; # determinate nix
   nixpkgs.config.allowUnfree = true;
   nix.settings.experimental-features = [
     "nix-command"
     "flakes"
   ];
-  nix.gc = {
-    automatic = true;
-    interval = {
-      Weekday = 0;
-      Hour = 5;
-      Minute = 0;
-    };
-    options = "--delete-older-than 30d";
-  };
+  # disabled because this requires nix.enabled + determinate nix already has periodic GC
+  # nix.gc = {
+  #   automatic = true;
+  #   interval = {
+  #     Weekday = 0;
+  #     Hour = 5;
+  #     Minute = 0;
+  #   };
+  #   options = "--delete-older-than 30d";
+  # };
 
   # Define this so that home-manager won't complain about null home path
   users.users.${user.username}.home = "/Users/${user.username}";
@@ -131,6 +133,7 @@ in
     monitorcontrol
     orbstack
     jetbrains.datagrip
+    obsidian
   ];
 
   # Starship prompt daemon (session tracking & media info)

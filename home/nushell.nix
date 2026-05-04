@@ -1,4 +1,9 @@
-{ pkgs, config, ... }:
+{
+  pkgs,
+  config,
+  user,
+  ...
+}:
 {
   programs.nushell = {
     enable = true;
@@ -11,33 +16,33 @@
     configFile.text = ''
       # Convert PATH to a list if it's a string
       if ($env.PATH | describe) == "string" {
-          $env.PATH = ($env.PATH | split row (char esep))
+        $env.PATH = ($env.PATH | split row (char esep))
       }
 
       # TODO: find a way to get nix-profile paths instead of hardcoding them
       # HINT: how does programs.zsh do it?
       # Only run PATH setup once per top-level session
       if not ("DOTFILES_PATH_INITIALIZED" in $env) {
-          $env.PATH = ([
-              "~/.dotfiles/bin",
-              "~/.cargo/bin",
-              "~/.npm-packages/bin",
-              "~/.orbstack/bin",
-              "/usr/local/bin",
-              "~/go/bin",
-              "~/.local/bin"
-              "/etc/profiles/per-user/wonrax/bin"
+        $env.PATH = ([
+          "~/.dotfiles/bin",
+          "~/.cargo/bin",
+          "~/.npm-packages/bin",
+          "~/.orbstack/bin",
+          "/usr/local/bin",
+          "~/go/bin",
+          "~/.local/bin"
+          "/etc/profiles/per-user/${user.username}/bin"
 
-              # These two should have lower priority than the above since
-              # sometimes I want to use external package managers like npm or
-              # cargo because they provide more up-to-date versions of the
-              # packages.
-              "~/.nix-profile/bin", # this doesn't use anymore because HM is using global packages
-              "/nix/var/nix/profiles/default/bin",
-          ] | each { |p| path expand }) ++ $env.PATH
+          # These two should have lower priority than the above since
+          # sometimes I want to use external package managers like npm or
+          # cargo because they provide more up-to-date versions of the
+          # packages.
+          "~/.nix-profile/bin", # this doesn't use anymore because HM is using global packages
+          "/nix/var/nix/profiles/default/bin",
+        ] | each { |p| path expand }) ++ $env.PATH
 
-          # Set guard variable to prevent re-initialization
-          $env.DOTFILES_PATH_INITIALIZED = true
+        # Set guard variable to prevent re-initialization
+        $env.DOTFILES_PATH_INITIALIZED = true
       }
 
       # Aliases
@@ -84,40 +89,44 @@
         } | do $in $spans
       }
 
-      $env.config = {
-        highlight_resolved_externals: true # enables highlighting of external commands
-        edit_mode: "vi"
-        cursor_shape: {
-          vi_insert: "line"
-          vi_normal: "block"
-        }
-        keybindings: [
-          {
-            name: complete_history_hint
-            modifier: control
-            keycode: char_l
-            mode: [ emacs, vi_insert, vi_normal ]
-            event: {
-              until: [
-                { send: historyhintcomplete }
-              ]
-            }
-          }
-          {
-            name: insert_newline
-            modifier: control
-            keycode: char_j
-            mode: [ emacs, vi_insert ]
-            event: { edit: InsertNewline }
-          }
-        ]
-        completions: {
-          external: {
-            enable: true
-            completer: $external_completer
+      $env.config.highlight_resolved_externals = true
+      $env.config.edit_mode = "vi"
+      $env.config.cursor_shape.vi_insert = "line"
+      $env.config.cursor_shape.vi_normal = "block"
+      $env.config.completions.external.enable = true
+      $env.config.completions.external.completer = $external_completer
+      $env.config.keybindings ++= [
+        {
+          name: completion_menu
+          modifier: none
+          keycode: tab
+          mode: [ emacs, vi_normal, vi_insert ]
+          event: {
+            until: [
+              { send: menu name: completion_menu }
+              { send: menunext }
+            ]
           }
         }
-      }
+        {
+          name: complete_history_hint
+          modifier: control
+          keycode: char_l
+          mode: [ emacs, vi_insert, vi_normal ]
+          event: {
+            until: [
+              { send: historyhintcomplete }
+            ]
+          }
+        }
+        {
+          name: insert_newline
+          modifier: control
+          keycode: char_j
+          mode: [ emacs, vi_insert ]
+          event: { edit: InsertNewline }
+        }
+      ]
 
       $env.PROMPT_INDICATOR_VI_INSERT = { ||
         if $env.LAST_EXIT_CODE == 0 {
@@ -177,11 +186,9 @@
         print $"(ansi green)($ellie.3)  (ansi light_purple)ﮫ (ansi light_purple_bold)Uptime (ansi reset)(ansi light_purple)($s_ho.uptime)(ansi reset)"
       }
 
-      $env.config.hooks = {
-        env_change: {
-          PWD: [{|_, after| if $env.ZELLIJ? != null { ${pkgs.zellij}/bin/zellij action rename-tab ($after | path basename) } }]
-        }
-      }
+      $env.config.hooks.env_change.PWD = ($env.config.hooks.env_change.PWD? | default []) ++ [
+        {|_, after| if $env.ZELLIJ? != null { ${pkgs.zellij}/bin/zellij action rename-tab ($after | path basename) } }
+      ]
 
       show_banner
     '';

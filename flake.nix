@@ -115,7 +115,6 @@
         unstablePkgs = nixpkgs-unstable.legacyPackages.${arch};
         inherit
           inputs
-          user
           home-manager
           ;
       };
@@ -153,20 +152,33 @@
             }
           ];
         };
-        wonraxs-work-macbook = darwin.lib.darwinSystem {
-          system = "aarch64-darwin";
-          specialArgs = commonSpecialArgs "aarch64-darwin";
-          modules = [
-            ./darwin.nix
-            {
-              nixpkgs.overlays = [ overlays ];
-              system.stateVersion = 6;
-              home-manager.users.${user.username} = {
-                home.stateVersion = "24.11";
-              };
-            }
-          ];
-        };
+        wonraxs-work-macbook =
+          let
+            user = {
+              username = "haiha";
+              fullname = "Hai L. Ha-Huy";
+              email = "hahuylonghai2012@gmail.com";
+
+              # 1password general SSH key
+              ssh-pub-key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILcVnyW/bNR+hbNQ4utoprtSm8ONNFMER9lgLT9u9rVu";
+            };
+          in
+          darwin.lib.darwinSystem {
+            system = "aarch64-darwin";
+            specialArgs = commonSpecialArgs "aarch64-darwin" // {
+              inherit user;
+            };
+            modules = [
+              ./darwin.nix
+              {
+                nixpkgs.overlays = [ overlays ];
+                system.stateVersion = 6;
+                home-manager.users.${user.username} = {
+                  home.stateVersion = "25.11";
+                };
+              }
+            ];
+          };
       };
 
       nixosModules.pumpkin = {
