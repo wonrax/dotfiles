@@ -66,7 +66,7 @@
 
     cursor-invert-fg-bg = false
 
-    config-file = config.local
+    config-file = ?config.local
 
     custom-shader = ./cursor_blaze_no_trail.glsl
   '';

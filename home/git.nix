@@ -34,7 +34,7 @@
       alias.dft = "difftool";
 
       core.pager = "${pkgs.delta}/bin/delta";
-      interactive.diffFilter = "${pkgs.delta}/bin/delta --color-only";
+      interactive.diffFilter = "${pkgs.delta}/bin/delta --color-only --detect-dark-light always";
       delta = {
         navigate = true;
         line-numbers = true;
