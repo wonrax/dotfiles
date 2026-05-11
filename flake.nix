@@ -158,7 +158,7 @@
             user = {
               username = "haiha";
               fullname = "Hai L. Ha-Huy";
-              email = "hahuylonghai2012@gmail.com";
+              email = "hai.ha@eastagile.com";
 
               # 1password general SSH key
               ssh-pub-key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILcVnyW/bNR+hbNQ4utoprtSm8ONNFMER9lgLT9u9rVu";
