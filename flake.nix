@@ -81,6 +81,11 @@
       # https://github.com/openclaw/nix-openclaw/pull/81
       url = "github:bobberb/nix-openclaw/fix/copy-plugin-manifests";
     };
+
+    diffui = {
+      url = "github:wonrax/diffui";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
   };
 
   outputs =
@@ -127,6 +132,7 @@
       overlays = final: prev: {
         starship-jj = inputs.starship-jj.packages.${final.stdenv.hostPlatform.system}.default;
         neovim = inputs.nixpkgs-neovim.legacyPackages.${final.stdenv.hostPlatform.system}.neovim;
+        diffui = inputs.diffui.packages.${final.stdenv.hostPlatform.system}.default;
       };
     in
     {

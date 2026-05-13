@@ -176,6 +176,7 @@
       fzf
       delta
       jq
+      diffui
 
       # .::= Devel =::.
 
