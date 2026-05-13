@@ -7,6 +7,10 @@
 
     nixpkgs-vlc.url = "github:NixOS/nixpkgs/a9858885e197f984d92d7fe64e9fff6b2e488d40";
 
+    # Pinned to neovim 0.11.6 — 0.12 has breaking changes the plugin ecosystem
+    # hasn't caught up with yet.
+    nixpkgs-neovim.url = "github:NixOS/nixpkgs/832efc09b4caf6b4569fbf9dc01bec3082a00611";
+
     home-manager = {
       url = "github:nix-community/home-manager/release-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -122,6 +126,7 @@
 
       overlays = final: prev: {
         starship-jj = inputs.starship-jj.packages.${final.stdenv.hostPlatform.system}.default;
+        neovim = inputs.nixpkgs-neovim.legacyPackages.${final.stdenv.hostPlatform.system}.neovim;
       };
     in
     {

@@ -3,7 +3,10 @@ return {
     'nvim-neotest/neotest',
     dependencies = {
       'nvim-neotest/nvim-nio',
-      'mrcjkb/neotest-haskell',
+      {
+        'mrcjkb/neotest-haskell',
+        tag = 'v3.0.1', -- v4 requires neovim 0.12
+      }
     },
     config = function()
       ---@diagnostic disable-next-line: missing-fields

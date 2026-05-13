@@ -155,7 +155,7 @@
       nix-output-monitor
 
       # .::= Productivity =::.
-      unstablePkgs.neovim
+      neovim
       tmux
       gh
       bash

@@ -2,7 +2,8 @@ return {
   {
     -- More advanced LSP support for Rust
     'mrcjkb/rustaceanvim',
-    version = '*',
+    tag = 'v8.0.5', -- v4 requires neovim 0.12
+
     init = function()
       local defaults = {
         tools = {
