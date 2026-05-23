@@ -3,6 +3,13 @@ return {
   {
     'danielfalk/smart-open.nvim',
     branch = '0.3.x',
+    init = function()
+      -- LIBSQLITE is exported by home-manager (home/desktop.nix) so sqlite.lua
+      -- can find libsqlite3 without relying on nix-ld / DYLD_LIBRARY_PATH.
+      if vim.env.LIBSQLITE then
+        vim.g.sqlite_clib_path = vim.env.LIBSQLITE
+      end
+    end,
     config = function()
       require('telescope').load_extension 'smart_open'
       vim.keymap.set('n', '<leader><leader>', function()
@@ -13,8 +20,6 @@ return {
     end,
     dependencies = {
       'kkharji/sqlite.lua',
-      -- Optional.  If installed, native fzy will be used when match_algorithm is fzy
-      -- { 'nvim-telescope/telescope-fzy-native.nvim' },
     },
   },
 }

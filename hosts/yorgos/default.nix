@@ -4,7 +4,7 @@
   config,
   lib,
   ...
-}@args:
+}:
 {
   imports = [
     ../server.nix
@@ -62,8 +62,7 @@
 
   users.users.root.openssh.authorizedKeys.keys = [
     user.ssh-pub-key
-  ]
-  ++ (args.extraPublicKeys or [ ]); # this is used for unit-testing this module and can be removed if not needed
+  ];
 
   virtualisation.podman.enable = true;
 

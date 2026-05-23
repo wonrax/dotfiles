@@ -60,21 +60,22 @@
       ZSH_AUTOSUGGEST_USE_ASYNC=true
 
       export DOTFILES="$HOME/.dotfiles"
-      # TODO: consider moving these to zsh.envExtra
-      export SYSTEMD_EDITOR=lean-nvim
-      export EDITOR=lean-nvim
-      export PATH=$PATH:$DOTFILES/bin
-      export PATH=$PATH:~/.cargo/bin
-      # Global npm packages
-      export PATH=$PATH:$HOME/.npm-packages/bin
-      # diffstatic
-      export DFT_DISPLAY=inline
 
       if [[ -a ~/.localrc ]]
       then
         source ~/.localrc
       fi
     '';
+    sessionVariables = {
+      SYSTEMD_EDITOR = "lean-nvim";
+      EDITOR = "lean-nvim";
+      DFT_DISPLAY = "inline";
+    };
   };
 
+  home.sessionPath = [
+    "$HOME/.dotfiles/bin"
+    "$HOME/.cargo/bin"
+    "$HOME/.npm-packages/bin"
+  ];
 }

@@ -11,7 +11,6 @@
     ./qbittorrent.nix
     ./vector.nix
     ./qui.nix
-    ./openclaw/default.nix
   ];
 
   nixpkgs.config.allowUnfree = true;

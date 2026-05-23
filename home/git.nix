@@ -12,24 +12,20 @@
 
       merge.conflictStyle = "diff3";
 
-      # enable gpg signing
       commit.gpgsign = true;
       gpg.format = "ssh";
 
-      # TODO: what are all these difftool doing with each other?
-
+      # diff.tool selects difft as `git diff`'s engine; difftool.difftastic.cmd
+      # wires up `git difftool` (aliased to `git dft`); pager.difftool pipes
+      # difftool output through delta. core.pager runs delta on `git log/show`.
       diff = {
         colorMoved = "default";
         tool = "${pkgs.difftastic}/bin/difft";
       };
-
       difftool = {
         prompt = false;
-        difftastic = {
-          cmd = "${pkgs.difftastic}/bin/difft '$LOCAL' '$REMOTE'";
-        };
+        difftastic.cmd = "${pkgs.difftastic}/bin/difft '$LOCAL' '$REMOTE'";
       };
-
       pager.difftool = true;
       alias.dft = "difftool";
 
@@ -41,5 +37,4 @@
       };
     };
   };
-
 }

@@ -107,21 +107,11 @@ in
   home-manager.users.${user.username} = {
     imports = [ ./home/desktop.nix ];
 
-    home.sessionVariables = {
-      # I don't have time for this bro, will fix later
-      DYLD_LIBRARY_PATH = "${pkgs.lib.makeLibraryPath (with pkgs; [ sqlite ])}:$DYLD_LIBRARY_PATH";
-    };
-
     # NOTE: ssh agent must be enabled and configured manually in
     # 1password on macos for now
-    programs.git = {
-      settings = {
-        gpg.ssh.program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
-      };
-    };
-    programs.jujutsu = {
-      settings.signing.backends.ssh.program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
-    };
+    programs.git.settings.gpg.ssh.program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
+    programs.jujutsu.settings.signing.backends.ssh.program =
+      "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
   };
 
   environment.systemPackages = with pkgs; [

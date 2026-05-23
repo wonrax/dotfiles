@@ -134,23 +134,10 @@
         neovim = inputs.nixpkgs-neovim.legacyPackages.${final.stdenv.hostPlatform.system}.neovim;
         diffui = inputs.diffui.packages.${final.stdenv.hostPlatform.system}.default;
       };
-    in
-    {
-      nixosConfigurations.peggy = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
-        specialArgs = commonSpecialArgs user "x86_64-linux";
-        modules = import ./nixos.nix (commonSpecialArgs user "x86_64-linux") ++ [
-          {
-            nixpkgs.overlays = [ overlays ];
-          }
-          ./hosts/peggy
-          inputs.minegrub-theme.nixosModules.default
-          inputs.minegrub-world-sel-theme.nixosModules.default
-        ];
-      };
 
-      darwinConfigurations = {
-        wonraxs-macbook-air = darwin.lib.darwinSystem {
+      mkDarwin =
+        user:
+        darwin.lib.darwinSystem {
           system = "aarch64-darwin";
           specialArgs = commonSpecialArgs user "aarch64-darwin";
           modules = [
@@ -158,37 +145,74 @@
             {
               nixpkgs.overlays = [ overlays ];
               system.stateVersion = 6;
-              home-manager.users.${user.username} = {
-                home.stateVersion = "25.11";
-              };
+              home-manager.users.${user.username}.home.stateVersion = "25.11";
             }
           ];
         };
-        wonraxs-work-macbook =
-          let
-            user = {
-              username = "haiha";
-              fullname = "Hai L. Ha-Huy";
-              email = "hai.ha@eastagile.com";
 
-              # 1password general SSH key
-              ssh-pub-key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILcVnyW/bNR+hbNQ4utoprtSm8ONNFMER9lgLT9u9rVu";
-            };
-          in
-          darwin.lib.darwinSystem {
-            system = "aarch64-darwin";
-            specialArgs = commonSpecialArgs user "aarch64-darwin";
-            modules = [
-              ./darwin.nix
-              {
-                nixpkgs.overlays = [ overlays ];
-                system.stateVersion = 6;
-                home-manager.users.${user.username} = {
-                  home.stateVersion = "25.11";
+      # Build a deploy-rs node attribute set. The deploy-rs overlay trick lets
+      # the local host (which may be a different arch than the target) drive
+      # deploys without needing nix's binfmt for the target arch — the actual
+      # build still happens on the target unless remoteBuild=false.
+      mkDeployNode =
+        {
+          hostname,
+          targetSystem,
+          nixosConfig,
+          sshUser ? null,
+        }:
+        system:
+        let
+          targetPkgs = nixpkgs.legacyPackages.${targetSystem};
+          deploy-rs = import nixpkgs {
+            system = targetSystem;
+            overlays = [
+              inputs.deploy-rs.overlays.default
+              (_: super: {
+                deploy-rs = {
+                  inherit (targetPkgs) deploy-rs;
+                  lib = super.deploy-rs.lib;
                 };
-              }
+              })
             ];
           };
+        in
+        {
+          inherit hostname;
+          profiles.system = {
+            user = "root";
+            path = deploy-rs.deploy-rs.lib.activate.nixos nixosConfig;
+          };
+          remoteBuild =
+            !(builtins.elem system [
+              "aarch64-linux"
+              "x86_64-linux"
+            ]);
+        }
+        // nixpkgs.lib.optionalAttrs (sshUser != null) { inherit sshUser; };
+    in
+    {
+      nixosConfigurations.peggy = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        specialArgs = commonSpecialArgs user "x86_64-linux";
+        modules = [
+          { nixpkgs.overlays = [ overlays ]; }
+          ./nixos
+          ./hosts/peggy
+          inputs.minegrub-theme.nixosModules.default
+          inputs.minegrub-world-sel-theme.nixosModules.default
+        ];
+      };
+
+      darwinConfigurations = {
+        wonraxs-macbook-air = mkDarwin user;
+        wonraxs-work-macbook = mkDarwin (
+          user
+          // {
+            username = "haiha";
+            email = "hai.ha@eastagile.com";
+          }
+        );
       };
 
       nixosModules.pumpkin = {
@@ -205,13 +229,11 @@
 
       nixosConfigurations.pumpkin = nixpkgs.lib.nixosSystem {
         system = "aarch64-linux";
-        specialArgs = {
-          inherit user inputs;
-        };
+        specialArgs = commonSpecialArgs user "aarch64-linux";
         modules = [
           self.nixosModules.pumpkin
           # We won't import the generated configuration in sd image builds
-          # because it might get conflict with image builder, e.g.:
+          # because it might conflict with the image builder, e.g.:
           # error: The option `fileSystems."/".device' has conflicting definition values
           ./hosts/pumpkin/generated.nix
         ];
@@ -219,173 +241,86 @@
 
       pumpkin-image = nixpkgs.lib.nixosSystem {
         system = "aarch64-linux";
-        specialArgs = { inherit user; };
+        specialArgs = commonSpecialArgs user "aarch64-linux";
         modules = [
           "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
           self.nixosModules.pumpkin
-
-          # TODO: by importing gitignored files, we had to use `file:.` in
-          # flake arg. This means that other gitignored files will also be
-          # copied into the nix store, which can be huge.
-          # Fix this by using proper secret management solutions for nix
+          # pi-secrets.nix is gitignored and used only when (re)flashing the SD
+          # image. Including it here forces `file:.` for the flake arg, which
+          # also drags other gitignored files into the store — acceptable for
+          # this rare bootstrap path.
           ./pi-secrets.nix
-          {
-            sdImage.compressImage = false;
-          }
+          { sdImage.compressImage = false; }
         ];
       };
 
-      # Use qemu to build the pumpkin image on x86_64-linux
-      # requires `boot.binfmt.emulatedSystems = [ "aarch64-linux" ];`
-      # TODO: detect if emulatedSystems is set, and if not, throw an error
+      # Use qemu to build the pumpkin image on x86_64-linux.
+      # Requires `boot.binfmt.emulatedSystems = [ "aarch64-linux" ];` on the
+      # builder host (configured in hosts/peggy/configuration.nix).
       packages.x86_64-linux.pumpkin-image = self.pumpkin-image.config.system.build.sdImage;
+      # pkgsCross is avoided here because it rebuilds the whole dependency
+      # chain from scratch, which takes comically long compared to binfmt.
 
-      # TODO: failing checks
-      # pumpkin-image-pkgsCross =
-      #   nixpkgs.legacyPackages.aarch64-darwin.pkgsCross.aarch64-multiplatform.nixos
-      #     {
-      #       imports = [
-      #         "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
-      #         self.nixosModules.pumpkin
-      #       ];
-      #     };
-
-      # NOTE: using pkgsCross will rebuild entire dependency chain from
-      # scratch, which can takes comically long.
-      # packages.aarch64-darwin.pumpkin-image = self.pumpkin-image-pkgsCross.config.system.build.sdImage;
-
-      nixosConfigurations.yorgos = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
-        specialArgs = {
-          inherit user inputs;
-          unstablePkgs = nixpkgs-unstable.legacyPackages.x86_64-linux;
+      nixosConfigurations.yorgos =
+        let
+          args = commonSpecialArgs user "x86_64-linux";
+        in
+        nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          specialArgs = args;
+          modules = [
+            { nixpkgs.overlays = [ overlays ]; }
+            disko.nixosModules.disko
+            opnix.nixosModules.default
+            ./hosts/yorgos
+          ];
         };
-        modules = [
-          {
-            nixpkgs.overlays = [ overlays ];
-          }
-          disko.nixosModules.disko
-          opnix.nixosModules.default
-          ./hosts/yorgos
-        ];
-      };
 
       deploy.nodes =
-        (mapToAttrs
-          [
+        let
+          deployHosts = [
             "aarch64-darwin"
             "x86_64-linux"
-          ]
-          (system: "from-${system}-to-pumpkin")
-          (
-            system:
-            let
-              targetSystem = "aarch64-linux";
-              deploy-rs =
-                let
-                  pkgs = nixpkgs.legacyPackages.${targetSystem};
-                in
-                import nixpkgs {
-                  system = targetSystem;
-                  overlays = [
-                    inputs.deploy-rs.overlays.default
-                    (self: super: {
-                      deploy-rs = {
-                        inherit (pkgs) deploy-rs;
-                        lib = super.deploy-rs.lib;
-                      };
-                    })
-                  ];
-                };
-            in
+          ];
+          mkNodes =
             {
-              hostname = "pumpkin";
-              profiles.system = {
-                user = "root";
-                path = deploy-rs.deploy-rs.lib.activate.nixos self.nixosConfigurations.pumpkin;
-              };
-              remoteBuild =
-                !(builtins.elem system [
-                  "aarch64-linux"
-                  "x86_64-linux"
-                ]);
-            }
-          )
-        )
-        // (mapToAttrs
-          [
-            "aarch64-darwin"
-            "x86_64-linux"
-          ]
-          (system: "from-${system}-to-yorgos")
-          (
-            system:
-            let
-              targetSystem = "x86_64-linux";
-              deploy-rs =
-                let
-                  pkgs = nixpkgs.legacyPackages."${targetSystem}";
-                in
-                import nixpkgs {
-                  system = targetSystem;
-                  overlays = [
-                    inputs.deploy-rs.overlays.default
-                    (self: super: {
-                      deploy-rs = {
-                        inherit (pkgs) deploy-rs;
-                        lib = super.deploy-rs.lib;
-                      };
-                    })
-                  ];
-                };
-            in
-            {
-              sshUser = "root";
-              hostname = "yorgos";
-              profiles.system = {
-                user = "root";
-                path = deploy-rs.deploy-rs.lib.activate.nixos self.nixosConfigurations.yorgos;
-              };
-              remoteBuild =
-                !(builtins.elem system [
-                  "aarch64-linux"
-                  "x86_64-linux"
-                ]);
-            }
-          )
-        );
+              targetHostname,
+              ...
+            }@node:
+            mapToAttrs deployHosts (system: "from-${system}-to-${targetHostname}") (
+              mkDeployNode (removeAttrs node [ "targetHostname" ] // { hostname = targetHostname; })
+            );
+        in
+        mkNodes {
+          targetHostname = "pumpkin";
+          targetSystem = "aarch64-linux";
+          nixosConfig = self.nixosConfigurations.pumpkin;
+        }
+        // mkNodes {
+          targetHostname = "yorgos";
+          targetSystem = "x86_64-linux";
+          sshUser = "root";
+          nixosConfig = self.nixosConfigurations.yorgos;
+        };
 
       apps = forAllSystems (
         system:
         let
-          pkgs = nixpkgs.legacyPackages."${system}";
+          pkgs = nixpkgs.legacyPackages.${system};
+          mkDeployApp = target: {
+            type = "app";
+            program = pkgs.lib.getExe (
+              pkgs.writeShellScriptBin "deploy-${target}" ''
+                #!${pkgs.bash}/bin/bash
+                ${pkgs.deploy-rs}/bin/deploy .#from-${system}-to-${target} --auto-rollback false --magic-rollback false --skip-checks
+              ''
+            );
+          };
         in
         {
-          deploy-pumpkin = {
-            type = "app";
-            program = pkgs.lib.getExe (
-              pkgs.writeShellScriptBin "deploy-pumpkin" ''
-                #!${pkgs.bash}/bin/bash
-                ${pkgs.deploy-rs}/bin/deploy .#from-${system}-to-pumpkin --auto-rollback false --magic-rollback false --skip-checks
-              ''
-            );
-          };
-
-          deploy-yorgos = {
-            type = "app";
-            program = pkgs.lib.getExe (
-              pkgs.writeShellScriptBin "deploy-yorgos" ''
-                #!${pkgs.bash}/bin/bash
-                ${pkgs.deploy-rs}/bin/deploy .#from-${system}-to-yorgos --auto-rollback false --magic-rollback false --skip-checks
-              ''
-            );
-          };
+          deploy-pumpkin = mkDeployApp "pumpkin";
+          deploy-yorgos = mkDeployApp "yorgos";
         }
       );
-
-      # deploy-rs checks
-      # checks = builtins.mapAttrs (
-      #   system: deployLib: deployLib.deployChecks self.deploy
-      # ) inputs.deploy-rs.lib;
     };
 }

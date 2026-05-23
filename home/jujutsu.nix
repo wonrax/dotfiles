@@ -67,8 +67,6 @@
       };
       ui = {
         default-command = [ "log" ];
-        # FIXME: this doesn't work though, log shows signature unknown
-        # https://github.com/jj-vcs/jj/issues/6915#issuecomment-3621860671
         show-cryptographic-signatures = true;
         diff-formatter = ":git"; # so that delta can parse it
         pager = [

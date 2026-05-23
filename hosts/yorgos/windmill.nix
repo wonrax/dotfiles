@@ -47,20 +47,10 @@ let
 
   workersForGroup =
     group: total:
-    let
-      workerNames = map (n: "windmill-worker-${group}-${toString n}") (lib.range 0 (total - 1));
-    in
-    builtins.listToAttrs (
-      map (
-        name:
-        let
-          index = lib.last (lib.splitString "-" name);
-        in
-        {
-          name = name;
-          value = makeWorker group (builtins.fromJSON index) total;
-        }
-      ) workerNames
+    lib.listToAttrs (
+      map (i: lib.nameValuePair "windmill-worker-${group}-${toString i}" (makeWorker group i total)) (
+        lib.range 0 (total - 1)
+      )
     );
 
   # Enhanced Caddyfile configuration

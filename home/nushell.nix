@@ -19,9 +19,9 @@
         $env.PATH = ($env.PATH | split row (char esep))
       }
 
-      # TODO: find a way to get nix-profile paths instead of hardcoding them
-      # HINT: how does programs.zsh do it?
-      # Only run PATH setup once per top-level session
+      # Manual PATH prepend (not home.sessionPath) so that user-installed
+      # binaries from npm/cargo/etc take precedence over nix-installed ones.
+      # The guard prevents recursive subshells from re-prepending.
       if not ("DOTFILES_PATH_INITIALIZED" in $env) {
         $env.PATH = ([
           "~/.dotfiles/bin",
@@ -32,16 +32,9 @@
           "~/go/bin",
           "~/.local/bin"
           "/etc/profiles/per-user/${user.username}/bin"
-
-          # These two should have lower priority than the above since
-          # sometimes I want to use external package managers like npm or
-          # cargo because they provide more up-to-date versions of the
-          # packages.
-          "~/.nix-profile/bin", # this doesn't use anymore because HM is using global packages
           "/nix/var/nix/profiles/default/bin",
         ] | each { |p| path expand }) ++ $env.PATH
 
-        # Set guard variable to prevent re-initialization
         $env.DOTFILES_PATH_INITIALIZED = true
       }
 

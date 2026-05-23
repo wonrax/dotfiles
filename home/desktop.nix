@@ -10,10 +10,27 @@
   inputs,
   ...
 }:
+let
+  dotfilesDir = "${config.home.homeDirectory}/.dotfiles";
+  agentSource = "${dotfilesDir}/.config/agents";
+  mkAgentLink = path: {
+    source = config.lib.file.mkOutOfStoreSymlink "${agentSource}/${path}";
+    recursive = true;
+    executable = false;
+  };
+  agentsMd = mkAgentLink "AGENTS.md";
+  agentsSkills = mkAgentLink "skills";
+in
 {
   home.username = user.username;
   home.homeDirectory =
     if pkgs.stdenv.isDarwin then "/Users/${user.username}" else "/home/${user.username}";
+
+  # libsqlite3 path for nvim's smart-open (sqlite.lua via LuaJIT FFI). Wired up
+  # in .config/nvim/lua/plugins/smart-open.lua via vim.g.sqlite_clib_path.
+  home.sessionVariables.LIBSQLITE = "${pkgs.sqlite.out}/lib/libsqlite3${
+    if pkgs.stdenv.isDarwin then ".dylib" else ".so"
+  }";
 
   imports = [
     ./git.nix
@@ -24,15 +41,15 @@
   ];
 
   xdg.configFile.nvim = {
-    source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/.config/nvim";
-    recursive = true; # link recursively
+    source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/nvim";
+    recursive = true;
     executable = false;
   };
 
   home.file.".tmux.conf" = {
-    source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/.config/tmux/tmux.conf";
-    recursive = true; # link recursively
-    executable = false; # make all files executable
+    source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/tmux/tmux.conf";
+    recursive = true;
+    executable = false;
   };
 
   home.file.".config/tmux/plugins/tpm" = {
@@ -72,61 +89,31 @@
   '';
 
   xdg.configFile."ghostty/cursor_blaze_no_trail.glsl".source =
-    config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/.config/ghostty/cursor_blaze_no_trail.glsl";
+    config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/ghostty/cursor_blaze_no_trail.glsl";
 
-  xdg.configFile."fish/completions/nix.fish" = {
-    source = "${inputs.nix}/misc/fish/completion.fish";
-  };
+  xdg.configFile."fish/completions/nix.fish".source = "${inputs.nix}/misc/fish/completion.fish";
 
-  xdg.configFile."opencode/skills" = {
-    source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/.config/opencode/skills";
-    recursive = true; # link recursively
-    executable = false;
-  };
+  # Shared agent instructions + skills, fanned out to every tool's config dir.
+  # Source lives in .config/agents/ (was .config/opencode/).
+  xdg.configFile."opencode/skills" = agentsSkills;
+  xdg.configFile."opencode/AGENTS.md" = agentsMd;
+  home.file.".agents/skills" = agentsSkills;
+  home.file.".codex/AGENTS.md" = agentsMd;
+  home.file.".claude/skills" = agentsSkills;
+  home.file.".claude/CLAUDE.md" = agentsMd;
 
-  # codex uses this
-  xdg.configFile."opencode/AGENTS.md" = {
-    source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/.config/opencode/AGENTS.md";
-  };
-
-  # codex uses this
-  home.file.".agents/skills" = {
-    source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/.config/opencode/skills";
-    recursive = true; # link recursively
-    executable = false;
-  };
-
-  home.file.".codex/AGENTS.md" = {
-    source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/.config/opencode/AGENTS.md";
-  };
-
-  home.file.".claude/skills" = {
-    source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/.config/opencode/skills";
-    recursive = true; # link recursively
-    executable = false;
-  };
-
-  home.file.".claude/CLAUDE.md" = {
-    source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/.config/opencode/AGENTS.md";
-  };
-
-  home.activation = {
-    # Make sure that the dotfiles are cloned in the correct location so that
-    # the configuration can be linked and binaries are available
-    # TODO: is there a better way to do this?
-    assertDotfilesLocation =
-      lib.hm.dag.entryBefore
-        [
-          "installPackages"
-          "linkGeneration"
-        ]
-        ''
-          if [ ! -f "$HOME/.dotfiles/flake.nix" ]; then
-            echo "Please clone the dotfiles repository to ~/.dotfiles"
-            exit 1
-          fi
-        '';
-  };
+  home.activation.assertDotfilesLocation =
+    lib.hm.dag.entryBefore
+      [
+        "installPackages"
+        "linkGeneration"
+      ]
+      ''
+        if [ ! -f "${dotfilesDir}/flake.nix" ]; then
+          echo "Please clone the dotfiles repository to ~/.dotfiles"
+          exit 1
+        fi
+      '';
 
   programs.ghostty = {
     enable = pkgs.stdenv.isLinux; # ghostty package is currently marked as broken on MacOS
@@ -142,8 +129,8 @@
   };
 
   xdg.configFile.zellij = {
-    source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/.config/zellij";
-    recursive = true; # link recursively
+    source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/zellij";
+    recursive = true;
     executable = false;
   };
 

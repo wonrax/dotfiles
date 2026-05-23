@@ -62,7 +62,7 @@ in
   config = {
     assertions = [
       {
-        assertion = cfg.vector.environmentFiles != [ ];
+        assertion = !cfg.vector.enable || cfg.vector.environmentFiles != [ ];
         message = lib.concatStrings [
           "Set services.vector.environmentFiles when services.vector.enable = true. "
           "A license key is required."
