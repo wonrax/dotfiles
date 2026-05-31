@@ -1,8 +1,69 @@
 {
   user,
   config,
+  pkgs,
+  lib,
   ...
 }:
+let
+  # NetworkManager keeps reporting wlan0 as "connected" even when the Pi 4's
+  # brcmfmac firmware has wedged (SDIO command timeouts, err=-110), so nothing
+  # auto-recovers and the host silently falls off the network until it is
+  # physically power-cycled. This watchdog probes reachability and escalates.
+  wifiWatchdog = pkgs.writeShellApplication {
+    name = "wifi-watchdog";
+    runtimeInputs = with pkgs; [
+      iproute2
+      iputils
+      gawk
+      networkmanager
+      kmod
+      util-linux
+      systemd
+    ];
+    text = ''
+      state="''${STATE_DIRECTORY:?}/failures"
+      gw="$(ip -4 route show default | awk '{ print $3; exit }')"
+
+      reachable() { ping -c 2 -W 2 "$1" >/dev/null 2>&1; }
+
+      # Healthy if the gateway OR any public anchor answers, so a router that
+      # ignores ICMP or a pure upstream ISP outage never triggers recovery.
+      if { [ -n "$gw" ] && reachable "$gw"; } || reachable 1.1.1.1 || reachable 8.8.8.8; then
+        echo 0 >"$state"
+        exit 0
+      fi
+
+      fails="$(cat "$state" 2>/dev/null || echo 0)"
+      fails=$(( fails + 1 ))
+      echo "$fails" >"$state"
+      logger -t wifi-watchdog "network unreachable (gw=''${gw:-none}, consecutive failure #$fails)"
+
+      # Timer fires every 2 min; escalate only after sustained failure so a
+      # brief router reboot or roaming blip never reacts.
+      case "$fails" in
+      2)
+        logger -t wifi-watchdog "step 1: reconnecting wlan0"
+        nmcli device reconnect wlan0 || systemctl restart NetworkManager.service
+        ;;
+      4)
+        logger -t wifi-watchdog "step 2: reloading brcmfmac"
+        systemctl stop NetworkManager.service wpa_supplicant.service || true
+        ip link set wlan0 down || true
+        modprobe -r brcmfmac_wcc brcmfmac || true
+        sleep 2
+        modprobe brcmfmac || true
+        systemctl start NetworkManager.service || true
+        ;;
+      6)
+        logger -t wifi-watchdog "step 3: wifi unrecoverable, rebooting"
+        echo 0 >"$state"
+        systemctl reboot
+        ;;
+      esac
+    '';
+  };
+in
 {
   imports = [
     ../server.nix
@@ -55,6 +116,37 @@
   networking.networkmanager = {
     enable = true;
     wifi.powersave = false;
+  };
+
+  # The brcmfmac firmware logs "Firmware rejected country setting" on every
+  # associate and we sit on 5 GHz DFS channels; pin the regdomain so cfg80211
+  # applies VN regulatory/DFS rules instead of the conservative world default.
+  hardware.wirelessRegulatoryDatabase = true;
+  boot.extraModprobeConfig = ''
+    options cfg80211 ieee80211_regdom=VN
+  '';
+
+  # Reboot on a full kernel hang. bcm2835_wdt caps at ~16 s, so 14 s is the
+  # usable ceiling; wifi-watchdog (above) covers the softer "alive but wifi
+  # wedged" case the hardware watchdog cannot detect.
+  systemd.settings.Manager.RuntimeWatchdogSec = "14s";
+
+  systemd.services.wifi-watchdog = {
+    description = "Recover wifi when the network is unreachable";
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = lib.getExe wifiWatchdog;
+      StateDirectory = "wifi-watchdog";
+      TimeoutStartSec = "90s";
+    };
+  };
+  systemd.timers.wifi-watchdog = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnBootSec = "3min";
+      OnUnitActiveSec = "2min";
+      AccuracySec = "20s";
+    };
   };
 
   # Enable container name DNS for all Podman networks.
