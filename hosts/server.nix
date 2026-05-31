@@ -82,7 +82,7 @@ in
       ];
     };
 
-    boot.loader.grub.configurationLimit = 16;
+    boot.loader.grub.configurationLimit = 8;
 
     time.timeZone = "Asia/Ho_Chi_Minh";
 
