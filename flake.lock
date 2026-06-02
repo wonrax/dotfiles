@@ -81,11 +81,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1779017493,
-        "narHash": "sha256-gDYfeAYq6kp/hB6s6VZ9pK4HIsHEyh+w5t9GmvNbrQc=",
+        "lastModified": 1780388009,
+        "narHash": "sha256-4DVEu6Naq8ZGwA0MlbikEwq+99YDWxXoWi/b6pTT89k=",
         "owner": "wonrax",
         "repo": "diffui",
-        "rev": "fbc86c9fce5d43498c216ac9a6882a82a028cfef",
+        "rev": "f778ba40a18c687db3591ab52679d408cdab8e2d",
         "type": "github"
       },
       "original": {
