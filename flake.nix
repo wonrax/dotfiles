@@ -218,7 +218,7 @@
             username = "haiha";
             email = "hai.ha@eastagile.com";
           }
-        );
+        ) 6 "25.11";
       };
 
       nixosModules.pumpkin = {
