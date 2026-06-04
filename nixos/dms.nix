@@ -3,6 +3,7 @@
   lib,
   user,
   unstablePkgs,
+  pkgs,
   inputs,
   ...
 }:
@@ -34,10 +35,15 @@ in
       compositor.name = lib.mkIf enableNiriIntegration "niri";
       configHome = config.home-manager.users.${user.username}.home.homeDirectory;
     };
+    users.users.${user.username}.packages = with pkgs; [
+      slurp # for the screenCaptureToolbar plugin
+      gpu-screen-recorder # for the screenCaptureToolbar plugin
+    ];
     home-manager.users.${user.username} = {
       imports = [
         inputs.dms.homeModules.dank-material-shell
         inputs.dms.homeModules.niri
+        inputs.dms-plugin-registry.modules.default
       ];
       programs.dank-material-shell = {
         enable = true;
@@ -65,6 +71,10 @@ in
           restartIfChanged = true; # Auto-restart dms.service when dank-material-shell changes
         };
         enableDynamicTheming = false;
+        plugins = {
+          dockerManager.enable = true;
+          screenCaptureToolbar.enable = true;
+        };
       };
 
       programs.niri.settings.binds = lib.mkIf enableNiriIntegration {
@@ -74,6 +84,14 @@ in
           "call"
           "lock"
           "lock"
+        ];
+        "Super+Shift+S".action.spawn = [
+          # dms ipc call screenCaptureToolbar open
+          "dms"
+          "ipc"
+          "call"
+          "screenCaptureToolbar"
+          "open"
         ];
       };
     };

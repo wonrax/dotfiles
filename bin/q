@@ -91,5 +91,5 @@ export def main [
     }
 
     # opencode run --model github-copilot/gemini-3-flash-preview $final_system_prompts $user_prompt
-    claude --model sonnet --print $final_system_prompts $user_prompt
+    claude --dangerously-skip-permissions --model sonnet --print $final_system_prompts $user_prompt
 }

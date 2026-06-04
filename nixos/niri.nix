@@ -210,7 +210,7 @@ lib.mkIf config.programs.niri.enable {
           "Print".action.screenshot = { };
           "Ctrl+Print".action.screenshot-screen = { };
           "Alt+Print".action.screenshot-window = { };
-          "Super+Shift+S".action.screenshot = { };
+          "Super+Shift+S" = lib.mkDefault { action.screenshot = { }; };
 
           # The quit action will show a confirmation dialog to avoid accidental exits.
           "Mod+Shift+E".action.quit = { };

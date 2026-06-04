@@ -68,6 +68,11 @@
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
 
+    dms-plugin-registry = {
+      url = "github:AvengeMedia/dms-plugin-registry";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
+
     niri = {
       url = "github:sodiboo/niri-flake";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
@@ -136,9 +141,7 @@
       };
 
       mkDarwin =
-        user:
-        darwinStateVersion:
-        homeStateVersion:
+        user: darwinStateVersion: homeStateVersion:
         darwin.lib.darwinSystem {
           system = "aarch64-darwin";
           specialArgs = commonSpecialArgs user "aarch64-darwin";
