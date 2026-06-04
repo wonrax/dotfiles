@@ -462,6 +462,23 @@
         "type": "github"
       }
     },
+    "niri-notify-focus": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1779179150,
+        "narHash": "sha256-POaBIo5k4ukVTuDxaVqnc2Z+D1wk0DB6ny6U1CbaCB4=",
+        "owner": "Oaklight",
+        "repo": "niri-notify-focus",
+        "rev": "e1743c374c8e1d63c9dd725ca85f5f1d69fc1cf5",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Oaklight",
+        "ref": "v0.2.1",
+        "repo": "niri-notify-focus",
+        "type": "github"
+      }
+    },
     "niri-stable": {
       "flake": false,
       "locked": {
@@ -808,6 +825,7 @@
         "minegrub-theme": "minegrub-theme",
         "minegrub-world-sel-theme": "minegrub-world-sel-theme",
         "niri": "niri",
+        "niri-notify-focus": "niri-notify-focus",
         "nix": "nix",
         "nix-openclaw": "nix-openclaw",
         "nixos-hardware": "nixos-hardware",

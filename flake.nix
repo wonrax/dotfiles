@@ -79,6 +79,14 @@
       inputs.nixpkgs-stable.follows = "nixpkgs";
     };
 
+    # Standalone daemon that focuses the source window when a notification is
+    # clicked (DMS/quickshell never tells niri to focus the app). Not a flake;
+    # packaged in nixos/niri.nix.
+    niri-notify-focus = {
+      url = "github:Oaklight/niri-notify-focus/v0.2.1";
+      flake = false;
+    };
+
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
 
     nix-openclaw = {

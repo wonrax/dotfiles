@@ -20,6 +20,51 @@ let
     done
     exec "$@"
   '';
+
+  # niri-notify-focus: eavesdrops on the notification D-Bus traffic, maps each
+  # notification's sender PID to its niri window, and focuses that window when
+  # the notification is clicked. Fixes DMS/quickshell not raising the source app
+  # (it invokes the action over D-Bus but never passes an activation token, so
+  # niri blocks the app's self-raise as focus-stealing). Upstream ships only an
+  # AUR package, so we build the single Python script ourselves.
+  niri-notify-focus =
+    let
+      pythonEnv = pkgs.python3.withPackages (ps: [
+        ps.dbus-python
+        ps.pygobject3
+      ]);
+    in
+    pkgs.stdenvNoCC.mkDerivation {
+      pname = "niri-notify-focus";
+      version = "0.2.1";
+      src = inputs.niri-notify-focus;
+
+      nativeBuildInputs = [
+        pkgs.wrapGAppsNoGuiHook
+        pkgs.gobject-introspection
+      ];
+      # glib provides the GLib/GObject typelibs that pygobject loads at runtime;
+      # wrapGAppsNoGuiHook wires them onto GI_TYPELIB_PATH in the wrapper.
+      buildInputs = [
+        pythonEnv
+        pkgs.glib
+      ];
+
+      dontBuild = true;
+      postPatch = ''
+        substituteInPlace niri-notify-focus \
+          --replace-fail '#!/usr/bin/env python3' '#!${pythonEnv}/bin/python3'
+      '';
+      installPhase = ''
+        runHook preInstall
+        install -Dm755 niri-notify-focus $out/bin/niri-notify-focus
+        runHook postInstall
+      '';
+      # The daemon shells out to `niri msg`, so niri must be on its PATH.
+      preFixup = ''
+        gappsWrapperArgs+=(--prefix PATH : ${lib.makeBinPath [ pkgs.niri ]})
+      '';
+    };
 in
 lib.mkIf config.programs.niri.enable {
   environment.systemPackages = with pkgs; [
@@ -35,6 +80,20 @@ lib.mkIf config.programs.niri.enable {
     imports = [
       inputs.niri.homeModules.niri
     ];
+
+    systemd.user.services.niri-notify-focus = {
+      Unit = {
+        Description = "Focus source window on notification click (niri)";
+        After = [ "graphical-session.target" ];
+        PartOf = [ "graphical-session.target" ];
+      };
+      Service = {
+        ExecStart = "${niri-notify-focus}/bin/niri-notify-focus";
+        Restart = "on-failure";
+        RestartSec = 5;
+      };
+      Install.WantedBy = [ "graphical-session.target" ];
+    };
 
     programs.niri = {
       package = pkgs.niri;
@@ -83,7 +142,7 @@ lib.mkIf config.programs.niri.enable {
             width = 2;
             active.color = "#0000ff";
           };
-          gaps = 6;
+          gaps = 4;
         };
         prefer-no-csd = true;
         input = {
@@ -91,7 +150,7 @@ lib.mkIf config.programs.niri.enable {
             repeat-rate = 50;
           };
           mouse = {
-            accel-speed = 0.5;
+            accel-speed = 1;
             accel-profile = "adaptive";
           };
         };
