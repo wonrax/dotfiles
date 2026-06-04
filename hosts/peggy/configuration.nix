@@ -50,6 +50,17 @@
     "rd.systemd.show_status=auto"
   ];
 
+  # Early KMS for nvidia so Plymouth renders on the nvidia DRM device from the
+  # first frame. Without this, the boot splash only ever reaches the EFI/simpledrm
+  # framebuffer (which the monitor doesn't scan out before nvidia loads), so the
+  # boot splash is invisible while the shutdown splash works (nvidia already up).
+  boot.initrd.kernelModules = [
+    "nvidia"
+    "nvidia_modeset"
+    "nvidia_uvm"
+    "nvidia_drm"
+  ];
+
   networking.hostName = "peggy";
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
