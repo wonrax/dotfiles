@@ -116,9 +116,12 @@
     # Enable this if you have graphical corruption issues or application crashes after waking
     # up from sleep. This fixes it by saving the entire VRAM memory to /tmp/ instead
     # of just the bare essentials.
-    # Disabled this because somehow it causes screen flickering when changing
-    # the refresh rate from 60hz to 75hz on my monitor.
-    powerManagement.enable = false;
+    # Note: this previously caused screen flickering when changing the refresh
+    # rate from 60hz to 75hz, but without it the GPU loses VRAM across S3 and the
+    # display fails to come back on resume (Xid 13 + failed modeset), forcing a
+    # hard reboot. Working suspend wins; revisit the flicker via VRR/refresh-rate
+    # settings if it returns.
+    powerManagement.enable = true;
 
     # Fine-grained power management. Turns off GPU when not in use.
     # Experimental and only works on modern Nvidia GPUs (Turing or newer).
