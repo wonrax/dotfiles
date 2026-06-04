@@ -30,6 +30,15 @@ in
   ];
 
   config = lib.mkIf config.wonrax.dank-material-shell.enable {
+    # DMS's syncModeWithPortal toggle runs `gsettings set
+    # org.gnome.desktop.interface color-scheme ...` via fire-and-forget
+    # execDetached. Without the gsettings schemas in the session env that
+    # command dies with "No schemas installed" and the portal color-scheme
+    # never moves, so apps don't follow the DMS light/dark toggle. Expose the
+    # schemas to the whole niri session (login shells + systemd user services
+    # like dms.service) so the write actually lands.
+    environment.sessionVariables.GSETTINGS_SCHEMA_DIR = "${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}/glib-2.0/schemas";
+
     programs.dank-material-shell.greeter = {
       enable = true;
       compositor.name = lib.mkIf enableNiriIntegration "niri";

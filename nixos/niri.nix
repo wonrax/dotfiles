@@ -6,6 +6,21 @@
   inputs,
   ...
 }:
+let
+  # Tray: apps register their tray icon once against the StatusNotifierWatcher
+  # (owned by the DMS bar / quickshell). If they start first the registration
+  # silently drops and the icon never appears. Wait for the watcher to exist.
+  waitForTrayThen = pkgs.writeShellScript "wait-for-tray-then" ''
+    for _ in $(seq 1 40); do
+      ${pkgs.glib}/bin/gdbus call --session --dest org.freedesktop.DBus \
+        --object-path /org/freedesktop/DBus \
+        --method org.freedesktop.DBus.NameHasOwner org.kde.StatusNotifierWatcher \
+        2>/dev/null | grep -q true && break
+      sleep 0.25
+    done
+    exec "$@"
+  '';
+in
 lib.mkIf config.programs.niri.enable {
   environment.systemPackages = with pkgs; [
     xwayland-satellite # for niri xwayland integration
@@ -34,30 +49,26 @@ lib.mkIf config.programs.niri.enable {
         spawn-at-startup = [
           {
             argv = [
-              "sh"
-              "-c"
-              "sleep 3 && discord"
+              "${waitForTrayThen}"
+              "discord"
             ];
           }
           {
             argv = [
-              "sh"
-              "-c"
-              "sleep 3 && 1password"
+              "${waitForTrayThen}"
+              "1password"
             ];
           }
           {
             argv = [
-              "sh"
-              "-c"
-              "sleep 3 && Telegram"
+              "${waitForTrayThen}"
+              "Telegram"
             ];
           }
           {
             argv = [
-              "sh"
-              "-c"
-              "sleep 3 && spotify"
+              "${waitForTrayThen}"
+              "spotify"
             ];
           }
           {
