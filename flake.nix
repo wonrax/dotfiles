@@ -2,7 +2,7 @@
   description = "wonrax's nix* configuration";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
 
     nixpkgs-vlc.url = "github:NixOS/nixpkgs/a9858885e197f984d92d7fe64e9fff6b2e488d40";
@@ -12,12 +12,12 @@
     nixpkgs-neovim.url = "github:NixOS/nixpkgs/832efc09b4caf6b4569fbf9dc01bec3082a00611";
 
     home-manager = {
-      url = "github:nix-community/home-manager/release-25.11";
+      url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
     darwin = {
-      url = "github:nix-darwin/nix-darwin/nix-darwin-25.11";
+      url = "github:nix-darwin/nix-darwin/nix-darwin-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -137,6 +137,8 @@
 
       mkDarwin =
         user:
+        darwinStateVersion:
+        homeStateVersion:
         darwin.lib.darwinSystem {
           system = "aarch64-darwin";
           specialArgs = commonSpecialArgs user "aarch64-darwin";
@@ -144,8 +146,8 @@
             ./darwin.nix
             {
               nixpkgs.overlays = [ overlays ];
-              system.stateVersion = 6;
-              home-manager.users.${user.username}.home.stateVersion = "25.11";
+              system.stateVersion = darwinStateVersion;
+              home-manager.users.${user.username}.home.stateVersion = homeStateVersion;
             }
           ];
         };
@@ -205,7 +207,8 @@
       };
 
       darwinConfigurations = {
-        wonraxs-macbook-air = mkDarwin user;
+        wonraxs-macbook-air = mkDarwin user 6 "25.11";
+        chauffeur = mkDarwin user 7 "26.05";
         wonraxs-work-macbook = mkDarwin (
           user
           // {

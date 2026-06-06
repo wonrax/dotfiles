@@ -109,14 +109,14 @@ in
 
     # NOTE: ssh agent must be enabled and configured manually in
     # 1password on macos for now
-    programs.git.settings.gpg.ssh.program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
+    programs.git.settings.gpg.ssh.program =
+      "${pkgs._1password-gui}/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
     programs.jujutsu.settings.signing.backends.ssh.program =
-      "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
+      "${pkgs._1password-gui}/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
   };
 
   environment.systemPackages = with pkgs; [
-    # google-chrome # insecure since nixpkgs#0ced72606737c5c5ea4bed41565258bab4b4070e
-    discord
+    google-chrome
     telegram-desktop
     boring-notch
     raycast
@@ -124,7 +124,13 @@ in
     orbstack
     jetbrains.datagrip
     obsidian
+    _1password-gui
+    tailscale-gui
+    tailscale
   ];
+
+  # tailscale-gui needs this daemon to work
+  services.tailscale.enable = true;
 
   # Starship prompt daemon (session tracking & media info)
   launchd.user.agents.starship-daemon = {

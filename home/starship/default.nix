@@ -5,7 +5,7 @@ let
     version = "1.0.1";
     src = ./prompt-info.zig;
     dontUnpack = true;
-    nativeBuildInputs = [ pkgs.zig ];
+    nativeBuildInputs = [ pkgs.zig_0_15 ];
     buildPhase = ''
       export XDG_CACHE_HOME="$TMPDIR/zig-cache"
       mkdir -p "$XDG_CACHE_HOME"

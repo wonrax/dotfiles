@@ -38,6 +38,8 @@
         $env.DOTFILES_PATH_INITIALIZED = true
       }
 
+      $env.npm_config_prefix = "~/.npm-packages"
+
       # Aliases
       alias cat = bat
       alias la = ls -la

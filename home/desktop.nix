@@ -20,6 +20,11 @@ let
   };
   agentsMd = mkAgentLink "AGENTS.md";
   agentsSkills = mkAgentLink "skills";
+  onePassPath =
+    if pkgs.stdenv.isDarwin then
+      "${config.home.homeDirectory}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+    else
+      "${config.home.homeDirectory}/.1password/agent.sock";
 in
 {
   home.username = user.username;
@@ -31,6 +36,24 @@ in
   home.sessionVariables.LIBSQLITE = "${pkgs.sqlite.out}/lib/libsqlite3${
     if pkgs.stdenv.isDarwin then ".dylib" else ".so"
   }";
+
+  programs.ssh = {
+    enable = true;
+    enableDefaultConfig = false;
+    settings."*" = {
+      ForwardAgent = false;
+      AddKeysToAgent = "no";
+      Compression = false;
+      ServerAliveInterval = 0;
+      ServerAliveCountMax = 3;
+      HashKnownHosts = false;
+      UserKnownHostsFile = "~/.ssh/known_hosts";
+      ControlMaster = "no";
+      ControlPath = "~/.ssh/master-%r@%n:%p";
+      ControlPersist = "no";
+      IdentityAgent = "\"${onePassPath}\"";
+    };
+  };
 
   imports = [
     ./git.nix
@@ -150,8 +173,8 @@ in
       fish
       nh
       difftastic
-      unstablePkgs.opencode
-      unstablePkgs.codex
+      # unstablePkgs.opencode
+      # unstablePkgs.codex
 
       htop
       btop
@@ -179,7 +202,7 @@ in
       go
       deno
       uv
-      nixfmt-rfc-style
+      nixfmt
       kdlfmt
       gnumake
       (pkgs.python312.withPackages (ppkgs: [
