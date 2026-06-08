@@ -73,6 +73,11 @@
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
 
+    qylock = {
+      url = "github:Darkkal44/qylock";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
+
     niri = {
       url = "github:sodiboo/niri-flake";
       inputs.nixpkgs.follows = "nixpkgs-unstable";

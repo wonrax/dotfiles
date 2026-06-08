@@ -5,6 +5,7 @@
 {
   config,
   user,
+  inputs,
   ...
 }:
 
@@ -98,14 +99,46 @@
   # For controlling external monitor brightness
   hardware.i2c.enable = true;
 
-  # services.displayManager.gdm.enable = true;
   # services.desktopManager.gnome.enable = true;
   # services.desktopManager.plasma6.enable = true;
+
+  # SDDM (wayland) drives the niri session login, themed with qylock's "forest"
+  # theme. Replaces the old DankMaterialShell greetd greeter. The qylock module
+  # only installs the theme + sets services.displayManager.sddm.theme, so we
+  # still enable sddm ourselves. wayland.enable is required to list the niri
+  # wayland session and run the SDDM greeter under wayland.
+  services.displayManager.sddm = {
+    enable = true;
+    wayland.enable = true;
+    # The wayland greeter renders no cursor unless a cursor theme is named
+    # explicitly. Bibata is installed system-wide (nixos/niri.nix) so the sddm
+    # user can resolve it under /run/current-system/sw/share/icons.
+    settings.Theme = {
+      CursorTheme = "Bibata-Modern-Classic";
+      CursorSize = 24;
+    };
+  };
+  programs.qylock = {
+    enable = true;
+    # clockwork has no top-level theme; its variants live in subdirs
+    # (clockwork/orbital, clockwork/tape), so the theme name must be the nested
+    # path or SDDM finds no Main.qml and the greeter breaks. Swap "orbital" for
+    # "tape" for the other variant.
+    theme = "clockwork/orbital";
+    themeOptions.clockwork.orbital = {
+      themeMode = "dark";
+      enableWindup = true;
+    };
+    # Provides the `qylock-lock` quickshell lockscreen, bound to Super+Alt+L in
+    # nixos/dms.nix. Shares the same theme as the greeter.
+    quickshell.enable = true;
+  };
 
   # niri & dank-material-shell
   imports = [
     ../../nixos/niri.nix
     ../../nixos/dms.nix
+    inputs.qylock.nixosModules.default
   ];
   programs.niri.enable = true;
   wonrax.dank-material-shell.enable = true;

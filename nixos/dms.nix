@@ -9,6 +9,18 @@
 }:
 let
   enableNiriIntegration = config.wonrax.dank-material-shell.enableNiriIntegration;
+
+  # qylock's quickshell lockscreen plays the theme's bg.mp4 via QtMultimedia,
+  # but its wrapper exposes no media backend, so the video silently fails to
+  # load. Point QT_PLUGIN_PATH at qtmultimedia's plugins (which carry the
+  # self-contained ffmpeg backend) and pin QT_MEDIA_BACKEND=ffmpeg so it
+  # doesn't fall back to a gstreamer plugin tree we don't ship. Must use the
+  # unstable qt6 to match the quickshell qylock-lock is built against.
+  qylockLock = pkgs.writeShellScriptBin "qylock-lock-themed" ''
+    export QT_PLUGIN_PATH="${unstablePkgs.qt6.qtmultimedia}/lib/qt-6/plugins''${QT_PLUGIN_PATH:+:$QT_PLUGIN_PATH}"
+    export QT_MEDIA_BACKEND=ffmpeg
+    exec qylock-lock "$@"
+  '';
 in
 {
   options.wonrax.dank-material-shell = {
@@ -26,7 +38,6 @@ in
 
   imports = [
     inputs.dms.nixosModules.dank-material-shell
-    inputs.dms.nixosModules.greeter
   ];
 
   config = lib.mkIf config.wonrax.dank-material-shell.enable {
@@ -39,11 +50,6 @@ in
     # like dms.service) so the write actually lands.
     environment.sessionVariables.GSETTINGS_SCHEMA_DIR = "${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}/glib-2.0/schemas";
 
-    programs.dank-material-shell.greeter = {
-      enable = true;
-      compositor.name = lib.mkIf enableNiriIntegration "niri";
-      configHome = config.home-manager.users.${user.username}.home.homeDirectory;
-    };
     users.users.${user.username}.packages = with pkgs; [
       slurp # for the screenCaptureToolbar plugin
       gpu-screen-recorder # for the screenCaptureToolbar plugin
@@ -87,13 +93,10 @@ in
       };
 
       programs.niri.settings.binds = lib.mkIf enableNiriIntegration {
-        "Super+Alt+L".action.spawn = [
-          "dms"
-          "ipc"
-          "call"
-          "lock"
-          "lock"
-        ];
+        # qylock quickshell lockscreen (forest theme), enabled via
+        # programs.qylock in hosts/peggy. Replaces the DMS lockscreen. Spawned
+        # through the qylockLock wrapper so the bg video backend is wired up.
+        "Super+Alt+L".action.spawn = [ "${lib.getExe qylockLock}" ];
         "Super+Shift+S".action.spawn = [
           # dms ipc call screenCaptureToolbar open
           "dms"
