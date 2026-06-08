@@ -63,6 +63,19 @@ a.wrx.sh {
 	reverse_proxy localhost:3010
 }
 
+nha.wrx.sh {
+	import request-logging
+
+	reverse_proxy localhost:3020 {
+		# Trust forwarded headers; we sit behind Cloudflare. The app's
+		# invite/admin rate-limiter keys off X-Forwarded-For, and the secure
+		# session cookie needs X-Forwarded-Proto=https to stick.
+		trusted_proxies 0.0.0.0/0
+	}
+
+	encode zstd gzip
+}
+
 i.wrx.sh {
 	handle /static {
 		reverse_proxy https://us-assets.i.posthog.com:443 {

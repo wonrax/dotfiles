@@ -21,6 +21,7 @@
     ./windmill.nix
     ./affine.nix
     ./stalwart-mail.nix
+    ./household-tasks.nix
   ];
 
   networking.hostName = "yorgos";
