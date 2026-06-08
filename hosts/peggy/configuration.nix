@@ -102,22 +102,41 @@
   # services.desktopManager.gnome.enable = true;
   # services.desktopManager.plasma6.enable = true;
 
-  # SDDM (wayland) drives the niri session login, themed with qylock's "forest"
+  # SDDM drives the niri session login, themed with qylock's clockwork/orbital
   # theme. Replaces the old DankMaterialShell greetd greeter. The qylock module
   # only installs the theme + sets services.displayManager.sddm.theme, so we
-  # still enable sddm ourselves. wayland.enable is required to list the niri
-  # wayland session and run the SDDM greeter under wayland.
+  # still enable sddm ourselves.
+  #
+  # The greeter runs on X11 (wayland.enable left off) on purpose: under the SDDM
+  # wayland greeter (weston --shell=kiosk) the mouse cursor never renders on this
+  # nvidia box — weston can't drive the DRM hardware cursor plane and doesn't
+  # fall back to a software cursor. No XCURSOR env / GreeterEnvironment /
+  # [Theme]CursorTheme combination fixes it. The X11 greeter renders the cursor
+  # reliably (via [Theme]CursorTheme) and still launches the niri *wayland*
+  # session — the greeter's display server is independent of the sessions it
+  # offers.
   services.displayManager.sddm = {
     enable = true;
-    wayland.enable = true;
-    # The wayland greeter renders no cursor unless a cursor theme is named
-    # explicitly. Bibata is installed system-wide (nixos/niri.nix) so the sddm
-    # user can resolve it under /run/current-system/sw/share/icons.
-    settings.Theme = {
-      CursorTheme = "Bibata-Modern-Classic";
-      CursorSize = 24;
+    settings = {
+      Theme = {
+        CursorTheme = "Bibata-Modern-Classic";
+        CursorSize = 24;
+      };
+      # [Theme]CursorTheme alone shows the default X cursor: libXcursor's
+      # compiled-in search path (~/.icons, the libxcursor store path, ...) does
+      # not include /run/current-system/sw/share/icons, the only place Bibata is
+      # installed (environment.systemPackages, nixos/niri.nix), so the greeter
+      # can't resolve the theme. GreeterEnvironment is the channel that reaches
+      # the greeter process; XCURSOR_PATH is the actual missing ingredient.
+      General.GreeterEnvironment =
+        "XCURSOR_THEME=Bibata-Modern-Classic,XCURSOR_SIZE=24,XCURSOR_PATH=/run/current-system/sw/share/icons";
     };
   };
+  # zellij (run inside ghostty) ignores SIGTERM, so on reboot/shutdown its app
+  # scope sits for the full 90s stop timeout before systemd SIGKILLs it, which
+  # blocks user@1000 from stopping and stalls shutdown ~90s. Cap the user-unit
+  # stop timeout so a stuck session app is killed quickly instead.
+  systemd.user.extraConfig = "DefaultTimeoutStopSec=10s";
   programs.qylock = {
     enable = true;
     # clockwork has no top-level theme; its variants live in subdirs
