@@ -45,8 +45,9 @@ in
     4190 # manage sieve
   ];
 
-  services.stalwart-mail = {
+  services.stalwart = {
     enable = true;
+    stateVersion = "25.05";
     settings = {
       config.local-keys = [
         # defaults
