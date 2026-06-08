@@ -95,6 +95,25 @@ lib.mkIf config.programs.niri.enable {
       Install.WantedBy = [ "graphical-session.target" ];
     };
 
+    # Background blur for any window with a transparent background. niri 26.04
+    # supports `background-effect`, but niri-flake's typed settings can't express
+    # it yet (sodiboo/niri-flake#1548), so inject it as a raw KDL fragment and
+    # pull it into the config niri actually loads. DMS already turns config.kdl
+    # into an include list (keyed `niri-config-dms`) with niri-flake's output
+    # retargeted to hm.kdl; mkAfter appends our include after DMS's lines.
+    xdg.configFile = {
+      "niri/blur.kdl".text = ''
+        window-rule {
+            background-effect {
+                blur true
+            }
+        }
+      '';
+      niri-config-dms.text = lib.mkAfter ''
+        include "blur.kdl"
+      '';
+    };
+
     programs.niri = {
       package = pkgs.niri;
       settings = {
@@ -140,10 +159,21 @@ lib.mkIf config.programs.niri.enable {
         layout = {
           focus-ring = {
             width = 2;
-            active.color = "#0000ff";
+            # Deep teal (~0.23 relative luminance): sits in the narrow band that
+            # clears 3:1 contrast against both the dark and light DMS theme
+            # backgrounds. A wider/brighter teal washes out in light mode.
+            active.color = "#0d9488";
           };
           gaps = 4;
         };
+        # Recede inactive windows. niri has no darkening "dim", only opacity, so
+        # this makes unfocused windows slightly see-through rather than darker.
+        window-rules = [
+          {
+            matches = [ { is-active = false; } ];
+            opacity = 0.85;
+          }
+        ];
         prefer-no-csd = true;
         input = {
           keyboard = {

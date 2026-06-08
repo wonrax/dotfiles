@@ -57,6 +57,8 @@
       alsa-utils # alsamixer
 
       ddcutil # brightness control
+
+      nautilus # file manager
     ];
   };
 
