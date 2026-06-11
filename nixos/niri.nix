@@ -155,6 +155,12 @@ lib.mkIf config.programs.niri.enable {
               "server"
             ];
           }
+          {
+            argv = [
+              "${waitForTrayThen}"
+              "librepods"
+            ];
+          }
         ];
         layout = {
           focus-ring = {

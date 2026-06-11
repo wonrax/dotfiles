@@ -59,6 +59,8 @@
       ddcutil # brightness control
 
       nautilus # file manager
+
+      librepods # airpods support
     ];
   };
 

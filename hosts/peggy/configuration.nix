@@ -128,8 +128,7 @@
       # installed (environment.systemPackages, nixos/niri.nix), so the greeter
       # can't resolve the theme. GreeterEnvironment is the channel that reaches
       # the greeter process; XCURSOR_PATH is the actual missing ingredient.
-      General.GreeterEnvironment =
-        "XCURSOR_THEME=Bibata-Modern-Classic,XCURSOR_SIZE=24,XCURSOR_PATH=/run/current-system/sw/share/icons";
+      General.GreeterEnvironment = "XCURSOR_THEME=Bibata-Modern-Classic,XCURSOR_SIZE=24,XCURSOR_PATH=/run/current-system/sw/share/icons";
     };
   };
   # zellij (run inside ghostty) ignores SIGTERM, so on reboot/shutdown its app
@@ -218,7 +217,12 @@
 
   # Enable sound with pipewire.
   services.pulseaudio.enable = false;
-  hardware.bluetooth.enable = true;
+  hardware.bluetooth = {
+    enable = true;
+    settings = {
+      General.ControllerMode = "bredr";
+    };
+  };
   security.rtkit.enable = true;
   services.pipewire = {
     enable = true;
