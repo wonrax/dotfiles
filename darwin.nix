@@ -125,12 +125,7 @@ in
     jetbrains.datagrip
     obsidian
     _1password-gui
-    tailscale-gui
-    tailscale
   ];
-
-  # tailscale-gui needs this daemon to work
-  services.tailscale.enable = true;
 
   # Starship prompt daemon (session tracking & media info)
   launchd.user.agents.starship-daemon = {
