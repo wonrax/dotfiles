@@ -22,6 +22,7 @@
     ./affine.nix
     ./stalwart-mail.nix
     ./household-tasks.nix
+    ./dont-starve.nix
   ];
 
   networking.hostName = "yorgos";
