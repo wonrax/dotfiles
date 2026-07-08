@@ -95,6 +95,16 @@ in
     ];
   };
 
+  # nixos-hardware's raspberry-pi-4 module defaults boot.kernelPackages to a
+  # vendor kernel it compiles in-tree (nixos-hardware c8f766fd, 2026-01-18),
+  # which no binary cache serves — so every rebuild recompiles the kernel from
+  # scratch (~24h under QEMU on peggy). This headless box needs nothing the
+  # vendor kernel provides (no GPU/camera/hw-transcode; the usb-storage quirks,
+  # brcmfmac recovery and bcm2835_wdt watchdog below all work on mainline), so
+  # pin the mainline aarch64 kernel, which Hydra builds and caches. The module
+  # sets kernelPackages with mkDefault, so this plain assignment overrides it.
+  boot.kernelPackages = pkgs.linuxPackages;
+
   boot.kernelParams = [
     # disable UAS for the two drives above. this causes minor performance
     # degradation but at least they hopefully won't randomly disconnect anymore
