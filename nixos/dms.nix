@@ -58,7 +58,7 @@ in
       imports = [
         inputs.dms.homeModules.dank-material-shell
         inputs.dms.homeModules.niri
-        inputs.dms-plugin-registry.modules.default
+        inputs.dms-plugin-registry.nixosModules.default
       ];
       programs.dank-material-shell = {
         enable = true;
