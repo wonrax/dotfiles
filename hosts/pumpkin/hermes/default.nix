@@ -78,6 +78,7 @@ in
   # The op item must be an env file containing at least:
   #   TELEGRAM_BOT_TOKEN=123456:ABC...
   #   OPENROUTER_API_KEY=sk-or-...
+  #   FIRECRAWL_API_KEY=fc-...  (web_search/web_extract backend)
   # Secret rotations need a rebuild: the module copies environmentFiles into
   # $HERMES_HOME/.env at activation time, not at service start.
   services.onepassword-secrets.secrets.hermesAgentEnv = {
@@ -114,6 +115,11 @@ in
       install -o ${cfg.user} -g ${cfg.group} -m 0660 ${./SOUL.md} ${cfg.stateDir}/.hermes/SOUL.md
     '';
 
+  # Pin the flake registry's `nixpkgs` to the system's nixpkgs so the agent's
+  # ephemeral `nix run nixpkgs#...` invocations resolve to the already-cached
+  # rev instead of pulling unstable from the network on every fresh eval.
+  nix.registry.nixpkgs.flake = inputs.nixpkgs;
+
   services.hermes-agent = {
     enable = true;
     addToSystemPackages = true;
@@ -136,6 +142,10 @@ in
       gh
       jujutsu
       nodejs # for npx-launched MCP servers below
+      # SOUL.md tells the agent to pull missing tools via `nix run/shell`;
+      # the unit PATH is only this explicit list (no /run/current-system/sw/bin),
+      # so nix itself has to be added here.
+      config.nix.package
     ];
 
     # AFFiNE (self-hosted on yorgos, hosts/yorgos/affine.nix). npx fetches the
@@ -165,6 +175,12 @@ in
 
       agent.reasoning_effort = "medium";
 
+      # Backend for the web_search/web_extract tools. Auto-detect would pick
+      # firecrawl anyway from FIRECRAWL_API_KEY (in the opnix envfile item),
+      # but be explicit. The tools silently drop out of the model's schema
+      # when the key is missing.
+      web.backend = "firecrawl";
+
       # Stream replies into the chat via progressive message edits (plain text
       # while streaming, MarkdownV2 on the final edit). Gateway streaming is
       # controlled by this top-level key; display.streaming is CLI-only.
@@ -174,9 +190,7 @@ in
         # Telegram's mobile-tuned platform default is "off"; "all" shows every
         # tool call with a short preview, accumulated into one edited bubble.
         tool_progress = "all";
-        # Prepend the model's (collapsed, max 15 lines) reasoning trace to
-        # replies.
-        show_reasoning = true;
+        show_reasoning = false;
       };
 
       skills.disabled = lib.subtractLists enabledSkills bundledSkills;
