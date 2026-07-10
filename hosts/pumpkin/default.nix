@@ -72,6 +72,7 @@ in
     ./qbittorrent.nix
     ./vector.nix
     ./qui.nix
+    ./hermes
   ];
 
   nixpkgs.config.allowUnfree = true;

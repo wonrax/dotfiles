@@ -88,11 +88,9 @@
 
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
 
-    nix-openclaw = {
-      # FIXME: using fork with plugin manifest fix until PR #81 is merged
-      # https://github.com/openclaw/nix-openclaw/pull/81
-      url = "github:bobberb/nix-openclaw/fix/copy-plugin-manifests";
-    };
+    # Intentionally not following our nixpkgs: hermes seals its Python venv
+    # with uv2nix against its own pinned nixpkgs.
+    hermes-agent.url = "github:NousResearch/hermes-agent";
 
     diffui = {
       url = "github:wonrax/diffui";
