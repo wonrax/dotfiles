@@ -16,6 +16,22 @@ let
   clusterName = "EA Starve Together";
   maxPlayers = 12;
 
+  workshopMods = [
+    "378160973" # Global Positions
+    "2189004162" # Insight (Show Me+)
+    # The original Wormhole Marks (362175979) is abandoned and crashes on
+    # current game builds, so use the maintained fork.
+    "3571706033" # Wormhole Marks [DST Continued]
+  ];
+
+  # dedicated_server_mods_setup.lua makes the server download the mods on
+  # boot; modoverrides.lua (per shard) is what actually enables them.
+  modsSetupLua = lib.concatMapStringsSep "\n" (id: ''ServerModSetup("${id}")'') workshopMods;
+  modOverridesLua =
+    "return {\n"
+    + lib.concatMapStringsSep "\n" (id: "  [\"workshop-${id}\"] = { enabled = true },") workshopMods
+    + "\n}";
+
   # DST has no nixpkgs package and the community docker images are abandoned
   # (jamesits/dst-server last released 2018), so we run our own entrypoint on
   # the actively maintained steamcmd base image. steamcmd re-checks the game
@@ -125,6 +141,10 @@ let
       master_server_port = 27018
       authentication_port = 8768
       EOF
+
+      cat > "$CLUSTER_DIR/Master/modoverrides.lua" <<EOF
+      ${modOverridesLua}
+      EOF
     ''
     + lib.optionalString cavesEnabled ''
       mkdir -p "$CLUSTER_DIR/Caves"
@@ -142,6 +162,10 @@ let
       authentication_port = 8769
       EOF
 
+      cat > "$CLUSTER_DIR/Caves/modoverrides.lua" <<EOF
+      ${modOverridesLua}
+      EOF
+
       # Without the cave preset the second shard would generate another surface
       # world. Only read at world generation; safe to rewrite afterwards.
       cat > "$CLUSTER_DIR/Caves/worldgenoverride.lua" <<EOF
@@ -157,6 +181,14 @@ let
         echo "no server binary found under $INSTALL_DIR or $HOME/Steam/steamapps" >&2
         exit 1
       fi
+      # The mods dir sits next to bin64 in the game root, wherever steamcmd
+      # ended up installing it.
+      GAME_ROOT="$(dirname "$(dirname "$BIN")")"
+      mkdir -p "$GAME_ROOT/mods"
+      cat > "$GAME_ROOT/mods/dedicated_server_mods_setup.lua" <<EOF
+      ${modsSetupLua}
+      EOF
+
       cd "$(dirname "$BIN")"
       BIN="./$(basename "$BIN")"
 
