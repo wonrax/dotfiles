@@ -22,6 +22,37 @@ let
     "github-repo-management"
     "youtube-content"
   ];
+  # Upstream's daily/idle session reset is silently undone: the 4am expiry
+  # watcher ends the session with end_reason='agent_close' (via agent
+  # teardown), and on the next inbound message the #54878 stale-routing
+  # self-heal resurrects exactly those rows with full history, bypassing the
+  # reset policy. Carry PR #61743 (open, needs porting to the phased
+  # get_or_create_session refactor) until it lands upstream — drop the patch
+  # and this package override when it does. Built against hermes' own locked
+  # nixpkgs so everything except the patched layer comes from cache.
+  hermesPkgs = inputs.hermes-agent.inputs.nixpkgs.legacyPackages.${pkgs.stdenv.hostPlatform.system};
+  hermesPatchedSrc = hermesPkgs.applyPatches {
+    name = "hermes-agent-src-pr61743";
+    src = inputs.hermes-agent;
+    patches = [ ./61743-session-reset-recovery.patch ];
+  };
+  hermesPatched =
+    (hermesPkgs.callPackage "${hermesPatchedSrc}/nix/hermes-agent.nix" {
+      inherit (inputs.hermes-agent.inputs) uv2nix pyproject-nix pyproject-build-systems;
+      npm-lockfile-fix =
+        inputs.hermes-agent.inputs.npm-lockfile-fix.packages.${pkgs.stdenv.hostPlatform.system}.default;
+      rev = inputs.hermes-agent.rev or null;
+    }).override
+      {
+        # Deliberately slimmer than upstream packages.default (the "full"
+        # variant with every integration): only the groups actually used.
+        extraDependencyGroups = [
+          "firecrawl"
+          "messaging"
+          "voice"
+        ];
+      };
+
   bundledSkills =
     let
       skillsDir = "${inputs.hermes-agent}/skills";
@@ -86,6 +117,7 @@ in
   services.hermes-agent = {
     enable = true;
     addToSystemPackages = true;
+    package = hermesPatched;
 
     environmentFiles = [ config.services.onepassword-secrets.secretPaths.hermesAgentEnv ];
 

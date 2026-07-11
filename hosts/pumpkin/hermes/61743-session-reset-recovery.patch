@@ -1,0 +1,21 @@
+--- a/gateway/session.py	2026-07-11 11:12:52.571007048 +0700
++++ b/gateway/session.py	2026-07-11 11:13:19.062137458 +0700
+@@ -1915,6 +1915,18 @@
+                         session_key, entry.session_id,
+                     )
+                     self._entries.pop(session_key, None)
++                    # A session finalized by the expiry watcher is ended with
++                    # end_reason='agent_close' (via the agent teardown), which
++                    # the recovery finder treats as recoverable — without this
++                    # check the self-heal resurrects a session the daily/idle
++                    # reset already retired (#61220 / PR #61743). If the reset
++                    # policy says the old entry is overdue, skip recovery and
++                    # fall through to creating a fresh session instead.
++                    if _reset_reason:
++                        was_auto_reset = True
++                        auto_reset_reason = _reset_reason
++                        reset_had_activity = entry.last_prompt_tokens > 0
++                        db_end_session_id = entry.session_id
+                     entry = None
+                     _needs_recover = True
+                 elif entry.session_id != _stale_session_id:
