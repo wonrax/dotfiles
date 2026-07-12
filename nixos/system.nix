@@ -54,6 +54,10 @@
       discord
       telegram-desktop
 
+      # Vendored from nixpkgs PR #537215 until it lands; see the header of
+      # pkgs/claude-desktop.nix for the quirks (keyring, FHS, no Cowork).
+      (pkgs.callPackage ../pkgs/claude-desktop.nix { })
+
       alsa-utils # alsamixer
 
       ddcutil # brightness control
@@ -63,6 +67,15 @@
       librepods # airpods support
     ];
   };
+
+  # Chromium/electron apps (claude-desktop in particular) persist login tokens
+  # through libsecret, which needs an actual keyring daemon behind it — without
+  # one they fall back to a plaintext store and Claude refuses to save sign-in.
+  # PAM unlocks the keyring with the login password at SDDM login. 1Password is
+  # unaffected: it brings its own vault and our ssh IdentityAgent is pinned to
+  # its socket.
+  services.gnome.gnome-keyring.enable = true;
+  security.pam.services.sddm.enableGnomeKeyring = true;
 
   programs._1password.enable = true;
   programs._1password-gui = {
