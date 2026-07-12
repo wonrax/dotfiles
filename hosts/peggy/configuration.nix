@@ -4,6 +4,7 @@
 
 {
   config,
+  pkgs,
   user,
   inputs,
   ...
@@ -235,6 +236,107 @@
     # use the example session manager (no others are packaged yet so this is enabled by default,
     # no need to redefine it in your config for now)
     #media-session.enable = true;
+
+    # Virtual mic with a voice-processing chain (the declarative equivalent
+    # of Equalizer APO + plugins on Windows): highpass -> DeepFilterNet noise
+    # suppression -> compressor -> limiter. Select "Voice Processed Mic" as
+    # the input device in apps, or set it as default with wpctl.
+    # Port/control names are exact LADSPA port names (verified with
+    # `analyseplugin` from ladspa-sdk) — filter-chain fails to load on typos.
+    # Plugins must be referenced by name, not store path: pipewire only
+    # resolves them against LADSPA_PATH, which NixOS pins to the buildEnv
+    # made from extraLadspaPackages.
+    extraLadspaPackages = [
+      pkgs.deepfilternet
+      pkgs.ladspaPlugins
+    ];
+    extraConfig.pipewire."99-input-denoising" = {
+      "context.modules" = [
+        {
+          name = "libpipewire-module-filter-chain";
+          args = {
+            "node.description" = "Voice Processed Mic";
+            "media.name" = "Voice Processed Mic";
+            "filter.graph" = {
+              # Links must be explicit: auto-linking multi-node graphs
+              # silently outputs zeros on pipewire 1.6.5.
+              nodes = [
+                {
+                  type = "builtin";
+                  name = "hpf";
+                  label = "bq_highpass";
+                  control = {
+                    "Freq" = 90.0;
+                    "Q" = 0.707;
+                  };
+                }
+                {
+                  type = "ladspa";
+                  name = "denoise";
+                  plugin = "libdeep_filter_ladspa";
+                  label = "deep_filter_mono";
+                  control = {
+                    "Attenuation Limit (dB)" = 100.0;
+                  };
+                }
+                {
+                  type = "ladspa";
+                  name = "compressor";
+                  plugin = "sc4m_1916";
+                  label = "sc4m";
+                  control = {
+                    "RMS/peak" = 0.0;
+                    "Attack time (ms)" = 25.0;
+                    "Release time (ms)" = 250.0;
+                    "Threshold level (dB)" = -18.0;
+                    "Ratio (1:n)" = 4.0;
+                    "Knee radius (dB)" = 3.0;
+                    "Makeup gain (dB)" = 10.0;
+                  };
+                }
+                {
+                  type = "ladspa";
+                  name = "limiter";
+                  plugin = "hard_limiter_1413";
+                  label = "hardLimiter";
+                  control = {
+                    "dB limit" = -3.0;
+                    "Wet level" = 1.0;
+                    "Residue level" = 0.0;
+                  };
+                }
+              ];
+              links = [
+                {
+                  output = "hpf:Out";
+                  input = "denoise:Audio In";
+                }
+                {
+                  output = "denoise:Audio Out";
+                  input = "compressor:Input";
+                }
+                {
+                  output = "compressor:Output";
+                  input = "limiter:Input";
+                }
+              ];
+              inputs = [ "hpf:In" ];
+              outputs = [ "limiter:Output" ];
+            };
+            "capture.props" = {
+              "node.name" = "capture.voice_processed_mic";
+              "node.passive" = true;
+              "audio.rate" = 48000;
+            };
+            "playback.props" = {
+              "node.name" = "voice_processed_mic";
+              "media.class" = "Audio/Source";
+              "audio.rate" = 48000;
+            };
+          };
+        }
+      ];
+    };
   };
 
   swapDevices = [
