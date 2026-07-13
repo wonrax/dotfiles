@@ -77,8 +77,9 @@ in
 
   # The op item must be an env file containing at least:
   #   TELEGRAM_BOT_TOKEN=123456:ABC...
-  #   OPENROUTER_API_KEY=sk-or-...
   #   FIRECRAWL_API_KEY=fc-...  (web_search/web_extract backend)
+  # (OPENROUTER_API_KEY may remain for fallback use; the main model now runs
+  # via ChatGPT Codex OAuth, whose tokens live in auth.json, not here.)
   # Secret rotations need a rebuild: the module copies environmentFiles into
   # $HERMES_HOME/.env at activation time, not at service start.
   services.onepassword-secrets.secrets.hermesAgentEnv = {
@@ -168,12 +169,17 @@ in
     };
 
     settings = {
+      # ChatGPT-subscription auth (Codex OAuth), not the API: credentials come
+      # from a one-time interactive `sudo -u hermes hermes auth add openai-codex`
+      # device-code login, stored in $HERMES_HOME/auth.json (survives deploys;
+      # refresh tokens rotate automatically). Codex models use bare slugs (no
+      # openai/ prefix) and cap context at 272k vs 1.05M on the raw API.
       model = {
-        provider = "openrouter";
-        default = "minimax/minimax-m3";
+        provider = "openai-codex";
+        default = "gpt-5.6-terra";
       };
 
-      agent.reasoning_effort = "medium";
+      agent.reasoning_effort = "low";
 
       # Backend for the web_search/web_extract tools. Auto-detect would pick
       # firecrawl anyway from FIRECRAWL_API_KEY (in the opnix envfile item),
