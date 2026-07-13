@@ -90,7 +90,11 @@
 
     # Intentionally not following our nixpkgs: hermes seals its Python venv
     # with uv2nix against its own pinned nixpkgs.
-    hermes-agent.url = "github:NousResearch/hermes-agent";
+    # Pinned to an explicit rev so `nix flake update` can't bump it: we carry
+    # patches re-based onto this exact rev (hosts/pumpkin/hermes/*.patch) that
+    # must be re-verified against upstream before every bump. To upgrade,
+    # change the rev here and re-check both patches still apply.
+    hermes-agent.url = "github:NousResearch/hermes-agent/7acaff5ef2bcbaa22bd23b72efe60906123a4f55";
 
     diffui = {
       url = "github:wonrax/diffui";
