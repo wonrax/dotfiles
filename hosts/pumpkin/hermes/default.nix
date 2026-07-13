@@ -35,6 +35,11 @@ let
   hermesPkgs = inputs.hermes-agent.inputs.nixpkgs.legacyPackages.${pkgs.stdenv.hostPlatform.system};
   hermesSessionResetRecovery = hermesPkgs.runCommand "hermes-session-reset-recovery" {
     nativeBuildInputs = [ hermesPkgs.patch ];
+    # Required: requiredPythonModules (used by the package's extraPythonPackages
+    # handling to build PYTHONPATH) filters out any derivation without a
+    # matching passthru.pythonModule — without this tag the overlay is
+    # silently dropped and the patch never loads.
+    passthru.pythonModule = hermesPkgs.python312;
   } ''
     site_packages="$out/${hermesPkgs.python312.sitePackages}"
     mkdir -p "$site_packages"
@@ -42,6 +47,31 @@ let
     chmod -R u+w "$site_packages/gateway"
     patch -d "$site_packages" -p1 < ${./61743-session-reset-recovery.patch}
   '';
+  # Idle-triggered context compaction: carry upstream PR #55800 (open) —
+  # compression.idle_compact_after_seconds compacts a resumed session's
+  # accumulated history up front, before the first reply, when it comes back
+  # after that much inactivity. Re-based onto this rev (the config-parse hunk
+  # drifted); drop the patch and this overlay when it lands upstream. It works
+  # on the gateway only because the agent-cache idle sweep defers eviction for
+  # sessions with a finite reset policy (our daily/4am) until they expire, so
+  # agent._last_activity_ts survives long gaps. A gateway restart clears that
+  # state — the first resume after a deploy won't idle-compact (the size-based
+  # hygiene pass still backstops).
+  hermesIdleCompaction =
+    hermesPkgs.runCommand "hermes-idle-compaction"
+      {
+        nativeBuildInputs = [ hermesPkgs.patch ];
+        # See hermesSessionResetRecovery: the pythonModule tag is what keeps
+        # requiredPythonModules from dropping this overlay off PYTHONPATH.
+        passthru.pythonModule = hermesPkgs.python312;
+      }
+      ''
+        site_packages="$out/${hermesPkgs.python312.sitePackages}"
+        mkdir -p "$site_packages"
+        cp -r ${inputs.hermes-agent}/agent "$site_packages/agent"
+        chmod -R u+w "$site_packages/agent"
+        patch -d "$site_packages" -p1 < ${./55800-idle-compaction.patch}
+      '';
   hermesPatched =
     (hermesPkgs.callPackage "${inputs.hermes-agent}/nix/hermes-agent.nix" {
       inherit (inputs.hermes-agent.inputs) uv2nix pyproject-nix pyproject-build-systems;
@@ -57,7 +87,10 @@ let
           "messaging"
           "voice"
         ];
-        extraPythonPackages = [ hermesSessionResetRecovery ];
+        extraPythonPackages = [
+          hermesSessionResetRecovery
+          hermesIdleCompaction
+        ];
       };
 
   bundledSkills =
@@ -218,6 +251,14 @@ in
         mode = "daily";
         at_hour = 4;
       };
+
+      # Consumed by the carried PR #55800 patch (hermesIdleCompaction above):
+      # a session resumed after >=3h of inactivity compacts its stale history
+      # first, then replies (the resuming message pays the summarization
+      # latency; a 💤 status line shows while it runs). Skipped when the
+      # context is already below the post-compaction target, so short threads
+      # never pay for it. Overnight gaps are covered by the 4am reset instead.
+      compression.idle_compact_after_seconds = 3 * 60 * 60;
 
       telegram = {
         dm_policy = "allowlist";
