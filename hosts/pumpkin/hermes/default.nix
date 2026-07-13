@@ -28,16 +28,22 @@ let
   # self-heal resurrects exactly those rows with full history, bypassing the
   # reset policy. Carry PR #61743 (open, needs porting to the phased
   # get_or_create_session refactor) until it lands upstream — drop the patch
-  # and this package override when it does. Built against hermes' own locked
-  # nixpkgs so everything except the patched layer comes from cache.
+  # and this package override when it does. Build the patched gateway as a
+  # PYTHONPATH overlay instead of importing from an applyPatches derivation:
+  # importing the latter requires building it during evaluation, which fails
+  # when an aarch64-darwin host evaluates the aarch64-linux deployment.
   hermesPkgs = inputs.hermes-agent.inputs.nixpkgs.legacyPackages.${pkgs.stdenv.hostPlatform.system};
-  hermesPatchedSrc = hermesPkgs.applyPatches {
-    name = "hermes-agent-src-pr61743";
-    src = inputs.hermes-agent;
-    patches = [ ./61743-session-reset-recovery.patch ];
-  };
+  hermesSessionResetRecovery = hermesPkgs.runCommand "hermes-session-reset-recovery" {
+    nativeBuildInputs = [ hermesPkgs.patch ];
+  } ''
+    site_packages="$out/${hermesPkgs.python312.sitePackages}"
+    mkdir -p "$site_packages"
+    cp -r ${inputs.hermes-agent}/gateway "$site_packages/gateway"
+    chmod -R u+w "$site_packages/gateway"
+    patch -d "$site_packages" -p1 < ${./61743-session-reset-recovery.patch}
+  '';
   hermesPatched =
-    (hermesPkgs.callPackage "${hermesPatchedSrc}/nix/hermes-agent.nix" {
+    (hermesPkgs.callPackage "${inputs.hermes-agent}/nix/hermes-agent.nix" {
       inherit (inputs.hermes-agent.inputs) uv2nix pyproject-nix pyproject-build-systems;
       npm-lockfile-fix =
         inputs.hermes-agent.inputs.npm-lockfile-fix.packages.${pkgs.stdenv.hostPlatform.system}.default;
@@ -51,6 +57,7 @@ let
           "messaging"
           "voice"
         ];
+        extraPythonPackages = [ hermesSessionResetRecovery ];
       };
 
   bundledSkills =
