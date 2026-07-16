@@ -22,6 +22,8 @@ let
     # The original Wormhole Marks (362175979) is abandoned and crashes on
     # current game builds, so use the maintained fork.
     "3571706033" # Wormhole Marks [DST Continued]
+    "1207269058" # Simple Health Bar DST
+    "1595631294" # Smart Minisign
   ];
 
   # dedicated_server_mods_setup.lua makes the server download the mods on
