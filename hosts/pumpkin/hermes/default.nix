@@ -182,30 +182,15 @@ in
     extraPackages = with pkgs; [
       gh
       jujutsu
-      nodejs # for npx-launched MCP servers below
       # SOUL.md tells the agent to pull missing tools via `nix run/shell`;
       # the unit PATH is only this explicit list (no /run/current-system/sw/bin),
       # so nix itself has to be added here.
       config.nix.package
     ];
 
-    # AFFiNE (self-hosted on yorgos, hosts/yorgos/affine.nix). npx fetches the
-    # package into ~/.npm on first launch. The ''${AFFINE_API_TOKEN} reference
-    # is expanded by hermes from the gateway env at MCP spawn time, so the
-    # token lives in the opnix envfile item, not the nix store.
     mcpServers.affine = {
-      command = "npx";
-      args = [
-        "-y"
-        "affine-mcp-server@2.5.0"
-      ];
-      env = {
-        AFFINE_BASE_URL = "https://a.wrx.sh";
-        AFFINE_API_TOKEN = "\${AFFINE_API_TOKEN}";
-        # "core" keeps the tool list lean; bump to "full" or "authoring" if
-        # the agent needs database/comment tools.
-        AFFINE_TOOL_PROFILE = "core";
-      };
+      url = "https://a.wrx.sh/api/workspaces/dace8f22-701f-4bb6-8c78-cbcb6d73cc42/mcp";
+      headers.Authorization = "Bearer \${AFFINE_MCP_TOKEN}";
     };
 
     mcpServers.ticktick = {
