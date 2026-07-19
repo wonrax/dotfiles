@@ -208,7 +208,16 @@ in
       };
     };
 
+    mcpServers.ticktick = {
+      url = "https://mcp.ticktick.com";
+      headers.Authorization = "Bearer \${TICKTICK_MCP_TOKEN}";
+    };
+
     settings = {
+      # The module deep-merges config.yaml, so explicitly clear any OAuth
+      # mode left behind from an earlier TickTick configuration.
+      mcp_servers.ticktick.auth = null;
+
       # ChatGPT-subscription auth (Codex OAuth), not the API: credentials come
       # from a one-time interactive `sudo -u hermes hermes auth add openai-codex`
       # device-code login, stored in $HERMES_HOME/auth.json (survives deploys;
