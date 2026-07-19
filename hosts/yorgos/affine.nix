@@ -138,7 +138,10 @@ in
       "podman-affine-redis.service"
       "postgresql.service"
     ];
-    partOf = [ "podman-compose-affine-root.target" ];
+    partOf = [
+      "podman-compose-affine-root.target"
+      "podman-affine.service"
+    ];
     wantedBy = [ "podman-compose-affine-root.target" ];
   };
 
