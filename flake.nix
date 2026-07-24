@@ -334,6 +334,21 @@
           nixosConfig = self.nixosConfigurations.yorgos;
         };
 
+      devShells = forAllSystems (
+        system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+        in
+        {
+          default = pkgs.mkShell {
+            packages = with pkgs; [
+              deno
+              nixfmt
+            ];
+          };
+        }
+      );
+
       apps = forAllSystems (
         system:
         let
