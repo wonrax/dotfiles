@@ -24,4 +24,5 @@ rg "some search term"
 - I use jj for version control so prefer `jj` commands unless you have a
 specific reason to use `git`. Using git commands while I use jj simultaneously
 can corrupt my repository.
-
+- Never attribute yourself (e.g. adding commit trailers like "Co-authored-by:
+...").
