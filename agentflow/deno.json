@@ -1,0 +1,20 @@
+{
+  "name": "agentflow",
+  "version": "0.1.0",
+  "exports": "./sdk/mod.ts",
+  "nodeModulesDir": "auto",
+  "tasks": {
+    "daemon": "deno run --allow-all src/main.ts",
+    "check": "deno check src/main.ts sdk/mod.ts"
+  },
+  "imports": {
+    "rivetkit": "npm:rivetkit@^2.3.9",
+    "effect": "npm:effect@^3.14.0"
+  },
+  "fmt": {
+    "lineWidth": 100
+  },
+  "compilerOptions": {
+    "strict": true
+  }
+}
