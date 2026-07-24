@@ -58,9 +58,13 @@ let
   # Shared log file for starship prompt daemons
   starshipLogPath = "/tmp/starship-prompt.log";
 
+  agentflow = import ./agentflow/package.nix { inherit pkgs; };
+  agentflowLogPath = "/tmp/agentflow.log";
+
   # Log files to rotate and their max line counts
   logsToRotate = {
     "${starshipLogPath}" = 1000;
+    "${agentflowLogPath}" = 5000;
   };
 
   rotateLog = pkgs.writeScript "rotate-logs.nu" ''
@@ -115,7 +119,12 @@ in
       "${pkgs._1password-gui}/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
   };
 
-  environment.systemPackages = with pkgs; [
+  environment.systemPackages = [
+    # the agentflow CLI, from the same store path the launchd agent runs, so the
+    # two can never disagree about which version of the code is live
+    agentflow.af
+  ]
+  ++ (with pkgs; [
     google-chrome
     boring-notch
     raycast
@@ -124,7 +133,7 @@ in
     jetbrains.datagrip
     obsidian
     _1password-gui
-  ];
+  ]);
 
   # Starship prompt daemon (session tracking & media info)
   launchd.user.agents.starship-daemon = {
@@ -154,6 +163,43 @@ in
         HOME = "/Users/${user.username}";
         PATH = "/etc/profiles/per-user/${user.username}/bin:/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin:/usr/bin:/bin";
         # ensure logs are written immediately without having to fflush in code
+        NSUnbufferedIO = "YES";
+      };
+    };
+  };
+
+  # The agentflow orchestrator. A user agent rather than a system daemon on
+  # purpose: it needs this user's docker, their gh and jj credentials, their
+  # ~/.claude to mount into task containers, and their ~/.local/state to
+  # checkpoint into. None of that exists for root.
+  launchd.user.agents.agentflow = {
+    serviceConfig = {
+      ProgramArguments = [ "${agentflow.daemon}/bin/agentflow-daemon" ];
+      KeepAlive = true;
+      RunAtLoad = true;
+      StandardOutPath = agentflowLogPath;
+      StandardErrorPath = agentflowLogPath;
+      # On stop it checkpoints every running task and kills the agent turns
+      # inside their containers, so a later revive does not contend with an
+      # orphan on the same claude session. launchd's default 20s deadline can
+      # cut that short and leave those orphans behind.
+      ExitTimeOut = 60;
+      # A crash loop here is usually the port being held by a hand-started
+      # daemon; back off rather than spinning on it.
+      ThrottleInterval = 10;
+      EnvironmentVariables = {
+        HOME = "/Users/${user.username}";
+        # docker for the task containers, jj for the workspaces, gh for the
+        # token it hands them — all the user's own, which is the point.
+        #
+        # OrbStack's own bin directory goes first so the service resolves docker
+        # exactly the way an interactive shell here does. Today both it and the
+        # system profile symlink the same store binary, so this changes nothing;
+        # it matters the day OrbStack installs a CLI of its own there and the two
+        # stop agreeing.
+        PATH = "/Users/${user.username}/.orbstack/bin:/etc/profiles/per-user/${user.username}/bin:/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin:/usr/bin:/bin";
+        # npm dependencies resolve here rather than into the read-only store
+        DENO_DIR = "/Users/${user.username}/Library/Caches/deno";
         NSUnbufferedIO = "YES";
       };
     };

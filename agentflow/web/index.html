@@ -1,0 +1,2830 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Agentflow</title>
+<link id="favicon" rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22><circle cx=%2216%22 cy=%2216%22 r=%2211%22 fill=%22%236b6f8a%22/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    color-scheme: light;
+    --canvas: #f7f7f5;
+    --surface: #ffffff;
+    --surface-soft: #f3f3f0;
+    --surface-hover: #eeeeea;
+    --ink: #20201e;
+    --ink-muted: #6c6c67;
+    --ink-faint: #a1a19b;
+    --border: #e4e4df;
+    --border-strong: #d4d4ce;
+    --brand: #4857d8;
+    --brand-soft: #eef0ff;
+    --success: #20845a;
+    --success-soft: #eaf7f0;
+    --warning: #a35a11;
+    --warning-soft: #fff3e4;
+    --danger: #c23c32;
+    --danger-soft: #fff0ee;
+    --neutral: #74746d;
+    --shadow-sm: 0 1px 2px rgba(28, 28, 24, .05), 0 1px 5px rgba(28, 28, 24, .03);
+    --shadow-lg: 0 24px 64px rgba(28, 28, 24, .16), 0 4px 16px rgba(28, 28, 24, .08);
+    --sidebar-w: 320px;
+    --rail-w: 360px;
+    /* the widths the grid actually uses. Collapsing a panel zeroes its column
+       here rather than rewriting the whole template, so "hidden by hand" and
+       "hidden because the window is narrow" compose instead of overriding one
+       another — which is how a collapsed sidebar used to leave a 360px hole
+       where the rail had been */
+    --side-col: var(--sidebar-w);
+    --rail-col: var(--rail-w);
+    --inspector-h: 300px;
+    font-size: 14px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --canvas: #151514;
+      --surface: #1c1c1a;
+      --surface-soft: #222220;
+      --surface-hover: #292927;
+      --ink: #eeeeea;
+      --ink-muted: #a4a49d;
+      --ink-faint: #6f6f69;
+      --border: #30302d;
+      --border-strong: #41413d;
+      --brand: #8790ff;
+      --brand-soft: #292c48;
+      --success: #65c596;
+      --success-soft: #1c3328;
+      --warning: #e7a454;
+      --warning-soft: #392a1b;
+      --danger: #ef776f;
+      --danger-soft: #3c2321;
+      --neutral: #9b9b94;
+      --shadow-sm: 0 1px 4px rgba(0, 0, 0, .24);
+      --shadow-lg: 0 24px 64px rgba(0, 0, 0, .42);
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    overflow: hidden;
+    color: var(--ink);
+    background: var(--canvas);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  button, input, textarea, select { font: inherit; }
+  button { color: inherit; }
+  .app {
+    height: 100vh;
+    position: relative;
+    display: grid;
+    /* the rail on the right is everything true of the task rather than of the
+       node the inspector below is showing, so it sits outside the workspace
+       column instead of competing for a tab strip with per-node views */
+    grid-template-columns: var(--side-col) minmax(0, 1fr) var(--rail-col);
+    grid-template-rows: 1fr;
+  }
+  .app.side-off { --side-col: 0px; }
+  .app.rail-off { --rail-col: 0px; }
+  .app.side-off .sidebar, .app.side-off .side-grip { display: none; }
+  .app.rail-off .rail, .app.rail-off .rail-grip { display: none; }
+  .sidebar {
+    min-width: 240px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+  }
+  .brandbar {
+    height: 64px;
+    padding: 0 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 0 0 auto;
+  }
+  .brandmark {
+    width: 28px; height: 28px; border-radius: 8px;
+    display: grid; place-items: center;
+    color: var(--surface); background: var(--ink);
+    box-shadow: var(--shadow-sm);
+  }
+  .brandmark svg { width: 16px; }
+  .wordmark { font-weight: 700; letter-spacing: -.025em; font-size: 15px; }
+  .connection {
+    margin-left: auto;
+    display: flex; align-items: center; gap: 6px;
+    color: var(--ink-muted); font-size: 11px; font-weight: 600;
+  }
+  .conn-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--danger); }
+  .connection.live .conn-dot { background: var(--success); }
+  .side-actions { display: flex; gap: 8px; padding: 0 14px 12px; }
+  .button {
+    min-height: 34px;
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    background: var(--surface);
+    padding: 0 12px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    font-weight: 600; font-size: 12px;
+    cursor: pointer;
+    transition: background .14s, border-color .14s, transform .14s;
+  }
+  .button:hover { background: var(--surface-soft); border-color: var(--ink-faint); }
+  .button:active { transform: translateY(1px); }
+  .button.primary { flex: 1; color: var(--surface); background: var(--ink); border-color: var(--ink); }
+  .button.primary:hover { opacity: .88; background: var(--ink); }
+  .button.danger { color: var(--danger); }
+  .button svg, .icon-button svg { width: 15px; height: 15px; }
+  .icon-button {
+    width: 34px; height: 34px; padding: 0;
+    display: grid; place-items: center;
+    background: transparent; border: 1px solid var(--border); border-radius: 8px;
+    color: var(--ink-muted); cursor: pointer;
+  }
+  .icon-button:hover { color: var(--ink); background: var(--surface-soft); }
+  .icon-button:disabled { opacity: .32; pointer-events: none; }
+  .search-wrap { position: relative; margin: 0 14px 10px; }
+  .search-wrap svg { position: absolute; left: 10px; top: 9px; width: 14px; color: var(--ink-faint); }
+  .search {
+    width: 100%; height: 32px; border: 1px solid var(--border);
+    border-radius: 8px; padding: 0 32px; color: var(--ink);
+    background: var(--surface-soft); outline: none; font-size: 12px;
+  }
+  .search:focus { border-color: var(--brand); background: var(--surface); box-shadow: 0 0 0 3px var(--brand-soft); }
+  .shortcut { position: absolute; right: 9px; top: 8px; color: var(--ink-faint); font: 10px "DM Mono", monospace; }
+  .filters { display: flex; gap: 4px; padding: 0 14px 12px; border-bottom: 1px solid var(--border); }
+  .filter {
+    border: 0; border-radius: 6px; padding: 5px 8px;
+    background: transparent; color: var(--ink-muted); font-size: 11px; font-weight: 600; cursor: pointer;
+  }
+  .filter:hover { color: var(--ink); background: var(--surface-soft); }
+  .filter.on { color: var(--ink); background: var(--surface-hover); }
+  /* overflow-x is not decoration: a computed `visible` next to a scrolling
+     overflow-y becomes `auto` on its own, so without this the list grows a
+     horizontal scrollbar the moment anything inside it is wider than the pane */
+  .task-scroll { overflow-y: auto; overflow-x: hidden; padding: 10px 8px 18px; }
+  .list-label {
+    padding: 8px 9px 6px;
+    color: var(--ink-faint); font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  }
+  .task-item {
+    width: 100%; display: block; text-align: left;
+    padding: 10px; margin: 1px 0;
+    color: inherit; background: transparent; border: 1px solid transparent; border-radius: 9px;
+    cursor: pointer; transition: background .12s, border-color .12s;
+  }
+  .task-item:hover { background: var(--surface-soft); }
+  .task-item.sel { background: var(--brand-soft); border-color: color-mix(in srgb, var(--brand) 20%, transparent); }
+  .task-top { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .task-title { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 12px; font-weight: 650; }
+  .status-dot { width: 7px; height: 7px; flex: 0 0 auto; border-radius: 50%; background: var(--neutral); }
+  .status-dot.running, .status-dot.starting { background: var(--warning); box-shadow: 0 0 0 3px var(--warning-soft); animation: breathe 1.8s ease-in-out infinite; }
+  .status-dot.succeeded { background: var(--success); }
+  .status-dot.failed { background: var(--danger); }
+  /* parked on a timer or an event: idle and fine, so it reads as calm */
+  .status-dot.waiting { background: var(--brand); }
+  /* parked on a person: the only state that will not clear itself */
+  .status-dot.needs-you { background: var(--danger); box-shadow: 0 0 0 3px var(--danger-soft); animation: breathe 2.4s ease-in-out infinite; }
+  @keyframes breathe { 50% { opacity: .45; } }
+  .task-meta { margin: 6px 0 0 15px; display: flex; align-items: center; gap: 8px; color: var(--ink-muted); font-size: 10px; }
+  .task-meta > span:first-child { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .task-stats { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; }
+  .progress-chip {
+    padding: 1px 5px; border-radius: 5px;
+    color: var(--ink-muted); background: var(--surface-hover);
+    font: 500 9px "DM Mono", monospace;
+  }
+  .progress-chip.active { color: var(--warning); background: var(--warning-soft); }
+  /* what a task is still holding. A finished task's container is a running
+     daemon and its workspace is a checkout on disk, and neither goes away on
+     its own — so they are called out here, where you are already scanning, and
+     coloured only once the task is over and they are yours to reclaim */
+  .res-chip {
+    padding: 1px 4px; border-radius: 5px;
+    color: var(--ink-faint); background: var(--surface-hover);
+    font: 500 9px "DM Mono", monospace;
+  }
+  .res-chip.stale { color: var(--warning); background: var(--warning-soft); }
+  .list-empty { padding: 34px 20px; text-align: center; color: var(--ink-muted); font-size: 12px; line-height: 1.6; }
+  .workspace { min-width: 0; display: grid; grid-template-rows: auto 1fr; overflow: hidden; }
+  .topbar {
+    min-width: 0; min-height: 64px; padding: 11px 20px;
+    display: flex; align-items: center; gap: 14px;
+    background: var(--surface); border-bottom: 1px solid var(--border);
+  }
+  /* the title is the only thing here that gives way. Everything else holds its
+     size, and the heading clips rather than spilling — widening the rail used
+     to push the status badge and the task buttons out under it, where they
+     could still be clicked only if you knew where they had gone */
+  /* a floor rather than 0: shrinking the title away entirely is not much
+     better than letting it push the buttons off, and the grip already keeps
+     the middle column wide enough that this never has to give */
+  .task-heading { min-width: 90px; flex: 1 1 0; overflow: hidden; }
+  .task-heading h1 { margin: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 15px; font-weight: 700; letter-spacing: -.015em; }
+  .breadcrumbs { min-width: 0; display: flex; align-items: center; gap: 6px; margin-bottom: 3px; color: var(--ink-faint); font-size: 10px; font-weight: 600; }
+  .breadcrumbs > span { flex: 0 0 auto; }
+  .breadcrumbs > span:last-child { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .badge {
+    flex: 0 0 auto;
+    display: inline-flex; align-items: center; gap: 6px;
+    height: 24px; padding: 0 8px; border-radius: 999px;
+    font-size: 10px; font-weight: 700; text-transform: capitalize;
+    color: var(--neutral); background: var(--surface-soft);
+  }
+  .badge.running, .badge.starting { color: var(--warning); background: var(--warning-soft); }
+  .badge.succeeded { color: var(--success); background: var(--success-soft); }
+  .badge.failed { color: var(--danger); background: var(--danger-soft); }
+  .badge.waiting { color: var(--brand); background: var(--brand-soft); }
+  .badge.needs-you { color: var(--danger); background: var(--danger-soft); }
+
+  /* the question a parked gate is asking, with its answers */
+  .decision {
+    flex: 0 0 auto;
+    margin: 16px 18px 0; padding: 14px 16px;
+    border: 1px solid color-mix(in srgb, var(--danger) 35%, transparent);
+    border-radius: 12px; background: var(--danger-soft);
+  }
+  .decision.timer {
+    border-color: color-mix(in srgb, var(--brand) 30%, transparent);
+    background: var(--brand-soft);
+  }
+  .decision-label { color: var(--ink-faint); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+  .decision-ask { margin: 5px 0 0; font-size: 13px; font-weight: 600; line-height: 1.5; }
+  .decision-note {
+    width: 100%; margin-top: 10px; padding: 8px 10px; box-sizing: border-box;
+    border: 1px solid var(--border); border-radius: 8px;
+    color: inherit; background: var(--surface); font: inherit; font-size: 12px;
+  }
+  .decision-note:focus { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-soft); outline: none; }
+  .decision-pending {
+    margin-top: 10px; padding: 9px 11px; border-radius: 8px;
+    background: var(--surface); font-size: 11px; line-height: 1.6;
+  }
+  .decision-pending > div { color: var(--ink-muted); }
+  .decision-pending-hint { margin-top: 5px; color: var(--ink-faint) !important; font-size: 10px; }
+  .decision-actions { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
+  /* the notice below shares the look but not the layout: its button is a flex
+     child of a centred row, and the card's margin-top would offset it out of
+     centre by half of itself */
+  .decision-actions button, .notice button {
+    height: 28px; padding: 0 12px; border-radius: 8px; cursor: pointer;
+    border: 1px solid var(--border-strong); background: var(--surface);
+    color: inherit; font: inherit; font-size: 11px; font-weight: 650;
+  }
+  .decision-actions button:hover, .notice button:hover { background: var(--surface-hover); }
+
+  /* A standing fact about the task that is nobody's decision to make — today
+     only a prewarm that failed. It sits where the decision card sits and looks
+     like it on purpose: this is the other thing you need to know before reading
+     anything below it, and its whole job is not to scroll away. */
+  .notice {
+    flex: 0 0 auto;
+    display: flex; align-items: center; gap: 12px;
+    margin: 16px 18px 0; padding: 10px 12px 10px 14px;
+    border: 1px solid color-mix(in srgb, var(--warning) 35%, transparent);
+    border-radius: 12px; background: var(--warning-soft);
+  }
+  /* the explanation wraps under the label rather than sharing its line: on a
+     narrow window a single row ellipsises away the half that says what to do
+     about it, which is the half worth reading */
+  .notice-body { flex: 1; min-width: 0; }
+  .notice-label { color: var(--warning); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+  .notice-text { margin-top: 3px; font-size: 12px; line-height: 1.5; }
+  .notice button { flex: 0 0 auto; }
+  .decision-actions button.primary { color: #fff; background: var(--brand); border-color: var(--brand); }
+  .top-actions { flex: 0 0 auto; display: flex; align-items: center; gap: 7px; }
+  #sidetoggle { flex: 0 0 auto; }
+  .stage {
+    min-height: 0;
+    display: grid;
+    grid-template-rows: minmax(220px, 1fr) 5px var(--inspector-h);
+    overflow: hidden;
+  }
+  /* a column rather than fixed grid rows: the decision card is present only
+     while a task is parked, and named rows silently handed its 1fr to the
+     metric row when it appeared */
+  .overview {
+    min-height: 0; display: flex; flex-direction: column;
+    /* vertically scrollable for the squeezed case — a parked gate's card and a
+       failed prewarm's notice both up at once push the graph past its floor,
+       and the rest of it should be reachable rather than gone. The graph eats
+       its own wheel events, so this only ever scrolls from the cards above it */
+    overflow: hidden auto;
+    background: var(--canvas);
+  }
+  /* wraps rather than clips: the workspace hides its overflow, so a row too
+     wide for the column silently lost its last tiles — which is what happened
+     the moment the rail took 360px out of it */
+  .metric-row {
+    flex: 0 0 auto;
+    display: flex; flex-wrap: wrap; align-items: stretch; gap: 1px;
+    margin: 16px 18px 0; border: 1px solid var(--border); border-radius: 10px;
+    background: var(--border); overflow: hidden; box-shadow: var(--shadow-sm);
+  }
+  .metric { min-width: 116px; padding: 10px 13px; background: var(--surface); }
+  .metric.wide { flex: 1; min-width: 180px; }
+  .metric-label { color: var(--ink-faint); font-size: 9px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; }
+  .metric-value { margin-top: 3px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 12px; font-weight: 650; }
+  .metric-sub { margin-top: 2px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: var(--ink-muted); font-size: 11px; }
+  /* the two things a task leaves for a person, between the numbers and the
+     graph: a flat bag of facts, and the files its agents wanted seen. Both
+     take no room at all until there is something in them */
+  .facts { flex: 0 0 auto; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 10px 18px 0; font-size: 11px; }
+  .fact {
+    display: inline-flex; align-items: center; gap: 6px; max-width: 100%;
+    padding: 3px 8px; border: 1px solid var(--border); border-radius: 6px;
+    background: var(--surface); color: var(--ink); line-height: 1.4;
+  }
+  .fact b { flex: 0 0 auto; color: var(--ink-faint); font-size: 9px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+  .fact span, .fact a { min-width: 0; max-width: 460px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .fact a { color: var(--brand); text-decoration: none; }
+  .fact a:hover { text-decoration: underline; }
+  .artifacts { flex: 0 0 auto; margin: 12px 18px 0; }
+  .artifacts[hidden] { display: none; }
+  .artifacts-label { margin-bottom: 6px; color: var(--ink-faint); font-size: 9px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; }
+  .artifact-grid { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 8px; }
+  .artifact {
+    display: flex; flex-direction: column; gap: 4px; max-width: 220px; min-width: 0;
+    padding: 6px; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--surface); color: var(--ink); text-decoration: none; font-size: 11px;
+  }
+  .artifact:hover { border-color: var(--border-strong); }
+  .artifact img { display: block; max-width: 208px; max-height: 140px; object-fit: contain; border-radius: 4px; background: var(--surface-soft); }
+  .artifact-name { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-weight: 600; }
+  .artifact-size { color: var(--ink-faint); font: 500 10px "DM Mono", monospace; }
+  /* the PR a row is about, as a link that does not also select the row */
+  .pr-chip { padding: 1px 5px; border-radius: 5px; color: var(--brand); background: var(--brand-soft); font: 600 9px "DM Mono", monospace; }
+  .pr-chip:hover { text-decoration: underline; }
+  .badge.link { color: var(--brand); background: var(--brand-soft); text-transform: none; text-decoration: none; }
+  .badge.link:hover { text-decoration: underline; }
+  .ev-refs a { color: inherit; text-decoration: underline; text-decoration-color: var(--ink-faint); }
+  .graph-wrap {
+    flex: 1 1 auto;
+    /* a floor, because the overview is a column of things that appear as the
+       task needs them — a parked gate's card and a failed prewarm's notice can
+       both be up at once, and without this the graph is what silently gives
+       way, down to a strip too thin to read */
+    position: relative; min-height: 132px; margin: 12px 18px 16px;
+    overflow: hidden; border: 1px solid var(--border); border-radius: 12px;
+    background-color: var(--surface);
+    background-image: radial-gradient(var(--border) .8px, transparent .8px);
+    background-size: 18px 18px;
+    box-shadow: var(--shadow-sm); cursor: grab; touch-action: none;
+    /* dragging a node across the graph would otherwise sweep a text selection
+       through every label it passed over */
+    user-select: none; -webkit-user-select: none;
+  }
+  .graph-wrap.panning { cursor: grabbing; }
+  .graph-wrap.moving, .graph-wrap.moving .node { cursor: grabbing; }
+  .graph-toolbar { position: absolute; z-index: 2; top: 10px; right: 10px; display: flex; gap: 5px; }
+  .graph-toolbar .icon-button { width: 30px; height: 30px; background: var(--surface); }
+  .graph { width: 100%; height: 100%; display: block; }
+  .node { cursor: grab; }
+  .node rect { fill: var(--surface); stroke: var(--border-strong); stroke-width: 1.2; filter: drop-shadow(0 4px 8px rgba(28, 28, 24, .08)); }
+  .node:hover rect { stroke: var(--ink-faint); }
+  .node.sel rect { stroke: var(--brand); stroke-width: 2; }
+  .node .nname {
+    fill: var(--ink);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 12px; font-weight: 600;
+  }
+  .node .ntype, .node .nvisit { fill: var(--ink-faint); font: 500 9px "DM Mono", monospace; }
+  .node .nstate { fill: var(--ink-faint); font: 500 8px "DM Mono", monospace; }
+  .node.st-awaiting rect {
+    fill: color-mix(in srgb, var(--surface) 82%, var(--canvas));
+    stroke: var(--border-strong); stroke-dasharray: 4 4;
+  }
+  .node.st-awaiting .lamp { fill: var(--ink-faint); }
+  .node.st-awaiting .nname, .node.st-awaiting .nstate { fill: var(--ink-muted); }
+  .node.st-running rect { stroke: var(--warning); stroke-width: 1.8; }
+  .node.st-running .lamp { fill: var(--warning); animation: breathe 1.4s infinite; }
+  .node.st-running .nstate { fill: var(--warning); }
+  .node.st-ok .lamp, .node.st-approve .lamp { fill: var(--success); }
+  .node.st-ok .nstate, .node.st-approve .nstate { fill: var(--success); }
+  .node.st-fail .lamp, .node.st-request_changes .lamp { fill: var(--danger); }
+  .node.st-fail .nstate, .node.st-request_changes .nstate { fill: var(--danger); }
+  /* where a parked task is sitting: dashed, because it is holding rather than working */
+  .node.st-waiting rect { stroke: var(--brand); stroke-width: 1.8; stroke-dasharray: 5 3; }
+  .node.st-waiting .lamp { fill: var(--brand); animation: breathe 2.4s infinite; }
+  .node.st-waiting .nstate { fill: var(--brand); }
+  .node.st-cancelled .lamp { fill: var(--neutral); }
+  .edge { stroke: var(--border-strong); stroke-width: 1.4; fill: none; marker-end: url(#arrow); }
+  .edge.back { stroke-dasharray: 5 4; }
+  .edge.active { stroke: var(--warning); stroke-width: 2; stroke-dasharray: 7 5; animation: dash .8s linear infinite; }
+  @keyframes dash { to { stroke-dashoffset: -24; } }
+  /* a halo in the canvas colour, painted under the glyphs: a label that has to
+     cross another loop's curve knocks it out rather than reading as struck through */
+  .edge-label {
+    fill: var(--ink-faint); font: 500 8px "DM Mono", monospace; text-transform: uppercase;
+    paint-order: stroke; stroke: var(--surface); stroke-width: 3.5px; stroke-linejoin: round;
+  }
+  .splitter { cursor: row-resize; background: transparent; position: relative; }
+  .splitter::after { content: ""; position: absolute; left: 0; right: 0; top: 2px; height: 1px; background: var(--border); }
+  .splitter:hover::after { height: 2px; background: var(--brand); }
+  .inspector {
+    min-height: 0; display: grid; grid-template-rows: 44px 1fr auto;
+    overflow: hidden; background: var(--surface); border-top: 1px solid var(--border);
+  }
+  .inspector-head { display: flex; align-items: center; padding: 0 18px; border-bottom: 1px solid var(--border); gap: 14px; }
+  .node-name { min-width: 90px; font-size: 12px; font-weight: 700; }
+  .tabs { align-self: stretch; display: flex; gap: 16px; }
+  .tab {
+    position: relative; border: 0; padding: 0; background: none; color: var(--ink-muted);
+    font-size: 11px; font-weight: 650; cursor: pointer;
+  }
+  .tab:hover { color: var(--ink); }
+  .tab.on { color: var(--ink); }
+  .tab.on::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--brand); }
+  .inspector-meta { margin-left: auto; color: var(--ink-faint); font-size: 10px; }
+  .node-actions { display: flex; gap: 6px; }
+  .node-actions .button { min-height: 28px; padding: 0 9px; font-size: 10px; }
+  /* everything the task is, rather than what one node is doing: the whole
+     event stream and the record itself */
+  .rail {
+    min-width: 0; display: flex; flex-direction: column; overflow: hidden;
+    background: var(--surface); border-left: 1px solid var(--border);
+  }
+  /* the same height as the topbar, so the two tab strips do not sit a few
+     pixels apart from one another across the fold */
+  /* out of the grid flow and sitting on the panel's own border, so dragging one
+     never reflows the thing being dragged */
+  .rail-grip, .side-grip {
+    position: absolute; z-index: 5; top: 0; bottom: 0;
+    width: 9px; cursor: col-resize;
+  }
+  .rail-grip { right: var(--rail-w); margin-right: -4px; }
+  .side-grip { left: var(--sidebar-w); margin-left: -4px; }
+  .rail-grip::after, .side-grip::after { content: ""; position: absolute; top: 0; bottom: 0; left: 4px; width: 1px; }
+  .rail-grip:hover::after, .rail-grip.dragging::after,
+  .side-grip:hover::after, .side-grip.dragging::after { left: 3px; width: 2px; background: var(--brand); }
+  .rail-head { flex: 0 0 auto; height: 64px; display: flex; align-items: center; padding: 0 16px; border-bottom: 1px solid var(--border); }
+  .rail-sub { flex: 0 0 auto; padding: 7px 16px; border-bottom: 1px solid var(--border); color: var(--ink-faint); font-size: 10px; }
+  .rail-body { flex: 1 1 auto; min-height: 0; }
+  /* the panes follow the newest line only while they are already parked at the
+     bottom; scrolling up to read something is meant to stop that, so this is
+     the way back, and it only appears when there is somewhere to go */
+  .pane-wrap { position: relative; min-height: 0; display: grid; }
+  .rail .pane-wrap { flex: 1 1 auto; }
+  .jump {
+    position: absolute; z-index: 3; right: 20px; bottom: 16px;
+    height: 28px; padding: 0 11px; display: none; align-items: center; gap: 6px;
+    border: 1px solid var(--border-strong); border-radius: 999px;
+    background: var(--surface); color: var(--ink);
+    font: inherit; font-size: 10px; font-weight: 650;
+    box-shadow: var(--shadow-lg); cursor: pointer;
+  }
+  .jump.on { display: inline-flex; }
+  .jump:hover { background: var(--surface-hover); }
+  .jump svg { width: 13px; height: 13px; }
+  .rail-empty { padding: 40px 22px; color: var(--ink-faint); font-size: 11px; line-height: 1.6; text-align: center; }
+  .output {
+    margin: 0; padding: 14px 18px; overflow: auto;
+    color: var(--ink-muted); background: var(--surface);
+    font: 12px/1.7 "DM Mono", monospace; white-space: pre-wrap; word-break: break-word;
+  }
+  /* A visit is a card that opens, not a stretch of text under a coloured line.
+     A poller's node has hundreds of them, and the one being read needs an edge
+     you can find without counting blank lines — and the ones that are shut
+     cost a header row each, which is what makes the history cheap to keep. */
+  .visit { margin-bottom: 8px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .visit-head {
+    width: 100%; display: flex; align-items: center; gap: 9px;
+    padding: 8px 11px; border: 0; background: var(--surface-soft);
+    color: var(--ink); font: inherit; font-size: 11px; text-align: left;
+    white-space: normal; cursor: pointer;
+  }
+  .visit-head:hover { background: var(--surface-hover); }
+  .visit-caret { width: 11px; height: 11px; flex: 0 0 auto; color: var(--ink-faint); transition: transform .12s; }
+  .visit.open .visit-caret { transform: rotate(90deg); }
+  .visit-n { flex: 0 0 auto; font-weight: 700; }
+  .visit-tag {
+    flex: 0 0 auto; padding: 1px 6px; border-radius: 5px;
+    color: var(--neutral); background: var(--surface-hover);
+    font-size: 9px; font-weight: 700; letter-spacing: .04em;
+  }
+  .visit-tag.ok, .visit-tag.approve { color: var(--success); background: var(--success-soft); }
+  .visit-tag.fail, .visit-tag.request_changes { color: var(--danger); background: var(--danger-soft); }
+  .visit-tag.running { color: var(--warning); background: var(--warning-soft); }
+  .visit-stats { margin-left: auto; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: var(--ink-muted); font-size: 10px; }
+  /* never shrinks: down a list of hundreds of visits this is the column being
+     read, and the model and cost beside it are what can afford to ellipsise */
+  .visit-time { flex: 0 0 auto; color: var(--ink-faint); font: 500 10px "DM Mono", monospace; }
+  .visit.open .visit-time, .visit-head:hover .visit-time { color: var(--ink-muted); }
+  .visit-body { padding: 12px 13px; border-top: 1px solid var(--border); background: var(--surface); }
+  /* the prompt and the transcript are two documents, not one scroll */
+  .visit-part + .visit-part { margin-top: 13px; padding-top: 13px; border-top: 1px dashed var(--border-strong); }
+  .part-label { display: block; margin-bottom: 6px; color: var(--ink-faint); font-size: 9px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; }
+  .visit-live { display: flex; align-items: center; gap: 11px; white-space: normal; }
+  .visit-live-text { flex: 1; min-width: 0; color: var(--ink-muted); font-size: 11px; line-height: 1.55; }
+  .visit-live button {
+    flex: 0 0 auto; height: 26px; padding: 0 10px; border-radius: 7px; cursor: pointer;
+    border: 1px solid var(--border-strong); background: var(--surface);
+    color: var(--ink); font: inherit; font-size: 10px; font-weight: 650;
+  }
+  .visit-live button:hover { background: var(--surface-hover); }
+  /* one event per row with a rule between, because the stream is a list of
+     separate things that happened and not a paragraph */
+  .ev { padding: 7px 0; }
+  .ev + .ev { border-top: 1px solid var(--border); }
+  .ev-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 7px; margin-bottom: 3px; white-space: normal; }
+  .ev-body { color: var(--ink); }
+  /* the pane draws a window of the newest history rather than all of it; this
+     is how you walk back through the rest */
+  .more-row { display: block; margin-bottom: 14px; color: var(--ink-faint); }
+  .more-row button {
+    height: 24px; margin-right: 9px; padding: 0 9px; border-radius: 7px; cursor: pointer;
+    border: 1px solid var(--border-strong); background: var(--surface);
+    color: var(--ink); font: inherit; font-weight: 650;
+  }
+  .more-row button:hover { background: var(--surface-hover); }
+  .output .sysline { color: var(--ink-faint); }
+  .output .tooluse { color: var(--warning); }
+  .output .toolres { color: var(--ink-faint); }
+  .output .prompt { color: var(--ink); border-left: 2px solid var(--border-strong); padding-left: 9px; display: inline-block; }
+  /* the stream carries far more bookkeeping than delivered events; the ones
+     that actually reached an agent's prompt are the ones worth finding */
+  .output .ev-quiet { color: var(--ink-faint); }
+  .output .ev-to { color: var(--accent, var(--warning)); }
+  .output .ev-kind { color: var(--ink-muted); }
+  .output .ev-refs { color: var(--ink-muted); }
+  /* the whole request and graph, for the debugging question the summary above
+     cannot answer: what exactly is this task running with */
+  .output .j-key { color: var(--brand); }
+  .output .j-num { color: var(--warning); }
+  .output .j-bool { color: var(--danger); }
+  .output .j-punct { color: var(--ink-faint); }
+  .output .j-block { color: var(--ink); border-left: 2px solid var(--border-strong); padding-left: 9px; display: inline-block; }
+  .config-view {
+    display: block; color: var(--ink); white-space: normal;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  .config-facts { display: flex; flex-wrap: wrap; gap: 8px 18px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+  .config-fact { display: flex; flex-direction: column; gap: 2px; }
+  .config-label { color: var(--ink-faint); font-size: 9px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; }
+  .config-value { color: var(--ink); font-size: 11px; font-weight: 600; }
+  .config-section { margin-top: 14px; }
+  .config-section-title { margin-bottom: 7px; color: var(--ink-muted); font-size: 10px; font-weight: 700; }
+  .config-edges { max-width: 720px; overflow: hidden; border: 1px solid var(--border); border-radius: 8px; }
+  .config-edge {
+    min-height: 34px; padding: 6px 9px;
+    display: grid; grid-template-columns: minmax(90px, 1fr) auto minmax(90px, 1fr) auto;
+    align-items: center; gap: 10px; background: var(--canvas);
+  }
+  .config-edge + .config-edge { border-top: 1px solid var(--border); }
+  .config-node { overflow: hidden; color: var(--ink); font: 500 10px "DM Mono", monospace; text-overflow: ellipsis; }
+  .config-route { display: flex; align-items: center; gap: 7px; color: var(--ink-faint); }
+  .config-route svg { width: 30px; height: 12px; flex: 0 0 auto; }
+  .config-condition { padding: 2px 5px; border-radius: 5px; color: var(--ink-muted); background: var(--surface-hover); font: 500 9px "DM Mono", monospace; }
+  .config-direction { color: var(--ink-faint); font-size: 9px; font-weight: 650; text-transform: uppercase; }
+  .config-direction.incoming { color: var(--brand); }
+  .config-editor { display: block; width: 100%; min-height: 150px; margin: 10px 0; resize: vertical; border: 1px solid var(--border); border-radius: 8px; padding: 10px; background: var(--canvas); color: var(--ink); font: 11px/1.6 "DM Mono", monospace; outline: none; }
+  .config-editor:focus { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-soft); }
+  .config-actions { display: flex; align-items: center; gap: 7px; }
+  .config-actions span { color: var(--ink-faint); font-size: 10px; }
+  .composer { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; padding: 10px 14px 12px; border-top: 1px solid var(--border); background: var(--surface); }
+  .composer select, .composer input {
+    height: 36px; border: 1px solid var(--border); border-radius: 8px; background: var(--canvas); color: var(--ink); outline: none; font-size: 11px;
+  }
+  .select-shell { position: relative; display: block; width: 135px; }
+  .composer .select-shell select {
+    width: 100%; padding: 0 34px 0 9px;
+    appearance: none; -webkit-appearance: none;
+  }
+  .select-shell svg {
+    position: absolute; right: 11px; top: 50%; width: 14px; height: 14px;
+    color: var(--ink-muted); pointer-events: none; transform: translateY(-50%);
+  }
+  .composer input { min-width: 0; padding: 0 11px; }
+  .composer input:focus, .composer select:focus { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-soft); }
+  .composer-actions { display: flex; gap: 6px; }
+  .empty-state { height: 100%; display: grid; place-items: center; text-align: center; color: var(--ink-muted); }
+  .empty-state > div { max-width: 320px; }
+  .empty-icon { width: 42px; height: 42px; margin: 0 auto 12px; display: grid; place-items: center; border-radius: 12px; color: var(--brand); background: var(--brand-soft); }
+  .empty-state h2 { margin: 0 0 5px; color: var(--ink); font-size: 15px; }
+  .empty-state p { margin: 0; font-size: 12px; line-height: 1.6; }
+  .task-menu { position: relative; }
+  .menu {
+    position: absolute; z-index: 10; right: 0; top: 40px; width: 190px;
+    padding: 5px; display: none; border: 1px solid var(--border); border-radius: 10px;
+    background: var(--surface); box-shadow: var(--shadow-lg);
+  }
+  .menu.open { display: block; }
+  .menu button { width: 100%; border: 0; border-radius: 6px; padding: 8px 9px; text-align: left; background: none; color: var(--ink-muted); font-size: 11px; cursor: pointer; }
+  .menu button:hover { color: var(--ink); background: var(--surface-soft); }
+  .menu button.danger { color: var(--danger); }
+  dialog { width: min(600px, calc(100vw - 32px)); padding: 0; border: 1px solid var(--border); border-radius: 14px; color: var(--ink); background: var(--surface); box-shadow: var(--shadow-lg); }
+  dialog::backdrop { background: rgba(20, 20, 18, .32); backdrop-filter: blur(3px); }
+  .modal-head { padding: 18px 20px 14px; border-bottom: 1px solid var(--border); }
+  .modal-head h2 { margin: 0; font-size: 16px; letter-spacing: -.02em; }
+  .modal-head p { margin: 4px 0 0; color: var(--ink-muted); font-size: 11px; }
+  .form { padding: 18px 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field.full { grid-column: 1 / -1; }
+  .field label { color: var(--ink-muted); font-size: 10px; font-weight: 700; }
+  .field input, .field textarea, .field select { width: 100%; border: 1px solid var(--border); border-radius: 8px; padding: 9px 10px; color: var(--ink); background: var(--canvas); outline: none; font-size: 12px; }
+  .field textarea { min-height: 100px; resize: vertical; line-height: 1.5; }
+  .field input:focus, .field textarea:focus, .field select:focus { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-soft); }
+  .modal-foot { padding: 12px 20px; display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--border); }
+  .toast {
+    position: fixed; z-index: 30; right: 18px; bottom: 18px; max-width: 360px;
+    padding: 11px 13px; border: 1px solid var(--border); border-radius: 9px;
+    background: var(--surface); box-shadow: var(--shadow-lg); font-size: 11px;
+    transform: translateY(16px); opacity: 0; pointer-events: none; transition: .2s ease;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.error { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 35%, var(--border)); }
+  /* the rail is context; the graph and the inspector are the work. So it is
+     the first thing to go — by hand at any width, and on its own below the
+     point where what is left would be too narrow to lay a workflow out in */
+  @media (max-width: 1000px) {
+    .app { --rail-col: 0px; }
+    .rail, .rail-grip, #railtoggle { display: none; }
+  }
+  @media (max-width: 760px) {
+    :root { --sidebar-w: 250px; }
+    .metric:nth-child(n+4) { display: none; }
+  }
+  @media (max-width: 620px) {
+    .app { --side-col: 0px; }
+    .sidebar, .side-grip, #sidetoggle { display: none; }
+    .metric-row { margin-inline: 10px; }
+    .facts, .artifacts { margin-inline: 10px; }
+    .graph-wrap { margin-inline: 10px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="side-grip" id="sidegrip" title="Drag to resize"></div>
+  <aside class="sidebar">
+    <div class="brandbar">
+      <span class="brandmark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 7h6m2 0h6M5 17h6m2 0h6M8 7v10m8-10v10"/></svg>
+      </span>
+      <span class="wordmark">agentflow</span>
+      <span class="connection" id="conn"><span class="conn-dot"></span><span>offline</span></span>
+    </div>
+    <div class="side-actions">
+      <button class="button primary" id="newtask">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        New task
+      </button>
+      <button class="icon-button" id="refresh" title="Refresh tasks">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 11a8.1 8.1 0 0 0-15.5-2M4 4v5h5M4 13a8.1 8.1 0 0 0 15.5 2M20 20v-5h-5"/></svg>
+      </button>
+    </div>
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+      <input class="search" id="search" placeholder="Search tasks" />
+      <span class="shortcut">/</span>
+    </div>
+    <div class="filters">
+      <button class="filter on" data-filter="all">All</button>
+      <button class="filter" data-filter="active">Active</button>
+      <button class="filter" data-filter="attention">Needs attention</button>
+    </div>
+    <div class="task-scroll" id="tasklist"></div>
+  </aside>
+
+  <section class="workspace">
+    <header class="topbar" id="topbar">
+      <div class="task-heading">
+        <div class="breadcrumbs"><span>Tasks</span><span>/</span><span>Select a task</span></div>
+        <h1>Agent workspace</h1>
+      </div>
+    </header>
+    <main class="stage" id="stage">
+      <div class="empty-state" id="workspaceempty">
+        <div>
+          <div class="empty-icon">
+            <svg width="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 7h6m2 0h6M5 17h6m2 0h6M8 7v10m8-10v10"/></svg>
+          </div>
+          <h2>Pick a task to inspect</h2>
+          <p>Follow progress, read agent output, rerun nodes, and steer work without leaving the dashboard.</p>
+        </div>
+      </div>
+    </main>
+  </section>
+
+  <div class="rail-grip" id="railgrip" title="Drag to resize"></div>
+  <aside class="rail" id="rail">
+    <div class="rail-empty">The task's own record and its whole event stream show up here.</div>
+  </aside>
+</div>
+
+<dialog id="spawnmodal">
+  <form method="dialog" id="spawnform">
+    <div class="modal-head">
+      <h2>Start a new task</h2>
+      <p>Dispatch an isolated agent workflow. You can tune the graph after it starts.</p>
+    </div>
+    <div class="form">
+      <div class="field full"><label for="ftitle">Title</label><input id="ftitle" name="title" placeholder="Add export support" /></div>
+      <div class="field full"><label for="ftask">Task <span style="color:var(--danger)">*</span></label><textarea id="ftask" name="task" required placeholder="Describe the outcome, constraints, and relevant files…"></textarea></div>
+      <div class="field full"><label for="frepo">Repository path</label><input id="frepo" name="repo" placeholder="/absolute/path/to/repo" /></div>
+      <div class="field"><label for="fworkflow">Workflow</label><select id="fworkflow" name="workflow"><option value="implement-review">Implement + review</option><option value="quick">Quick</option></select></div>
+      <div class="field"><label for="feffort">Reasoning effort</label><select id="feffort" name="effort"><option value="">Default</option><option>low</option><option>medium</option><option>high</option></select></div>
+      <div class="field full"><label for="fgates">Verification command</label><input id="fgates" name="gates" placeholder="nix develop -c deno task check" /></div>
+      <div class="field full"><label for="frubric">Review rubric</label><textarea id="frubric" name="rubric" style="min-height:70px" placeholder="What should the reviewer enforce beyond the task prompt?"></textarea></div>
+    </div>
+    <div class="modal-foot">
+      <button class="button" type="button" id="spawncancel">Cancel</button>
+      <button class="button primary" value="default" id="spawnsubmit">Start task</button>
+    </div>
+  </form>
+</dialog>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+const $ = (id) => document.getElementById(id);
+const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({
+  "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;",
+}[char]));
+const icon = (name) => ({
+  stop: '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>',
+  play: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="m8 5 11 7-11 7z"/></svg>',
+  more: '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg>',
+  fit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H3v5m13-5h5v5M8 21H3v-5m13 5h5v-5"/></svg>',
+  undo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4v6h6"/><path d="M3.5 10a9 9 0 1 1 2 9"/></svg>',
+  panelLeft: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg>',
+  panelRight: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16"/></svg>',
+  down: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14m-6-6 6 6 6-6"/></svg>',
+}[name]);
+
+/**
+ * The panel toggles live in the topbar because that is the one strip always on
+ * screen: a button for bringing the task list back cannot be inside the task
+ * list. So every topbar carries them, including the one shown before a task
+ * has been picked — which is why the empty state is built here rather than
+ * sitting in the document as markup that would have to repeat them.
+ */
+const sideToggle = () =>
+  `<button class="icon-button" id="sidetoggle" title="Show or hide the task list">${
+    icon("panelLeft")
+  }</button>`;
+const emptyTopbar = () =>
+  `${sideToggle()}<div class="task-heading"><div class="breadcrumbs"><span>Tasks</span><span>/</span><span>Select a task</span></div><h1>Agent workspace</h1></div>`;
+
+let tasks = [];
+let filter = "all";
+let query = "";
+/** parent task ids whose spawned children are shown; collapsed by default */
+const expanded = new Set();
+let selId = null;
+let cur = null;
+let curEs = null;
+let selNode = null;
+/** the inspector is per node: summary | full | events | config */
+let logMode = "summary";
+/** the rail is per task: events | details | setup */
+let railMode = "events";
+let taskEvents = [];
+/**
+ * The transcript of the visit a node is running right now, read off the same
+ * file the daemon is writing rather than assembled from the chunk stream. The
+ * stream only carries what has arrived since you subscribed, so a node picked
+ * up mid-turn used to open halfway through its own thinking, and switching
+ * away and back threw the rest of it away. The file has all of it; the stream
+ * is only the signal that there is more. Keyed by node: `{visit, text}`.
+ */
+const liveLog = new Map();
+const transcripts = new Map();
+const liveLlm = new Map();
+/** visits currently expanded, as `${node}:${visit}` */
+const openVisits = new Set();
+/**
+ * Which visit of each node the dashboard opened by itself, so that when the
+ * next one starts it can close the last one it opened — and only that one. A
+ * poller visits every couple of minutes, and an hour of watching it otherwise
+ * leaves thirty expanded cards nobody asked for, while a card the operator
+ * opened on purpose stays open.
+ */
+const autoOpen = new Map();
+/** the composer target once it has been set by hand; null follows the selection */
+let noteTarget = null;
+const view = { x: 0, y: 0, k: 1 };
+let toastTimer;
+
+/**
+ * How much history the inspector draws at once, and which node that window was
+ * measured for. A poller visits its wait node a thousand times over a day, and
+ * the pane used to render every one of those visits on every pass — which for
+ * the transcript is a thousand sequential requests and a megabyte of DOM for a
+ * view nobody scrolls to the top of. The window starts at the newest visits and
+ * grows a page at a time on demand.
+ */
+const VISIT_PAGE = 25;
+const EVENT_PAGE = 300;
+let visitWindow = VISIT_PAGE;
+let visitWindowFor = null;
+let eventWindow = EVENT_PAGE;
+let nodeEventWindow = EVENT_PAGE;
+/** the way back through the history the window left out, a page at a time */
+const moreRow = (id, hidden, page, noun) =>
+  `<span class="more-row"><button id="${id}">Show ${Math.min(hidden, page)} earlier</button>${hidden} older ${noun}${
+    hidden === 1 ? "" : "s"
+  } not shown</span>`;
+const bindMore = (id, grow) => {
+  const button = $(id);
+  if (button) button.onclick = grow;
+};
+
+/**
+ * Painting is driven by a live stream: a running node emits a log chunk every
+ * few milliseconds, a replayed backlog arrives thousands of events at a time,
+ * and each one used to rebuild a pane synchronously. Only the newest state was
+ * ever going to be seen, so the work is collapsed onto one frame.
+ */
+const PAINT = { graph: 1, inspector: 2, workspace: 4, rail: 8 };
+let pendingPaint = 0;
+function paint(kind) {
+  const idle = pendingPaint === 0;
+  pendingPaint |= kind;
+  if (!idle) return;
+  requestAnimationFrame(() => {
+    const todo = pendingPaint;
+    pendingPaint = 0;
+    // the workspace rebuilds the graph and the inspector on its way through, so
+    // asking for it as well is drawing the same thing twice
+    if (todo & PAINT.workspace) renderWorkspace();
+    else {
+      if (todo & PAINT.graph) renderGraph();
+      if (todo & PAINT.inspector) renderInspector();
+    }
+    if (todo & PAINT.rail) renderRailBody();
+  });
+}
+
+/**
+ * Refetch a running visit's transcript, at most one request per node in flight
+ * and no more often than the throttle. A turn that has grown past a megabyte
+ * is refetched a quarter as often — it is one file read either way, but the
+ * render on the other side of it is not free.
+ */
+const LIVE_PULL_MS = 900;
+function pullLogSoon(node, visit) {
+  let entry = liveLog.get(node);
+  if (!entry || entry.visit !== visit) liveLog.set(node, entry = { visit, text: "", at: 0 });
+  // a chunk that lands mid-request still has to be picked up, or a turn that
+  // goes quiet right after one stops updating until the next thing it says
+  if (entry.pulling) return void (entry.again = true);
+  if (entry.timer) return;
+  const every = entry.text.length > 1e6 ? LIVE_PULL_MS * 4 : LIVE_PULL_MS;
+  entry.timer = setTimeout(() => {
+    entry.timer = undefined;
+    pullLog(node, visit);
+  }, Math.max(0, every - (Date.now() - entry.at)));
+}
+async function pullLog(node, visit) {
+  const entry = liveLog.get(node);
+  if (!entry || entry.visit !== visit) return;
+  entry.pulling = true;
+  try {
+    const response = await fetch(`/api/task/${cur.id}/log/${node}/${visit}`);
+    if (response.ok) entry.text = await response.text();
+  } catch {
+    // the file appears with the node's first chunk; the next one retries
+  }
+  entry.pulling = false;
+  entry.at = Date.now();
+  if (liveLog.get(node) !== entry) return;
+  if (selNode === node) paint(PAINT.inspector);
+  if (entry.again) {
+    entry.again = false;
+    pullLogSoon(node, visit);
+  }
+}
+/** the running visit of a node, if it has one */
+const runningVisit = (node) =>
+  [...(cur?.runs ?? [])].reverse().find((run) => run.node === node && run.status === "running");
+
+const formatMoney = (value) => value ? `$${value.toFixed(value < .01 ? 4 : 2)}` : "—";
+const relativeTime = (value) => {
+  const seconds = Math.max(0, (Date.now() - new Date(value).getTime()) / 1000);
+  if (seconds < 45) return "now";
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h`;
+  return `${Math.floor(seconds / 86400)}d`;
+};
+const repoName = (path) => path?.split("/").filter(Boolean).at(-1) ?? "scratch";
+/**
+ * How long something took. A poller's shell visits are over in under a second
+ * and a tenth of one is the difference worth seeing there, so the precision
+ * follows the magnitude rather than being fixed.
+ */
+const formatDuration = (ms) => {
+  if (!Number.isFinite(ms) || ms < 0) return "";
+  if (ms < 1000) return `${Math.round(ms)}ms`;
+  // the trailing zero stays: these are read as a column down a list of visits,
+  // and "2s" next to "2.5s" puts a step in the edge you are scanning
+  if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
+  const seconds = Math.round(ms / 1000);
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
+  return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
+};
+/**
+ * A clock time, dated only when it is not today's. A poller's visit list spans
+ * days, and "7:41:58 PM" on its own says nothing about which one.
+ */
+const clockTime = (value) => {
+  const at = new Date(value);
+  const day = at.toDateString() === new Date().toDateString()
+    ? ""
+    : `${at.toLocaleDateString(undefined, { month: "short", day: "numeric" })} `;
+  return day + at.toLocaleTimeString();
+};
+const showToast = (message, error = false) => {
+  clearTimeout(toastTimer);
+  $("toast").textContent = message;
+  $("toast").className = `toast show${error ? " error" : ""}`;
+  toastTimer = setTimeout(() => $("toast").className = "toast", 3200);
+};
+const requestJson = async (path, options) => {
+  const response = await fetch(path, options);
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error ?? `Request failed (${response.status})`);
+  return data;
+};
+
+function setConnection(live) {
+  $("conn").classList.toggle("live", live);
+  $("conn").lastElementChild.textContent = live ? "live" : "offline";
+}
+
+/**
+ * A task waiting on a person is the one state nothing else will clear, so it is
+ * grouped and coloured with the failures rather than with the idle tasks. A
+ * task waiting on a timer or an event is working correctly and reads that way.
+ */
+const needsYou = (task) => task.status === "waiting" && task.waitingOn !== "slot" &&
+  (task.waitingOn === "human" || task.waitingOn === "budget");
+const dotClass = (task) => needsYou(task) ? "needs-you" : task.status;
+/**
+ * What belongs at the top of the board: a task holding a question nobody has
+ * answered, and a task that broke on its own. A stopped task is neither —
+ * stopping one is a decision somebody already made, and a view that keeps
+ * showing it is a view you stop reading.
+ */
+const needsAttention = (task) => task.status === "failed" || needsYou(task);
+
+function renderList() {
+  const visible = tasks.filter((task) => {
+    if (filter === "active" && !["running", "starting", "waiting"].includes(task.status)) {
+      return false;
+    }
+    if (filter === "attention" && !needsAttention(task)) return false;
+    const haystack = `${task.title ?? task.task} ${task.repo ?? ""} ${task.id} ${task.key ?? ""}`
+      .toLowerCase();
+    return haystack.includes(query.toLowerCase());
+  });
+  if (!visible.length) {
+    $("tasklist").innerHTML = `<div class="list-empty">${tasks.length ? "No tasks match this view." : "No tasks yet.<br>Start one when you’re ready."}</div>`;
+    return;
+  }
+  const priority = (task) =>
+    needsAttention(task) ? 0 : ["running", "starting", "waiting"].includes(task.status) ? 1 : 2;
+  visible.sort((a, b) => priority(a) - priority(b) || b.updatedAt.localeCompare(a.updatedAt));
+
+  /**
+   * Children nest under the task that spawned them: a poller with forty PR
+   * reviewers under it is one row that opens, not forty rows burying everything
+   * else. Only when the parent is itself visible — a search that matches one
+   * child should show that child.
+   */
+  const visibleIds = new Set(visible.map((t) => t.id));
+  const kids = new Map();
+  for (const task of visible) {
+    if (!task.parent || !visibleIds.has(task.parent)) continue;
+    if (!kids.has(task.parent)) kids.set(task.parent, []);
+    kids.get(task.parent).push(task);
+  }
+
+  const row = (task, depth) => {
+    const active = ["running", "starting"].includes(task.status);
+    const currentStep = active
+      ? Math.min(task.totalNodes, task.completedNodes + 1)
+      : task.completedNodes;
+    const waitFor = task.status !== "waiting"
+      ? null
+      : task.waitingOn === "human"
+      ? "needs your answer"
+      : task.waitUntil
+      ? `next ${relativeTime(task.waitUntil)}`
+      : `waiting on ${task.waitingOn}`;
+    const detail = [waitFor ?? task.activeNode, repoName(task.repo), relativeTime(task.updatedAt)]
+      .filter(Boolean).join(" · ");
+    const brood = kids.get(task.id) ?? [];
+    const open = expanded.has(task.id);
+    // a task that has stopped running is done with whatever it is still holding,
+    // so from here on the chips are a cleanup list rather than a status
+    const stale = ["succeeded", "failed", "stopped"].includes(task.status);
+    const resources = [
+      task.container && ["ctr", stale ? "Container still up — free it with Clean container" : "Running in its own container"],
+      task.workspace && ["ws", stale ? "Workspace still on disk — free it with Clean workspace" : "Has a jj workspace on disk"],
+    ].filter(Boolean).map(([label, title]) =>
+      `<span class="res-chip ${stale ? "stale" : ""}" title="${title}">${label}</span>`
+    ).join("");
+    const pr = isHttp(task.pr)
+      ? `<span class="pr-chip" data-href="${esc(task.pr)}" title="${esc(task.pr)}">${esc(prLabel(task.pr))}</span>`
+      : "";
+    // indented with padding rather than a margin: the row is width:100% inside a
+    // fixed-width sidebar, so a margin makes it 100% + the indent and the whole
+    // list scrolls sideways once a fan-out is expanded. Padding is inside the
+    // border box, so the row stays exactly as wide as the pane at any depth and
+    // the title ellipsis absorbs the difference.
+    return `<button class="task-item ${task.id === selId ? "sel" : ""}" data-id="${task.id}" style="${
+      depth ? `padding-left:${10 + depth * 13}px;` : ""
+    }">
+      <span class="task-top"><span class="status-dot ${dotClass(task)}"></span><span class="task-title">${
+      esc(task.title ?? task.task)
+    }</span>${
+      brood.length
+        ? `<span class="progress-chip" data-toggle="${task.id}" title="${brood.length} spawned task(s)">${
+          open ? "▾" : "▸"
+        } ${brood.length}</span>`
+        : ""
+    }</span>
+      <span class="task-meta">
+        <span>${esc(detail)}</span>
+        <span class="task-stats">${pr}${resources}<span class="progress-chip ${active ? "active" : ""}" title="${
+      active
+        ? `Running step ${currentStep} of ${task.totalNodes}`
+        : `${task.completedNodes} of ${task.totalNodes} nodes completed`
+    }">${currentStep}/${task.totalNodes}</span>${
+      task.costUsd ? `<span>${formatMoney(task.costUsd)}</span>` : ""
+    }</span>
+      </span>
+    </button>` + (open ? brood.map((child) => row(child, depth + 1)).join("") : "");
+  };
+
+  let lastGroup = "";
+  $("tasklist").innerHTML = visible.map((task) => {
+    // a child is rendered by its parent's row, not at the top level
+    if (task.parent && visibleIds.has(task.parent)) return "";
+    const group = priority(task) === 0
+      ? "Needs attention"
+      : priority(task) === 1
+      ? "In progress"
+      : "Recent";
+    const heading = group === lastGroup ? "" : `<div class="list-label">${group}</div>`;
+    lastGroup = group;
+    return heading + row(task, 0);
+  }).join("");
+  document.querySelectorAll("[data-toggle]").forEach((chip) =>
+    chip.onclick = (event) => {
+      event.stopPropagation();
+      const id = chip.dataset.toggle;
+      expanded.has(id) ? expanded.delete(id) : expanded.add(id);
+      renderList();
+    }
+  );
+  document.querySelectorAll(".task-item").forEach((element) =>
+    element.onclick = () => selectTask(element.dataset.id)
+  );
+  // a span, not an anchor: the row is a button, and a link inside one is both
+  // invalid and a click that also selects the row
+  document.querySelectorAll(".pr-chip[data-href]").forEach((chip) =>
+    chip.onclick = (event) => {
+      event.stopPropagation();
+      window.open(chip.dataset.href, "_blank", "noopener");
+    }
+  );
+  updateTabBadge();
+}
+
+/**
+ * The tab title and favicon carry the count of tasks that need a person, because
+ * a question nobody sees is a task parked for three days. This is the only
+ * signal that reaches someone who has this dashboard in a background tab.
+ */
+function updateTabBadge() {
+  const count = tasks.filter(needsYou).length;
+  document.title = count ? `(${count}) Agentflow` : "Agentflow";
+  const link = $("favicon");
+  if (!link) return;
+  const dot = count ? "%23c23c32" : "%236b6f8a";
+  link.href = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">` +
+    `<circle cx="16" cy="16" r="11" fill="${dot}"/></svg>`;
+}
+
+async function loadBoard() {
+  try {
+    tasks = await requestJson("/api/board");
+    renderList();
+    if (!selId && tasks[0]) await selectTask(tasks[0].id);
+  } catch (error) {
+    showToast(error.message, true);
+  }
+}
+
+async function selectTask(id) {
+  curEs?.close();
+  selId = id;
+  selNode = null;
+  // all of these are keyed by node id, which is only unique inside one task: a
+  // second task with a node called "poll" would otherwise read the first one's
+  // output. The transcript cache is the reason the tab grew without bound —
+  // it held every visit of every task ever opened, and the logs on disk run to
+  // a hundred megabytes.
+  liveLog.clear();
+  transcripts.clear();
+  liveLlm.clear();
+  openVisits.clear();
+  autoOpen.clear();
+  visitWindowFor = null;
+  eventWindow = EVENT_PAGE;
+  nodeEventWindow = EVENT_PAGE;
+  noteTarget = null;
+  renderList();
+  try {
+    cur = await requestJson(`/api/task/${id}`);
+  } catch (error) {
+    showToast(error.message, true);
+    return;
+  }
+  renderWorkspace();
+  // since=0 replays the whole stream before going live, so the Events tab is
+  // populated without a second request
+  taskEvents = [];
+  curEs = new EventSource(`/api/task/${id}/events?since=0`);
+  curEs.addEventListener("event", (event) => {
+    const record = JSON.parse(event.data);
+    taskEvents.push(record);
+    paint(PAINT.rail);
+    if (logMode === "events") paint(PAINT.inspector);
+    // the decision card lists notes nobody has read yet, so one arriving while
+    // the gate holds changes what it has to say
+    if (record.kind === "operator" && cur?.status === "waiting") paint(PAINT.workspace);
+    // an agent announcing a file it just wrote is the moment to show it; the
+    // node boundary that would otherwise refresh the listing can be an hour off
+    if (record.refs?.some((ref) => ref.includes("/artifacts/"))) loadArtifacts();
+  });
+  curEs.addEventListener("update", (event) => {
+    const next = JSON.parse(event.data);
+    /**
+     * The update frame leaves out run prompts — they are most of its bytes and
+     * they never change once a run has started. Everything already held is
+     * carried across, so the transcript keeps showing what a visit was asked.
+     */
+    const held = new Map(
+      (cur?.runs ?? []).filter((run) => run.prompt !== undefined)
+        .map((run) => [`${run.node}:${run.visit}`, run.prompt]),
+    );
+    for (const run of next.runs) run.prompt ??= held.get(`${run.node}:${run.visit}`);
+    cur = next;
+    paint(PAINT.workspace);
+  });
+  curEs.addEventListener("node", (event) => {
+    const run = JSON.parse(event.data);
+    const index = cur.runs.findIndex((item) => item.node === run.node && item.visit === run.visit);
+    if (index >= 0) cur.runs[index] = run; else cur.runs.push(run);
+    if (run.status === "running") {
+      liveLog.delete(run.node);
+      liveLlm.delete(run.node);
+      // the visit that just started is the one worth watching, and the one this
+      // replaces is a finished visit of the same node
+      const prior = autoOpen.get(run.node);
+      if (prior !== undefined) openVisits.delete(`${run.node}:${prior}`);
+      autoOpen.set(run.node, run.visit);
+      openVisits.add(`${run.node}:${run.visit}`);
+      if (!selNode) selNode = run.node;
+    }
+    paint(PAINT.graph);
+    if (selNode === run.node) paint(PAINT.inspector);
+  });
+  curEs.addEventListener("log", (event) => {
+    const { node, chunk } = JSON.parse(event.data);
+    // the chunk is the signal, not the content: what gets drawn is the file,
+    // which also holds everything that arrived before this tab was watching
+    trackLiveLlm(node, chunk);
+    const run = runningVisit(node);
+    if (run) pullLogSoon(node, run.visit);
+  });
+}
+
+const fmtTokens = (n) => n >= 1000000 ? `${+(n / 1000000).toFixed(1)}M` : `${+(n / 1000).toFixed(1)}k`;
+const fmtBytes = (n) => n < 1024 ? `${n} B` : n < 1048576 ? `${(n / 1024).toFixed(1)} KiB` : `${(n / 1048576).toFixed(1)} MiB`;
+/**
+ * The only shape a value is allowed to become a link in. Metadata and refs are
+ * written from inside containers, and `javascript:` in an href here is a
+ * container reaching the daemon's API through the operator's browser.
+ */
+const isHttp = (value) => typeof value === "string" && /^https?:\/\/\S+$/.test(value);
+/** "#123" off a PR or MR URL, so a chip says which one rather than only that there is one */
+const prLabel = (url) => {
+  const m = url.match(/\/(?:pull|pulls|merge_requests|pull-requests)\/(\d+)/);
+  return m ? `PR #${m[1]}` : "PR";
+};
+/** a ref into one of the task's two served directories becomes the URL that serves it */
+const refHref = (ref) => {
+  const m = cur && ref.match(/^\/ws\/([\w-]+)\/(refs|artifacts)\/(.+)$/);
+  if (m && m[1] === cur.id) {
+    return `/api/task/${cur.id}/${m[2]}/${m[3].split("/").map(encodeURIComponent).join("/")}`;
+  }
+  return isHttp(ref) ? ref : null;
+};
+
+function taskMetrics() {
+  const runs = cur.runs ?? [];
+  const cost = runs.reduce((sum, run) => sum + (run.llm?.costUsd ?? 0), 0);
+  /**
+   * Context belongs to a conversation, not to a task. A workflow runs several:
+   * the coder thread grows across every implement and polish visit, the
+   * reviewer keeps its own, and a cold node starts empty on every visit. So
+   * report the fullest thread and say which one it is — that is the thread
+   * that runs out of room first, and "whichever node ran last" was answering
+   * a question nobody asked.
+   */
+  const latest = new Map();
+  for (const run of runs) {
+    if (run.llm?.contextPct == null) continue;
+    const node = (cur.workflow?.nodes ?? []).find((item) => item.id === run.node);
+    const session = node?.session && node.session !== "none" ? node.session : run.node;
+    latest.set(session, { session, llm: run.llm });
+  }
+  const context = [...latest.values()].sort((a, b) => b.llm.contextPct - a.llm.contextPct)[0];
+  const done = new Set(runs.filter((run) => !["running", "cancelled"].includes(run.status)).map((run) => run.node)).size;
+  return { cost, context, done };
+}
+
+function renderWorkspace() {
+  if (!cur) return;
+  const running = ["running", "starting"].includes(cur.status);
+  const parked = cur.status === "waiting" && cur.wait;
+  const badgeClass = parked && needsYou({ status: cur.status, waitingOn: cur.wait.reason })
+    ? "needs-you"
+    : cur.status;
+  const metrics = taskMetrics();
+  $("topbar").innerHTML = `
+    ${sideToggle()}
+    <div class="task-heading">
+      <div class="breadcrumbs"><span>Tasks</span><span>/</span><span>${esc(repoName(cur.request.repo))}</span><span>/</span><span>${esc(cur.id)}</span></div>
+      <h1 title="${esc(cur.request.title ?? cur.request.task)}">${esc(cur.request.title ?? cur.request.task)}</h1>
+    </div>
+    <span class="badge ${badgeClass}"><span class="status-dot ${badgeClass}"></span>${
+      cur.status === "waiting" ? `waiting · ${esc(cur.wait?.reason ?? "")}` : cur.status
+    }</span>
+    ${isHttp(cur.meta?.pr)
+      ? `<a class="badge link" href="${esc(cur.meta.pr)}" target="_blank" rel="noopener" title="${esc(cur.meta.pr)}">${esc(prLabel(cur.meta.pr))} ↗</a>`
+      : ""}
+    <div class="top-actions">
+      ${running
+        ? `<button class="button" data-action="stop">${icon("stop")} Stop</button>`
+        : parked && cur.wait.reason === "human"
+        // the decision card below carries the real answers; a generic Resume here
+        // would only be refused, since nothing can guess which answer was meant
+        ? ""
+        : parked
+        ? `<button class="button" data-action="poke">${icon("play")} Run now</button>`
+        : cur.checkpoint ? `<button class="button" data-action="resume">${icon("play")} Resume</button>` : ""}
+      <button class="icon-button" id="railtoggle" title="Show or hide the task panel">${icon("panelRight")}</button>
+      <div class="task-menu">
+        <button class="icon-button" id="menutoggle" title="Task options">${icon("more")}</button>
+        <div class="menu" id="taskmenu">
+          ${cur.request.task ? `<button data-action="copy">Copy task prompt</button>` : ""}
+          ${cur.container ? `<button data-action="ctr">Clean container</button>` : ""}
+          ${cur.workspace || cur.cwd ? `<button data-action="ws">Clean workspace</button>` : ""}
+          ${cur.container || cur.workspace || cur.cwd ? `<button data-action="both">Clean container + workspace</button>` : ""}
+          <button class="danger" data-action="remove">Delete task…</button>
+        </div>
+      </div>
+    </div>`;
+  $("stage").innerHTML = `
+    <section class="overview">
+      ${parked ? decisionCard() : ""}
+      ${cur.setupExit ? setupNotice() : ""}
+      <div class="metric-row">
+        <div class="metric"><div class="metric-label">Progress</div><div class="metric-value">${metrics.done} of ${cur.workflow.nodes.length} nodes</div></div>
+        <div class="metric"><div class="metric-label">Cost</div><div class="metric-value">${formatMoney(metrics.cost)}</div></div>
+        <div class="metric"><div class="metric-label">${metrics.context ? `Context · ${esc(metrics.context.session)}` : "Context"}</div><div class="metric-value">${metrics.context ? `${metrics.context.llm.contextPct}% · ${fmtTokens(metrics.context.llm.contextTokens)}${metrics.context.llm.contextWindow ? ` / ${fmtTokens(metrics.context.llm.contextWindow)}` : ""}` : "—"}</div></div>
+        <div class="metric"><div class="metric-label">Workflow</div><div class="metric-value">${esc(cur.workflow.name)}</div></div>
+        <div class="metric wide"><div class="metric-label">Repository</div><div class="metric-value" title="${esc(cur.request.repo ?? "Scratch workspace")}">${esc(cur.request.repo ?? "Scratch workspace")}</div>${cur.base ? `<div class="metric-sub" title="Working-copy parents of the repo when this task was spawned — what its workspace was cut from">cut from ${esc(cur.base)}</div>` : ""}</div>
+      </div>
+      ${renderFacts()}
+      <div class="artifacts" id="artifacts" hidden></div>
+      <div class="graph-wrap" id="graphwrap">
+        <div class="graph-toolbar">
+          <button class="icon-button" id="resetgraph" title="Reset arrangement">${icon("undo")}</button>
+          <button class="icon-button" id="fitgraph" title="Fit graph">${icon("fit")}</button>
+        </div>
+        <svg class="graph" id="graph"></svg>
+      </div>
+    </section>
+    <div class="splitter" id="splitter"></div>
+    <section class="inspector">
+      <div class="inspector-head">
+        <span class="node-name" id="lognode">Select a node</span>
+        <div class="tabs">
+          <button class="tab ${logMode === "summary" ? "on" : ""}" data-mode="summary">Output</button>
+          <button class="tab ${logMode === "full" ? "on" : ""}" data-mode="full">Transcript</button>
+          <button class="tab ${logMode === "events" ? "on" : ""}" data-mode="events">Events</button>
+          <button class="tab ${logMode === "config" ? "on" : ""}" data-mode="config">Configuration</button>
+        </div>
+        <div class="node-actions" id="nodeactions"></div>
+        <span class="inspector-meta" id="logmeta"></span>
+      </div>
+      <div class="pane-wrap">
+        <div class="output" id="logpane"><span class="sysline">Select a workflow node to inspect its work.</span></div>
+        <button class="jump" id="logjump" title="Jump to the newest">${icon("down")} Latest</button>
+      </div>
+      <div class="composer">
+        <span class="select-shell">
+          <select id="fbtarget" title="Send feedback to one node or every agent"><option value="">All agents</option></select>
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>
+        </span>
+        <input id="fbinput" placeholder="Steer the agents…  Enter to send · Shift + Enter to interrupt" />
+        <div class="composer-actions"><button class="button" id="fbsend">Send</button><button class="button danger" id="fbint">Interrupt</button></div>
+      </div>
+    </section>`;
+  bindWorkspace();
+  bindDecision();
+  loadArtifacts();
+  if (!selNode) {
+    const runningNode = [...(cur.runs ?? [])].reverse().find((run) => run.status === "running")?.node;
+    selNode = runningNode ?? cur.workflow.start ?? cur.workflow.nodes[0]?.id ?? null;
+  }
+  syncNoteTargets();
+  renderGraph();
+  renderInspector();
+  renderRail();
+}
+
+/**
+ * The metadata bag as chips. A value that is a URL links; anything else is
+ * text, whatever it looks like — see isHttp for why.
+ */
+function renderFacts() {
+  const entries = Object.entries(cur.meta ?? {});
+  if (!entries.length) return "";
+  return `<div class="facts">${entries.map(([key, value]) =>
+    `<span class="fact" title="${esc(value)}"><b>${esc(key)}</b>${
+      isHttp(value)
+        ? `<a href="${esc(value)}" target="_blank" rel="noopener">${esc(value)}</a>`
+        : `<span>${esc(value)}</span>`
+    }</span>`).join("")}</div>`;
+}
+
+let artifactSeq = 0;
+/**
+ * Fetched rather than carried on the record: the listing is a directory walk
+ * the daemon does on demand, so a task's record never grows with its files.
+ * Images show inline; everything else opens as text or downloads.
+ */
+async function loadArtifacts() {
+  if (!cur || !$("artifacts")) return;
+  const seq = ++artifactSeq;
+  const id = cur.id;
+  let listing;
+  try {
+    listing = await requestJson(`/api/task/${id}/artifacts`);
+  } catch {
+    return;
+  }
+  const box = $("artifacts");
+  if (seq !== artifactSeq || cur?.id !== id || !box) return;
+  if (!listing.files.length) {
+    box.hidden = true;
+    box.innerHTML = "";
+    return;
+  }
+  const href = (file) => `/api/task/${id}/artifacts/${file.path.split("/").map(encodeURIComponent).join("/")}`;
+  const isImage = (file) => /\.(png|jpe?g|gif|webp|svg)$/i.test(file.path);
+  box.hidden = false;
+  box.innerHTML = `<div class="artifacts-label">Artifacts · ${listing.files.length}${listing.truncated ? "+" : ""}</div>
+    <div class="artifact-grid">${listing.files.map((file) =>
+      `<a class="artifact" href="${href(file)}" target="_blank" rel="noopener" title="${esc(file.path)}">${
+        isImage(file) ? `<img src="${href(file)}" loading="lazy" alt="${esc(file.path)}">` : ""
+      }<span class="artifact-name">${esc(file.path)}</span><span class="artifact-size">${fmtBytes(file.size)}${
+        file.modifiedAt ? ` · ${relativeTime(file.modifiedAt)}` : ""
+      }</span></a>`).join("")}</div>`;
+}
+
+/**
+ * The rail's frame. Rebuilt only with the workspace, because rewriting a tab
+ * strip under someone every time an event lands is how a pane loses its scroll
+ * position mid-read — the body below it repaints on its own.
+ */
+function renderRail() {
+  const rail = $("rail");
+  if (!rail) return;
+  if (!cur) {
+    rail.innerHTML =
+      '<div class="rail-empty">The task\'s own record and its whole event stream show up here.</div>';
+    return;
+  }
+  rail.innerHTML = `
+    <div class="rail-head">
+      <div class="tabs">
+        <button class="tab ${railMode === "events" ? "on" : ""}" data-rail="events">All events</button>
+        <button class="tab ${railMode === "details" ? "on" : ""}" data-rail="details">Task details</button>
+      </div>
+    </div>
+    <div class="rail-sub" id="railmeta"></div>
+    <div class="pane-wrap">
+      <div class="output rail-body" id="railpane"></div>
+      <button class="jump" id="railjump" title="Jump to the newest">${icon("down")} Latest</button>
+    </div>`;
+  rail.querySelectorAll("[data-rail]").forEach((tab) =>
+    tab.onclick = () => {
+      railMode = tab.dataset.rail;
+      renderRail();
+    }
+  );
+  bindJump("railpane");
+  renderRailBody();
+}
+
+/**
+ * A prewarm that failed and was not marked required. The task carried on, which
+ * is usually right and occasionally means every gate below is already doomed —
+ * and the one line saying so was event #2 on a stream that ends in the hundreds.
+ * So it is stated here for as long as the task exists, next to the output that
+ * explains it.
+ */
+function setupNotice() {
+  return `
+    <div class="notice">
+      <div class="notice-body">
+        <div class="notice-label">Setup failed · exit ${esc(String(cur.setupExit))}</div>
+        <div class="notice-text">Whatever it was meant to prepare may not be there — a gate failing below may be this rather than the change.</div>
+      </div>
+      <button data-action="setuplog">View output</button>
+    </div>`;
+}
+
+/**
+ * What a parked task is waiting for, and the buttons to end the wait. The
+ * answers are read off the wait node's outgoing edges rather than listed here,
+ * so a graph offering approve/revise/decline needs nothing added to this file —
+ * and a graph that renames them cannot leave the dashboard offering the old ones.
+ */
+function decisionCard() {
+  const wait = cur.wait;
+  const answers = [
+    ...new Set(
+      (cur.workflow.edges ?? []).filter((edge) => edge.from === wait.node)
+        .map((edge) => edge.when ?? "ok"),
+    ),
+  ];
+  const gate = wait.reason === "human";
+  const due = wait.until ? ` · timer due ${relativeTime(wait.until)}` : "";
+  const heading = gate
+    ? "Waiting for you"
+    : `Parked at ${esc(wait.node)} · ${esc(wait.reason)}${due}`;
+  /**
+   * Notes left while the gate has been holding. They are on the stream but no
+   * node has read them, and an answer that finishes the task strands them —
+   * which is the whole hazard of steering a parked task by typing into the
+   * composer: it feels like it landed, and it only lands if the work goes back.
+   */
+  const pending = gate
+    ? taskEvents.filter((event) => event.kind === "operator" && event.at >= wait.since)
+    : [];
+  return `<div class="decision ${gate ? "" : "timer"}">
+    <div class="decision-label">${heading}</div>
+    <p class="decision-ask">${
+    esc(wait.ask ?? `Waiting on ${wait.reason === "event" ? "activity" : wait.reason}.`)
+  }</p>
+    ${
+    pending.length
+      ? `<div class="decision-pending"><strong>${pending.length} note${
+        pending.length > 1 ? "s" : ""
+      } waiting to be read:</strong>${
+        pending.map((event) => `<div>· ${esc(event.message.slice(0, 200))}</div>`).join("")
+      }<div class="decision-pending-hint">No agent has seen ${
+        pending.length > 1 ? "these" : "this"
+      } yet. An answer that sends the work back delivers ${
+        pending.length > 1 ? "them" : "it"
+      }; one that finishes the task leaves ${pending.length > 1 ? "them" : "it"} unread.</div></div>`
+      : ""
+  }
+    ${
+    gate
+      ? `<input class="decision-note" id="decisionnote" placeholder="Anything to tell the agents along with your answer…" />`
+      : ""
+  }
+    <div class="decision-actions">
+      ${
+    gate
+      ? answers.map((label, i) =>
+        `<button data-answer="${esc(label)}" class="${i === 0 ? "primary" : ""}">${esc(label)}</button>`
+      ).join("")
+      : `<button data-poke="1" class="primary">Run now</button>`
+  }
+    </div>
+  </div>`;
+}
+
+function bindDecision() {
+  document.querySelectorAll("[data-answer]").forEach((button) =>
+    button.onclick = async () => {
+      const message = $("decisionnote")?.value.trim() || undefined;
+      try {
+        await requestJson(`/api/task/${cur.id}/approve`, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ label: button.dataset.answer, message }),
+        });
+        showToast(`Answered "${button.dataset.answer}"`);
+      } catch (e) {
+        showToast(String(e.message ?? e), true);
+      }
+    }
+  );
+  const poke = document.querySelector("[data-poke]");
+  if (poke) {
+    poke.onclick = async () => {
+      try {
+        await requestJson(`/api/task/${cur.id}/poke`, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          // a budget park is a limit the operator set, so overriding it from the
+          // button is deliberate rather than a surprise
+          body: JSON.stringify({ force: cur.wait?.reason === "budget" }),
+        });
+        showToast("Running now");
+      } catch (e) {
+        showToast(String(e.message ?? e), true);
+      }
+    };
+  }
+}
+
+function bindWorkspace() {
+  document.querySelectorAll("[data-action]").forEach((button) => button.onclick = () => taskAction(button.dataset.action));
+  $("menutoggle").onclick = (event) => {
+    event.stopPropagation();
+    $("taskmenu").classList.toggle("open");
+  };
+  document.onclick = () => $("taskmenu")?.classList.remove("open");
+  // the tab strip is the only part of the workspace a tab click changes, so it
+  // is restyled in place rather than rebuilding the stage and the rail under it
+  document.querySelectorAll("[data-mode]").forEach((button) => button.onclick = () => {
+    logMode = button.dataset.mode;
+    document.querySelectorAll("[data-mode]").forEach((tab) => tab.classList.toggle("on", tab === button));
+    renderInspector();
+  });
+  $("fitgraph").onclick = () => { fitGraph(); saveArrangement(); };
+  $("resetgraph").onclick = () => {
+    placed = {};
+    renderGraph();
+    fitGraph();
+    saveArrangement();
+    showToast("Arrangement reset");
+  };
+  $("fbsend").onclick = () => interject(false);
+  $("fbint").onclick = () => interject(true);
+  $("fbinput").onkeydown = (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      interject(event.shiftKey);
+    }
+  };
+  const splitter = $("splitter");
+  splitter.onpointerdown = (event) => {
+    splitter.setPointerCapture(event.pointerId);
+    splitter.onpointermove = (move) => {
+      // a drag is a move with the button still down. Tearing the handler down
+      // on pointerup alone is not enough: a drag that ends off the window ends
+      // in pointercancel, and the handler that outlives it turns every later
+      // hover over the bar into a resize
+      if (!(move.buttons & 1)) return;
+      const height = Math.min(innerHeight - 250, Math.max(180, innerHeight - move.clientY));
+      document.documentElement.style.setProperty("--inspector-h", `${height}px`);
+      localStorage.setItem("af.inspectorH", `${height}px`);
+    };
+  };
+  // fires however the capture ends — released, cancelled, or taken away
+  splitter.onlostpointercapture = () => splitter.onpointermove = null;
+  bindGraphCanvas();
+  bindJump("logpane");
+}
+
+async function taskAction(action) {
+  if (!cur) return;
+  try {
+    if (action === "copy") {
+      await navigator.clipboard.writeText(cur.request.task);
+      return showToast("Task prompt copied");
+    }
+    // the prewarm belongs to the task rather than to any node, so it shows in
+    // the rail; no tab owns it, so none should look like it does
+    if (action === "setuplog") {
+      railMode = "setup";
+      renderRail();
+      return;
+    }
+    if (action === "remove") {
+      if (!confirm(`Delete “${cur.request.title ?? cur.id}”? This removes its container, workspace, and task history.`)) return;
+      await requestJson(`/api/task/${cur.id}/remove`, { method: "POST" });
+      curEs?.close();
+      cur = null; selId = null; selNode = null;
+      $("topbar").innerHTML = emptyTopbar();
+      $("stage").innerHTML = '<div class="empty-state"><div><div class="empty-icon">✓</div><h2>Task deleted</h2><p>Select another task or start something new.</p></div></div>';
+      renderRail();
+      await loadBoard();
+      return;
+    }
+    if (action === "stop" || action === "resume" || action === "poke") {
+      cur = await requestJson(`/api/task/${cur.id}/${action}`, { method: "POST", headers: { "content-type": "application/json" }, body: "{}" });
+    } else {
+      cur = await requestJson(`/api/task/${cur.id}/cleanup`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ container: action === "ctr" || action === "both", workspace: action === "ws" || action === "both" }),
+      });
+    }
+    renderWorkspace();
+    showToast(
+      action === "stop"
+        ? "Task stopped"
+        : action === "resume"
+        ? "Task resumed"
+        : action === "poke"
+        ? "Running now"
+        : "Resources cleaned",
+    );
+  } catch (error) {
+    showToast(error.message, true);
+  }
+}
+
+const NW = 196, NH = 64, GX = 96, GY = 118, PAD = 62;
+function layout(workflow) {
+  const order = [];
+  const seen = new Set();
+  let frontier = [workflow.start ?? workflow.nodes[0]?.id].filter(Boolean);
+  while (frontier.length) {
+    const column = [...new Set(frontier.filter((node) => !seen.has(node) && !node.startsWith("@")))];
+    if (!column.length) break;
+    order.push(column);
+    column.forEach((node) => seen.add(node));
+    frontier = workflow.edges.filter((edge) => column.includes(edge.from) && !seen.has(edge.to)).map((edge) => edge.to);
+  }
+  for (const node of workflow.nodes) if (!seen.has(node.id)) order.push([node.id]);
+  const positions = new Map();
+  order.forEach((column, x) => column.forEach((id, y) => positions.set(id, { x: PAD + x * (NW + GX), y: PAD + y * (NH + GY) })));
+  return positions;
+}
+/**
+ * The task's runs bucketed by node, in one pass. The graph asks every node for
+ * its state and its visit count, and it redraws on every frame of a drag —
+ * scanning a poller's few thousand runs twice per node per frame is how a
+ * graph you are dragging stops keeping up with the pointer.
+ */
+function runsByNode() {
+  const byNode = new Map();
+  for (const run of cur.runs ?? []) {
+    let list = byNode.get(run.node);
+    if (!list) byNode.set(run.node, list = []);
+    list.push(run);
+  }
+  return byNode;
+}
+function nodeState(nodeId, byNode) {
+  // a parked task's graph position is the node it is parked at, and no run
+  // records that yet — the run appears once something wakes it
+  if (cur.status === "waiting" && cur.wait?.node === nodeId) return "waiting";
+  return byNode.get(nodeId)?.at(-1)?.status ?? "awaiting";
+}
+function nodeKind(node) {
+  const exec = node.exec ?? (node.type === "shell" ? "shell" : "claude");
+  if (exec === "wait") return node.wait?.ask ? "gate · asks you" : waitKind(node.wait ?? {});
+  if (exec === "shell") return "shell";
+  // "agent" is what a claude node has always been called here, so naming the
+  // exec is reserved for the one that isn't the default: a graph running
+  // entirely on claude gains nothing from a column repeating it on every row,
+  // and in a mixed graph which node is which is the whole point
+  const agent = exec === "codex" ? "codex" : "agent";
+  if (node.outcome || node.type === "review") {
+    return exec === "codex" ? "codex · review" : "review";
+  }
+  return (node.session ?? "none") === "none"
+    ? (exec === "codex" ? "codex · one-shot" : "one-shot")
+    : `${agent} · ${node.session}`;
+}
+/**
+ * What a wait node is for, in the words of its own spec. Kept short because it
+ * shares one line with the run state: four event kinds spelled out ran past the
+ * node's own edge and collided with everything to its right, so past two they
+ * are counted instead and the full list lives in the hover title.
+ */
+function waitKind(spec) {
+  const parts = [];
+  const kinds = spec.on ?? [];
+  if (kinds.length) {
+    parts.push(kinds.length <= 2 ? kinds.map((t) => t.kind).join("/") : `${kinds.length} events`);
+  }
+  if (spec.after) parts.push(`${spec.after.min}${spec.after.max ? `→${spec.after.max}` : ""}`);
+  return parts.length ? `wait · ${parts.join(" · ")}` : "wait";
+}
+
+/** the same thing without the shortening, for the tooltip */
+function nodeKindFull(node) {
+  const exec = node.exec ?? (node.type === "shell" ? "shell" : "claude");
+  if (exec !== "wait") return nodeKind(node);
+  const spec = node.wait ?? {};
+  const parts = [];
+  if (spec.ask) parts.push(`asks: ${spec.ask}`);
+  if (spec.on?.length) parts.push(`wakes on ${spec.on.map((t) => `${t.kind}→${t.label}`).join(", ")}`);
+  if (spec.after) {
+    parts.push(
+      `timer ${spec.after.min}${spec.after.max ? ` growing to ${spec.after.max}` : ""}→${
+        spec.after.label ?? "tick"
+      }`,
+    );
+  }
+  if (spec.settle) parts.push(`settles ${spec.settle}`);
+  return parts.join(" · ");
+}
+
+/**
+ * SVG text neither wraps nor clips, so anything wider than the space it was
+ * given simply draws over its neighbour. Counting characters only works for the
+ * monospace lines and only if you guess the advance width right; the node's
+ * title is a proportional face, where "Illinois" and "MMMMMMMM" are the same
+ * eight characters and nowhere near the same width. So it is measured.
+ */
+const glyphs = new Map();
+const ruler = document.createElement("canvas").getContext("2d");
+function measure(text, font) {
+  const key = `${font} ${text}`;
+  let width = glyphs.get(key);
+  if (width === undefined) {
+    ruler.font = font;
+    glyphs.set(key, width = ruler.measureText(text).width);
+  }
+  return width;
+}
+const FONT_NAME = '600 12px system-ui, -apple-system, "Segoe UI", sans-serif';
+const FONT_KIND = '500 9px "DM Mono", monospace';
+const FONT_STATE = '500 8px "DM Mono", monospace';
+
+function fitText(text, room, font) {
+  if (measure(text, font) <= room) return text;
+  // drop whole ` · ` segments before cutting inside one: "wait · 4 events" says
+  // something, "wait · 4 events · 2…" trails off mid-word for no extra meaning
+  const parts = text.split(" · ");
+  while (parts.length > 1) {
+    parts.pop();
+    const kept = `${parts.join(" · ")} ⋯`;
+    if (measure(kept, font) <= room) return kept;
+  }
+  let cut = text;
+  while (cut.length > 1 && measure(`${cut}…`, font) > room) cut = cut.slice(0, -1);
+  return `${cut}…`;
+}
+
+/**
+ * Where the nodes sit. The automatic layout is only a starting point: any node
+ * can be dragged anywhere, and the arrangement — with where the view was panned
+ * and zoomed to — is kept per task for the life of the tab. Session storage
+ * rather than local, because a graph that has grown a node since is better laid
+ * out afresh than pinned to last week's picture of it.
+ */
+let placed = {};
+let placedFor = null;
+/** the positions the graph was last drawn at, for hit tests and fitting */
+let nodeAt = new Map();
+let saveTimer;
+
+const arrangementKey = (id) => `af.graph.${id}`;
+function loadArrangement(id) {
+  placedFor = id;
+  placed = {};
+  let saved;
+  try {
+    saved = JSON.parse(sessionStorage.getItem(arrangementKey(id)) ?? "null");
+  } catch { /* unreadable is the same as absent */ }
+  for (const [node, at] of Object.entries(saved?.nodes ?? {})) {
+    if (Number.isFinite(at?.x) && Number.isFinite(at?.y)) placed[node] = { x: at.x, y: at.y };
+  }
+  // a stored view carrying a junk number would blank the graph rather than
+  // restore it, so an unusable one counts as none and the graph is fitted
+  const seen = saved?.view;
+  const usable = Number.isFinite(seen?.x) && Number.isFinite(seen?.y) && seen?.k > 0;
+  if (usable) Object.assign(view, { x: seen.x, y: seen.y, k: seen.k });
+  return !usable;
+}
+function saveArrangement() {
+  clearTimeout(saveTimer);
+  if (!placedFor) return;
+  try {
+    sessionStorage.setItem(arrangementKey(placedFor), JSON.stringify({ nodes: placed, view }));
+  } catch { /* private mode, or a full quota: the arrangement just does not outlive the render */ }
+}
+const saveArrangementSoon = () => {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveArrangement, 350);
+};
+
+const round = (value) => Math.round(value * 10) / 10;
+const cubic = ([p0, c1, c2, p3], t) => {
+  const u = 1 - t, a = u * u * u, b = 3 * u * u * t, c = 3 * u * t * t, d = t * t * t;
+  return {
+    x: a * p0.x + b * c1.x + c * c2.x + d * p3.x,
+    y: a * p0.y + b * c1.y + c * c2.y + d * p3.y,
+  };
+};
+const curvePath = ([p0, c1, c2, p3]) =>
+  `M${round(p0.x)},${round(p0.y)} C${round(c1.x)},${round(c1.y)} ${round(c2.x)},${round(c2.y)} ${
+    round(p3.x)
+  },${round(p3.y)}`;
+const overlaps = (a, b) =>
+  a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+
+const stateLabel = { awaiting: "QUEUED", running: "RUNNING", waiting: "PARKED", ok: "DONE", approve: "APPROVED", fail: "FAILED", request_changes: "CHANGES", cancelled: "STOPPED" };
+
+function renderGraph() {
+  if (!cur || !$("graph")) return;
+  // a task the tab has not drawn before starts from whatever the operator left
+  // it at, and is fitted to the pane when they left it nothing
+  const fitFirst = placedFor === cur.id ? false : loadArrangement(cur.id);
+  const positions = layout(cur.workflow);
+  for (const [id, at] of Object.entries(placed)) {
+    if (positions.has(id)) positions.set(id, { x: at.x, y: at.y });
+  }
+  nodeAt = positions;
+  const lastRun = cur.runs?.at(-1);
+
+  const boxes = [...positions].map(([id, at]) => ({ id, x: at.x, y: at.y, w: NW, h: NH }));
+  const clearOf = (box, skip) =>
+    !boxes.some((node) =>
+      !skip?.includes(node.id) &&
+      overlaps(box, { x: node.x - 6, y: node.y - 6, w: node.w + 12, h: node.h + 12 })
+    );
+  const runsThrough = (curve, skip) => {
+    for (let t = 0.06; t <= 0.94; t += 0.04) {
+      const at = cubic(curve, t);
+      if (!clearOf({ x: at.x, y: at.y, w: 1, h: 1 }, skip)) return true;
+    }
+    return false;
+  };
+
+  /**
+   * A backwards edge runs under the graph rather than through it. Each gets its
+   * own lane, deepest for the longest span, so several rework loops nest
+   * instead of drawing on top of one another; each dips below everything it
+   * passes under rather than a fixed distance below its own ends; and where
+   * several leave or land on the same node they are spread along its edge,
+   * because three arrowheads on one pixel is one arrowhead.
+   */
+  const isBack = (edge) => {
+    const from = positions.get(edge.from), to = positions.get(edge.to);
+    return !!from && !!to && to.x < from.x + NW * .6;
+  };
+  const span = (edge) => Math.abs(positions.get(edge.from).x - positions.get(edge.to).x);
+  const backs = cur.workflow.edges.filter(isBack).sort((a, b) => span(a) - span(b));
+  const lane = new Map(backs.map((edge, i) => [edge, i]));
+  const sharing = (key) => {
+    const map = new Map();
+    for (const edge of backs) {
+      if (!map.has(edge[key])) map.set(edge[key], []);
+      map.get(edge[key]).push(edge);
+    }
+    return map;
+  };
+  const leaves = sharing("from"), lands = sharing("to");
+  const fan = (siblings, edge) => {
+    if (!siblings || siblings.length < 2) return 0;
+    const step = Math.min(26, (NW - 44) / (siblings.length - 1));
+    return (siblings.indexOf(edge) - (siblings.length - 1) / 2) * step;
+  };
+  const floorUnder = (x1, x2) => {
+    const left = Math.min(x1, x2) - 24, right = Math.max(x1, x2) + 24;
+    let floor = -Infinity;
+    for (const node of boxes) {
+      if (node.x < right && node.x + node.w > left) floor = Math.max(floor, node.y + node.h);
+    }
+    return floor;
+  };
+
+  /**
+   * Labels sit on their own curve, at the first spot clear of every node box
+   * and of the labels already placed. Nodes paint over edges, so a label that
+   * lands on a box is a label nobody can read — which is how a graph loses the
+   * one word that says what its loop is for.
+   */
+  const labelled = [];
+  const labelOn = (text, curve) => {
+    const width = measure(text.toUpperCase(), FONT_STATE) + 7;
+    for (const t of [.5, .58, .42, .66, .34, .74, .26, .82, .18]) {
+      const at = cubic(curve, t);
+      for (const lift of [-7, -19, 10, 22]) {
+        const box = { x: at.x - width / 2, y: at.y + lift - 8, w: width, h: 11 };
+        if (!clearOf(box) || labelled.some((taken) => overlaps(box, taken))) continue;
+        labelled.push(box);
+        return `<text class="edge-label" x="${round(at.x)}" y="${
+          round(at.y + lift)
+        }" text-anchor="middle">${esc(text)}</text>`;
+      }
+    }
+    const at = cubic(curve, .5);
+    return `<text class="edge-label" x="${round(at.x)}" y="${
+      round(at.y - 7)
+    }" text-anchor="middle">${esc(text)}</text>`;
+  };
+
+  const edges = cur.workflow.edges.map((edge) => {
+    const from = positions.get(edge.from), to = positions.get(edge.to);
+    if (!from || !to) return "";
+    const back = isBack(edge);
+    const active = lastRun?.node === edge.to && lastRun.status === "running";
+    let curve;
+    if (back) {
+      const depth = lane.get(edge) ?? 0;
+      const x1 = from.x + NW / 2 + fan(leaves.get(edge.from), edge), y1 = from.y + NH;
+      const x2 = to.x + NW / 2 + fan(lands.get(edge.to), edge), y2 = to.y + NH;
+      const dip = Math.max(y1, y2, floorUnder(x1, x2)) + 30 + depth * 22;
+      // two nodes in one column would have the loop run straight down through
+      // both of them, so a loop with nowhere to go sideways is bowed out past
+      // the boxes instead
+      const bow = Math.abs(x2 - x1) < NW ? NW * .85 + depth * 14 : 0;
+      curve = [{ x: x1, y: y1 }, { x: x1 + bow, y: dip }, { x: x2 + bow, y: dip }, { x: x2, y: y2 }];
+    } else {
+      const x1 = from.x + NW, y1 = from.y + NH / 2, x2 = to.x, y2 = to.y + NH / 2;
+      const mid = (x1 + x2) / 2;
+      const bend = (lift) =>
+        [{ x: x1, y: y1 }, { x: mid, y: y1 + lift }, { x: mid, y: y2 + lift }, { x: x2, y: y2 }];
+      // an edge that reaches past its neighbour drives straight through
+      // whatever is sitting in between; arc it over or under instead
+      const lift = [0, -52, 52, -104, 104, -170, 170]
+        .find((candidate) => !runsThrough(bend(candidate), [edge.from, edge.to])) ?? 0;
+      curve = bend(lift);
+    }
+    return `<path class="edge ${back ? "back" : ""} ${active ? "active" : ""}" d="${
+      curvePath(curve)
+    }"/>${edge.when && edge.when !== "ok" ? labelOn(edge.when, curve) : ""}`;
+  }).join("");
+
+  const byNode = runsByNode();
+  const nodes = cur.workflow.nodes.map((node) => {
+    const at = positions.get(node.id);
+    const state = nodeState(node.id, byNode);
+    const visits = byNode.get(node.id)?.length ?? 0;
+    const stateText = stateLabel[state] ?? String(state).toUpperCase();
+    const visitText = visits > 1 ? `×${visits}` : "";
+    const name = node.label ?? node.id;
+    // both lines start at the same inset, past the lamp, and both end at the
+    // same one — the counter and the state are the right-hand column
+    const right = NW - 14;
+    const nameRoom = right - 31 - (visitText ? measure(visitText, FONT_KIND) + 9 : 0);
+    const kindRoom = right - 31 - measure(stateText, FONT_STATE) - 10;
+    return `<g class="node st-${esc(state)} ${selNode === node.id ? "sel" : ""}" data-node="${esc(node.id)}" transform="translate(${at.x},${at.y})">
+      <title>${esc(`${name} — ${nodeKindFull(node)}\n${node.description ?? ""}`)}</title>
+      <rect width="${NW}" height="${NH}" rx="9"/>
+      <circle class="lamp" cx="18" cy="21" r="4"/>
+      <text class="nname" x="31" y="25">${esc(fitText(name, nameRoom, FONT_NAME))}</text>
+      <text class="ntype" x="31" y="46">${esc(fitText(nodeKind(node), kindRoom, FONT_KIND))}</text>
+      <text class="nstate" x="${right}" y="46" text-anchor="end">${stateText}</text>
+      ${visitText ? `<text class="nvisit" x="${right}" y="25" text-anchor="end">${visitText}</text>` : ""}
+    </g>`;
+  }).join("");
+
+  $("graph").innerHTML = `<defs><marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 8 4 0 8z" fill="var(--border-strong)"/></marker></defs><g id="viewport">${edges}${nodes}</g>`;
+  if (fitFirst) fitGraph(); else applyView();
+  if ($("resetgraph")) $("resetgraph").disabled = !Object.keys(placed).length;
+}
+function applyView() {
+  $("viewport")?.setAttribute("transform", `translate(${view.x} ${view.y}) scale(${view.k})`);
+}
+/**
+ * Put the whole graph in the pane. The button used to reset pan and zoom to
+ * nothing, which only fits a graph that starts at the origin and is smaller
+ * than the pane — implement-pr is 2,400px wide, and once a node has been
+ * dragged the identity view can leave it off screen entirely.
+ */
+function fitGraph() {
+  const wrap = $("graphwrap");
+  if (!wrap || !nodeAt.size) return;
+  let left = Infinity, top = Infinity, right = -Infinity, bottom = -Infinity;
+  for (const at of nodeAt.values()) {
+    left = Math.min(left, at.x);
+    top = Math.min(top, at.y);
+    right = Math.max(right, at.x + NW);
+    bottom = Math.max(bottom, at.y + NH);
+  }
+  // the rework loops hang below the lowest row
+  bottom += 78;
+  const pad = 22;
+  const width = Math.max(120, wrap.clientWidth - pad * 2);
+  const height = Math.max(120, wrap.clientHeight - pad * 2);
+  view.k = Math.max(.35, Math.min(1.1, Math.min(width / (right - left), height / (bottom - top))));
+  view.x = pad + (width - (right - left) * view.k) / 2 - left * view.k;
+  view.y = pad + (height - (bottom - top) * view.k) / 2 - top * view.k;
+  applyView();
+}
+function bindGraphCanvas() {
+  const wrap = $("graphwrap");
+  let pan, drag;
+  wrap.onpointerdown = (event) => {
+    if (event.button !== 0 || event.target.closest?.("button")) return;
+    const node = event.target.closest?.(".node");
+    const at = node && nodeAt.get(node.dataset.node);
+    event.preventDefault();
+    wrap.setPointerCapture(event.pointerId);
+    if (at) {
+      drag = { id: node.dataset.node, x: event.clientX, y: event.clientY, ox: at.x, oy: at.y };
+      wrap.classList.add("moving");
+    } else {
+      pan = { x: event.clientX, y: event.clientY };
+      wrap.classList.add("panning");
+    }
+  };
+  wrap.onpointermove = (event) => {
+    // a capture that ended in anything but pointerup would otherwise leave the
+    // graph panning under a hovering cursor; see the inspector splitter
+    if (!(event.buttons & 1)) return;
+    if (drag) {
+      const dx = event.clientX - drag.x, dy = event.clientY - drag.y;
+      // a few pixels of travel while clicking is a click, not a drag
+      if (!drag.moved && Math.abs(dx) < 4 && Math.abs(dy) < 4) return;
+      drag.moved = true;
+      placed[drag.id] = {
+        x: Math.round(drag.ox + dx / view.k),
+        y: Math.round(drag.oy + dy / view.k),
+      };
+      renderGraph();
+      return;
+    }
+    if (!pan) return;
+    view.x += event.clientX - pan.x;
+    view.y += event.clientY - pan.y;
+    pan = { x: event.clientX, y: event.clientY };
+    applyView();
+  };
+  wrap.onpointerup = wrap.onpointercancel = () => {
+    if (drag?.moved || pan) saveArrangement();
+    // a node that was pressed and not moved was being picked, not dragged
+    if (drag && !drag.moved) {
+      selNode = drag.id;
+      renderGraph();
+      renderInspector();
+      // the composer is addressed to whatever you are looking at
+      syncNoteTargets();
+    }
+    drag = pan = undefined;
+    wrap.classList.remove("panning", "moving");
+  };
+  wrap.onwheel = (event) => {
+    event.preventDefault();
+    if (event.ctrlKey || event.metaKey) {
+      const rect = wrap.getBoundingClientRect();
+      const mx = event.clientX - rect.left, my = event.clientY - rect.top;
+      const next = Math.min(2.4, Math.max(.35, view.k * Math.exp(-event.deltaY * .01)));
+      view.x = mx - ((mx - view.x) / view.k) * next;
+      view.y = my - ((my - view.y) / view.k) * next;
+      view.k = next;
+    } else {
+      view.x -= event.deltaX;
+      view.y -= event.deltaY;
+    }
+    applyView();
+    saveArrangementSoon();
+  };
+}
+
+function describeOutcome(outcome) {
+  if (outcome.kind === "pattern") return `pattern /${outcome.pattern}/ · labels ${Object.values(outcome.map).join(", ")}`;
+  const labels = outcome.schema?.properties?.[outcome.label]?.enum;
+  return `schema routed on “${outcome.label}”${labels ? ` (${labels.join(" | ")})` : ""}`;
+}
+function renderNodeActions() {
+  if (!selNode) return "";
+  return `<button class="button" id="rerun">Rerun</button><button class="button" id="rerunfresh">Fresh session</button>`;
+}
+function bindNodeActions() {
+  const rerun = async (session) => {
+    try {
+      cur = await requestJson(`/api/task/${cur.id}/rerun`, {
+        method: "POST", headers: { "content-type": "application/json" },
+        body: JSON.stringify({ from: selNode, session, force: true }),
+      });
+      renderWorkspace();
+      showToast(`Rerunning from ${selNode}`);
+    } catch (error) { showToast(error.message, true); }
+  };
+  if ($("rerun")) $("rerun").onclick = () => rerun("keep");
+  if ($("rerunfresh")) $("rerunfresh").onclick = () => rerun("fresh");
+}
+/**
+ * One JSON value as something a person reads.
+ *
+ * `JSON.stringify(record, null, 2)` is unreadable for exactly this data: the
+ * fields worth debugging are prompts, rubrics and run templates, all of them
+ * paragraphs, and it renders each as a single enormous line with literal \n in
+ * it. So a string that spans lines becomes a block, and everything else follows
+ * the shape of the value rather than the punctuation of the format.
+ *
+ * `prefix` is the markup already sitting on the first line (a key, or a list
+ * dash); `width` is how wide that is on screen, which the markup cannot say.
+ */
+function renderJsonInto(prefix, width, value, indent, out, ride = false) {
+  const push = (s) => out.push(indent + prefix + s);
+  if (value === null) return push('<span class="j-punct">null</span>');
+  if (typeof value === "number") return push(`<span class="j-num">${value}</span>`);
+  if (typeof value === "boolean") return push(`<span class="j-bool">${value}</span>`);
+  if (typeof value === "string") {
+    if (!value.includes("\n")) return push(value === "" ? '<span class="j-punct">""</span>' : esc(value));
+    push('<span class="j-punct">|</span>');
+    // per line rather than one span around the lot, so the rule down the left
+    // stays put instead of wrapping with the text
+    for (const line of value.replace(/\s+$/, "").split("\n")) {
+      out.push(`${indent}  <span class="j-block">${esc(line) || "&nbsp;"}</span>`);
+    }
+    return;
+  }
+  // a heading line only when there is something to head: the root has no key of
+  // its own, and an empty line above the whole document is just an empty line
+  const head = prefix.trimEnd();
+  if (Array.isArray(value)) {
+    if (!value.length) return push('<span class="j-punct">[]</span>');
+    if (head) out.push(indent + head);
+    const inner = head ? indent + "  " : indent;
+    for (const item of value) renderJsonInto('<span class="j-punct">-</span> ', 2, item, inner, out, true);
+    return;
+  }
+  const entries = Object.entries(value).filter(([, v]) => v !== undefined);
+  if (!entries.length) return push('<span class="j-punct">{}</span>');
+  if (ride) {
+    // an object that IS a list item puts its first key on the dash, so a list of
+    // nodes reads as a list of nodes rather than as dashes over indented blocks.
+    // Only there: riding a `key:` would render `request: task: …`, which reads
+    // as though task were all request had.
+    const [[k0, v0], ...rest] = entries;
+    renderJsonInto(`${prefix}<span class="j-key">${esc(k0)}</span>: `, width + k0.length + 2, v0, indent, out);
+    for (const [k, v] of rest) {
+      renderJsonInto(`<span class="j-key">${esc(k)}</span>: `, k.length + 2, v, indent + " ".repeat(width), out);
+    }
+    return;
+  }
+  if (head) out.push(indent + head);
+  const inner = head ? indent + "  " : indent;
+  for (const [k, v] of entries) {
+    renderJsonInto(`<span class="j-key">${esc(k)}</span>: `, k.length + 2, v, inner, out);
+  }
+}
+
+/**
+ * The task-scoped view. The summary at the top is what someone reads to orient;
+ * everything under it is the debugging question that summary cannot answer —
+ * what, exactly, is this task running with. Run history is deliberately absent:
+ * it is the bulk of the record and none of it is configuration.
+ */
+function renderDetails() {
+  const config = {
+    id: cur.id,
+    status: cur.status,
+    createdAt: cur.createdAt,
+    error: cur.error,
+    container: cur.container,
+    workspace: cur.workspace,
+    base: cur.base,
+    setupExit: cur.setupExit,
+    cwd: cur.cwd,
+    sessions: cur.sessions,
+    checkpoint: cur.checkpoint,
+    wait: cur.wait,
+    meta: cur.meta,
+    request: cur.request,
+    workflow: cur.workflow,
+  };
+  const lines = [];
+  renderJsonInto("", 0, config, "", lines);
+  return `<span class="sysline">TASK PROMPT</span>\n<span class="prompt">${esc(cur.request.task)}</span>\n\n` +
+    (cur.request.rubric ? `<span class="sysline">REVIEW RUBRIC</span>\n${esc(cur.request.rubric)}\n\n` : "") +
+    `<span class="sysline">TASK CONFIGURATION</span>\n` +
+    `id          ${esc(cur.id)}\nworkflow    ${esc(cur.workflow.name)}\nmodel       ${esc(cur.request.model ?? "default")}\neffort      ${esc(cur.request.effort ?? "default")}\ngates       ${esc(cur.request.gates ?? "none")}\ncreated     ${new Date(cur.createdAt).toLocaleString()}\n\n` +
+    `<span class="sysline">FULL CONFIGURATION</span>\n` + lines.join("\n");
+}
+/**
+ * The task's whole event stream. Delivered events — the ones that went into an
+ * agent's prompt — are the point of the view, so they carry their audience and
+ * the rest of the stream recedes: without that contrast this is just a second
+ * copy of the node table above.
+ */
+function renderEvents(events, window, moreId) {
+  if (!events.length) return "";
+  const nodeIds = new Set((cur.workflow?.nodes ?? []).map((n) => n.id));
+  const shown = events.slice(-window);
+  const hidden = events.length - shown.length;
+  const earlier = hidden ? moreRow(moreId, hidden, EVENT_PAGE, "event") : "";
+  return earlier + shown.map((ev) => {
+    const at = new Date(ev.at).toLocaleTimeString();
+    const delivered = ev.to !== undefined;
+    const to = Array.isArray(ev.to) ? ev.to.join(",") : ev.to;
+    const who = ev.from ?? (nodeIds.has(ev.node) ? ev.node : "system");
+    const head = delivered
+      ? `<span class="ev-quiet">${esc(at)}</span><span>${esc(who)}</span><span class="ev-to">→ ${esc(to)}</span><span class="ev-kind">${esc(ev.kind)}</span>${ev.key ? `<span class="ev-kind">[${esc(ev.key)}]</span>` : ""}${ev.urgent ? '<span class="tooluse">urgent</span>' : ""}`
+      : `<span class="ev-quiet">${esc(at)}</span><span class="ev-quiet">${esc(who)}</span><span class="ev-quiet">${esc(ev.kind)}</span>`;
+    const refs = delivered && ev.refs?.length
+      ? `\n<span class="ev-refs">refs: ${ev.refs.map((ref) => {
+        const href = refHref(ref);
+        return href
+          ? `<a href="${esc(href)}" target="_blank" rel="noopener">${esc(ref)}</a>`
+          : esc(ref);
+      }).join("  ")}</span>`
+      : "";
+    return `<div class="ev"><div class="ev-head">${head}</div><div class="${
+      delivered ? "ev-body" : "ev-quiet"
+    }">${esc(ev.message)}${refs}</div></div>`;
+  }).join("");
+}
+
+function renderConfig() {
+  const node = cur.workflow.nodes.find((item) => item.id === selNode);
+  if (!node) return '<span class="sysline">Select a node first.</span>';
+  const routeIcon = '<svg viewBox="0 0 30 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 6h27m-4-4 4 4-4 4"/></svg>';
+  const edges = cur.workflow.edges.filter((edge) => edge.from === node.id || edge.to === node.id)
+    .map((edge) => {
+      const incoming = edge.to === node.id;
+      return `<div class="config-edge">
+        <span class="config-node" title="${esc(edge.from)}">${esc(edge.from)}</span>
+        <span class="config-route"><span class="config-condition">${esc(edge.when ?? "ok")}</span>${routeIcon}</span>
+        <span class="config-node" title="${esc(edge.to)}">${esc(edge.to)}</span>
+        <span class="config-direction ${incoming ? "incoming" : ""}">${incoming ? "Inbound" : "Outbound"}</span>
+      </div>`;
+    }).join("") || '<div class="config-edge"><span class="config-direction">No routes</span></div>';
+  const facts = [
+    ["Node", node.id],
+    ["Execution", nodeKind(node)],
+    ["Session", node.session ?? "none"],
+    ["Visit limit", node.maxVisits ?? 10],
+    ...(node.effects ? [["Effects", node.effects]] : []),
+  ].map(([label, value]) => `<span class="config-fact"><span class="config-label">${esc(label)}</span><span class="config-value">${esc(value)}</span></span>`).join("");
+  return `<div class="config-view">
+    <div class="config-facts">${facts}</div>
+    ${node.outcome ? `<div class="config-section"><div class="config-section-title">Outcome</div><div class="config-value">${esc(describeOutcome(node.outcome))}</div></div>` : ""}
+    <div class="config-section"><div class="config-section-title">Routing</div><div class="config-edges">${edges}</div></div>
+    <div class="config-section"><div class="config-section-title">${nodeKind(node) === "shell" ? "Command" : "Prompt template"}</div>` +
+    `<textarea id="configrun" class="config-editor" spellcheck="false">${esc(node.run)}</textarea>` +
+    `<div class="config-actions"><button class="button" id="configsave">Save</button><button class="button danger" id="configinterrupt">Save + interrupt</button><span>Changes apply at the next node boundary.</span></div></div></div>`;
+}
+const short = (value, length) => {
+  const text = typeof value === "string" ? value : JSON.stringify(value) ?? "";
+  return text.length > length ? `${text.slice(0, length)}…` : text;
+};
+function trackLiveLlm(node, chunk) {
+  for (const line of chunk.split("\n")) {
+    if (!line.startsWith("{")) continue;
+    let event;
+    try { event = JSON.parse(line); } catch { continue; }
+    const stats = liveLlm.get(node) ?? {};
+    if (event.type === "system" && event.subtype === "init") stats.model = event.model ?? stats.model;
+    if (event.type === "assistant" && event.message?.usage) {
+      const usage = event.message.usage;
+      stats.model ??= event.message.model;
+      stats.turns = (stats.turns ?? 0) + 1;
+      stats.outputTokens = (stats.outputTokens ?? 0) + (usage.output_tokens ?? 0);
+      stats.cacheRead = (stats.cacheRead ?? 0) + (usage.cache_read_input_tokens ?? 0);
+      stats.cacheWrite = (stats.cacheWrite ?? 0) + (usage.cache_creation_input_tokens ?? 0);
+      stats.contextTokens = (usage.input_tokens ?? 0) + (usage.cache_read_input_tokens ?? 0) + (usage.cache_creation_input_tokens ?? 0) + (usage.output_tokens ?? 0);
+      stats.contextWindow = contextWindow(stats.model);
+      stats.contextPct = stats.contextWindow ? Math.round(stats.contextTokens / stats.contextWindow * 100) : undefined;
+    }
+    // Assigned, not accumulated: codex reports the whole thread's usage on
+    // every turn.completed, so adding them up multiplies. These are the
+    // thread's totals rather than this run's — the per-run figures need the
+    // watermark the engine keeps on the session, and they replace these the
+    // moment the run finishes and its record arrives. No cost: codex runs on a
+    // subscription, so there is no per-token price to report.
+    if (event.type === "turn.completed") {
+      const usage = event.usage ?? {};
+      stats.turns = (stats.turns ?? 0) + 1;
+      stats.inputTokens = usage.input_tokens ?? 0;
+      stats.outputTokens = usage.output_tokens ?? 0;
+      stats.cacheRead = usage.cached_input_tokens ?? 0;
+      stats.cacheWrite = usage.cache_write_input_tokens ?? 0;
+    }
+    liveLlm.set(node, stats);
+  }
+}
+/**
+ * Mirrors contextWindow() in src/engine.ts — the same figure has to come out
+ * whether it was computed live from the stream here or off a finished run's
+ * stats. 1M on opus/sonnet from 4.6 and the whole 5 series, 200k on haiku, the
+ * 4.0–4.5 opus/sonnet models and 3.x; undefined for a model we don't know,
+ * which shows no percentage rather than a wrong one.
+ */
+function contextWindow(model) {
+  if (!model) return undefined;
+  const id = model.replace(/^(?:us|eu|apac)\.|^anthropic\./, "");
+  if (/\[1m\]$/.test(id)) return 1000000;
+  if (/^claude-haiku/.test(id) || /^claude-3/.test(id)) return 200000;
+  if (/^claude-(?:opus|sonnet)-4-[0-5]\b/.test(id)) return 200000;
+  if (/^claude-(?:opus|sonnet|fable|mythos)-/.test(id)) return 1000000;
+  return undefined;
+}
+function renderEventLine(line) {
+  if (!line.trim()) return "";
+  let event;
+  try { event = JSON.parse(line); } catch { return esc(line); }
+  if (event.type === "system") return `<span class="sysline">session ${esc(event.subtype ?? "")} · ${esc(event.model ?? "")}</span>`;
+  if (event.type === "assistant") return (event.message?.content ?? []).map((content) => {
+    if (content.type === "text" && content.text.trim()) return esc(content.text.trim());
+    if (content.type === "thinking" && content.thinking?.trim()) return `<span class="sysline">${esc(short(content.thinking.trim(), 400))}</span>`;
+    if (content.type === "tool_use") return `<span class="tooluse">tool · ${esc(content.name)} ${esc(short(content.input, 160))}</span>`;
+    return "";
+  }).filter(Boolean).join("\n");
+  if (event.type === "user") return (event.message?.content ?? []).map((content) => {
+    if (content.type !== "tool_result") return "";
+    const body = Array.isArray(content.content) ? content.content.map((item) => item.text ?? "").join(" ") : content.content ?? "";
+    return `<span class="toolres">result · ${esc(short(String(body).trim(), 220))}</span>`;
+  }).filter(Boolean).join("\n");
+  if (event.type === "result") return `<span class="sysline">result · ${esc(event.subtype ?? "unknown")} · ${event.num_turns ?? "?"} turns</span>`;
+  return renderCodexEvent(event);
+}
+/**
+ * Codex's --json stream. Item types are matched loosely and on purpose: the
+ * claude side of this file is what happens when a transcript renderer assumes
+ * an event shape and the shape moves, so anything unrecognised falls through to
+ * its own JSON rather than to an empty line that reads as a node doing nothing.
+ */
+function renderCodexEvent(event) {
+  if (event.type === "thread.started") return `<span class="sysline">thread ${esc(event.thread_id ?? event.id ?? "")}</span>`;
+  if (event.type === "turn.completed") {
+    const usage = event.usage ?? {};
+    return `<span class="sysline">turn complete · ${usage.input_tokens ?? "?"} in · ${usage.output_tokens ?? "?"} out</span>`;
+  }
+  if (event.type === "turn.failed") return `<span class="toolres">turn failed · ${esc(short(event.error?.message ?? event.error ?? "", 220))}</span>`;
+  if (event.type !== "item.completed" && event.type !== "item.started") return "";
+  const item = event.item ?? {};
+  if (item.type === "agent_message") return event.type === "item.completed" ? esc((item.text ?? "").trim()) : "";
+  if (item.type === "reasoning") return `<span class="sysline">${esc(short((item.text ?? "").trim(), 400))}</span>`;
+  if (item.type === "command_execution") {
+    const out = item.aggregated_output ?? item.output;
+    return `<span class="tooluse">tool · shell ${esc(short(item.command ?? "", 160))}</span>` +
+      (out ? `\n<span class="toolres">result · ${esc(short(String(out).trim(), 220))}</span>` : "");
+  }
+  if (item.type === "mcp_tool_call") return `<span class="tooluse">tool · ${esc(item.server ?? "mcp")}/${esc(item.tool ?? "")} ${esc(short(item.arguments ?? "", 160))}</span>`;
+  if (item.type === "file_change") return `<span class="tooluse">edit · ${esc(short((item.changes ?? []).map((c) => c.path).join(" "), 160))}</span>`;
+  if (item.type === "todo_list" || item.type === "web_search") return `<span class="sysline">${esc(item.type)}</span>`;
+  return `<span class="sysline">${esc(short(JSON.stringify(item), 200))}</span>`;
+}
+function fullTextFor(run) {
+  if (run.status === "running") {
+    // read off the file rather than accumulated from the stream, so the visit
+    // reads from its first word however late this tab arrived
+    const entry = liveLog.get(run.node);
+    if (entry?.visit !== run.visit) pullLogSoon(run.node, run.visit);
+    return Promise.resolve(entry?.visit === run.visit ? entry.text : "");
+  }
+  const key = `${run.node}:${run.visit}`;
+  let pending = transcripts.get(key);
+  if (!pending) {
+    // the in-flight promise rather than the settled text: a render that starts
+    // while the previous one is still fetching would otherwise queue a second
+    // request for every visit it is waiting on, and a stream that repaints the
+    // pane makes that happen constantly
+    transcripts.set(
+      key,
+      pending = fetch(`/api/task/${cur.id}/log/${run.node}/${run.visit}`)
+        .then((response) => response.ok ? response.text() : run.output ?? "")
+        .catch(() => run.output ?? ""),
+    );
+  }
+  return pending;
+}
+/**
+ * Renders that await are racy by nature: a repaint can start while an earlier
+ * one is still fetching, and the loser used to overwrite the pane with the
+ * older picture. Every pass takes a ticket and drops what it was building if a
+ * newer one has been issued since.
+ */
+let inspectorSeq = 0;
+/** whether the pane was parked at the bottom, so a repaint keeps following */
+const atBottom = (pane) => pane.scrollHeight - pane.scrollTop - pane.clientHeight < 60;
+
+/**
+ * The jump-to-newest button belongs to whichever streaming view a pane is
+ * showing — not to the configuration form or the task record, which have a top
+ * rather than a live end. Called after every write so that content arriving
+ * while you are reading further up is what makes it appear.
+ */
+const jumps = { logpane: "logjump", railpane: "railjump" };
+function syncJump(paneId, streaming = true) {
+  const pane = $(paneId), button = $(jumps[paneId]);
+  if (!pane || !button) return;
+  button.dataset.streaming = streaming ? "1" : "";
+  button.classList.toggle(
+    "on",
+    streaming && pane.scrollHeight - pane.scrollTop - pane.clientHeight > 80,
+  );
+}
+function bindJump(paneId) {
+  const pane = $(paneId), button = $(jumps[paneId]);
+  if (!pane || !button) return;
+  pane.onscroll = () => syncJump(paneId, button.dataset.streaming === "1");
+  button.onclick = () => {
+    pane.scrollTop = pane.scrollHeight;
+    syncJump(paneId, true);
+  };
+}
+
+/** what a visit's header says to its right: who ran it and what it cost */
+function visitStats(run) {
+  const stats = run.status === "running" ? liveLlm.get(run.node) : run.llm;
+  // subagents sit next to the cost because their spend is inside it: claude
+  // reports one total per turn, so a run that fanned out to four of them reads
+  // as one implausibly expensive agent until the count is beside it
+  return [
+    stats?.model,
+    stats?.turns != null ? `${stats.turns} turns` : null,
+    stats?.contextPct != null ? `context ${stats.contextPct}%` : null,
+    stats?.costUsd != null ? formatMoney(stats.costUsd) : null,
+    stats?.subagents ? `${stats.subagents} subagent${stats.subagents === 1 ? "" : "s"}` : null,
+    run.exitCode !== undefined ? `exit ${run.exitCode}` : null,
+  ].filter(Boolean).join(" · ");
+}
+
+/**
+ * How long the visit took and when it landed. Both, because a list of visits
+ * gets scanned for two different things: which one was slow, and which one
+ * lines up with the event you are chasing. A visit still running has only the
+ * first, counted from its start.
+ */
+function visitTiming(run) {
+  if (!run.startedAt) return { text: "", title: "" };
+  const started = new Date(run.startedAt);
+  const finished = run.finishedAt ? new Date(run.finishedAt) : null;
+  const took = formatDuration((finished ?? new Date()).getTime() - started.getTime());
+  return {
+    text: finished ? `${took} · ${clockTime(finished)}` : took,
+    title: `started ${started.toLocaleString()}\n${
+      finished ? `finished ${finished.toLocaleString()}` : "still running"
+    }`,
+  };
+}
+
+function visitBody(run, text) {
+  if (logMode === "summary") {
+    /**
+     * The Output tab is what a visit concluded, and a visit still running has
+     * concluded nothing. It used to render the raw stream here, which is the
+     * Transcript's job — so the two tabs showed the same thing for exactly the
+     * run you were most likely to be watching.
+     */
+    if (run.status === "running") {
+      const since = run.startedAt ? new Date(run.startedAt).toLocaleTimeString() : "";
+      const quiet = run.lastOutputAt ? relativeTime(run.lastOutputAt) : null;
+      const said = quiet === "now" ? "talking now" : quiet ? `last spoke ${quiet} ago` : null;
+      return `<span class="visit-live"><span class="status-dot running"></span><span class="visit-live-text">Running${
+        since ? ` since ${esc(since)}` : ""
+      }${said ? ` · ${said}` : ""}. Whatever it concludes lands here when the visit ends.</span><button data-goto="full">Watch it live</button></span>`;
+    }
+    return esc(run.output ?? "") || '<span class="sysline">This visit produced no output.</span>';
+  }
+  const body = (text ?? "").split("\n").map(renderEventLine).filter(Boolean).join("\n");
+  const waiting = run.status === "running"
+    ? '<span class="sysline">Waiting for the first output…</span>'
+    : '<span class="sysline">No transcript content.</span>';
+  return (run.prompt
+    ? `<div class="visit-part"><span class="part-label">Prompt</span><span class="prompt">${esc(run.prompt)}</span></div>`
+    : "") +
+    `<div class="visit-part"><span class="part-label">Transcript</span>${body || waiting}</div>`;
+}
+
+function visitCard(run, text) {
+  const id = `${run.node}:${run.visit}`;
+  const open = openVisits.has(id);
+  const stats = visitStats(run);
+  const timing = visitTiming(run);
+  return `<section class="visit ${open ? "open" : ""}"><button class="visit-head" data-visit="${
+    esc(id)
+  }" aria-expanded="${open}"><svg class="visit-caret" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 4 4 4-4 4"/></svg><span class="visit-n">Visit ${run.visit}</span><span class="visit-tag ${
+    esc(run.status)
+  }">${esc(String(run.status).toUpperCase())}</span><span class="visit-stats">${
+    esc(stats)
+  }</span><span class="visit-time" title="${esc(timing.title)}">${
+    esc(timing.text)
+  }</span></button>${open ? `<div class="visit-body">${visitBody(run, text)}</div>` : ""}</section>`;
+}
+
+async function renderInspector() {
+  if (!cur || !$("logpane")) return;
+  const seq = ++inspectorSeq;
+  const pane = $("logpane");
+  $("lognode").textContent = selNode ?? "Select a node";
+  $("nodeactions").innerHTML = selNode ? renderNodeActions() : "";
+  bindNodeActions();
+  if (!selNode) {
+    $("logmeta").textContent = "";
+    pane.innerHTML = '<span class="sysline">Select a workflow node to inspect its work.</span>';
+    syncJump("logpane", false);
+    return;
+  }
+  if (logMode === "config") {
+    $("logmeta").textContent = "";
+    pane.innerHTML = renderConfig();
+    bindConfig();
+    syncJump("logpane", false);
+    return;
+  }
+  /**
+   * Only what this node was told. The rail carries the whole stream, which is
+   * mostly bookkeeping about other nodes; the question this tab answers is
+   * what reached this one's prompt — the thing that explains what it then did.
+   */
+  if (logMode === "events") {
+    const mine = taskEvents.filter((ev) => {
+      if (ev.to === undefined) return false;
+      const to = Array.isArray(ev.to) ? ev.to : [ev.to];
+      return to.includes("*") || to.includes(selNode);
+    });
+    $("logmeta").textContent = `${mine.length} delivered to ${selNode}`;
+    const pinned = atBottom(pane);
+    pane.innerHTML = renderEvents(mine, nodeEventWindow, "morenodeevents") ||
+      `<span class="sysline">Nothing has been delivered to ${esc(selNode)} yet.</span>`;
+    if (pinned) pane.scrollTop = pane.scrollHeight;
+    bindMore("morenodeevents", () => {
+      nodeEventWindow += EVENT_PAGE;
+      renderInspector();
+    });
+    syncJump("logpane");
+    return;
+  }
+  const runs = cur.runs.filter((run) => run.node === selNode);
+  $("logmeta").textContent = runs.length
+    ? `${runs.length} visit${runs.length === 1 ? "" : "s"} · ${runs.at(-1).status}`
+    : "Not started";
+  if (!runs.length) {
+    pane.innerHTML = '<span class="sysline">This node has not run yet.</span>';
+    syncJump("logpane", false);
+    return;
+  }
+  // a window and a set of open cards that outlived the node they were opened
+  // on would drop you halfway through a different node's history
+  const scope = `${cur.id}:${selNode}`;
+  if (visitWindowFor !== scope) {
+    visitWindowFor = scope;
+    visitWindow = VISIT_PAGE;
+    // the newest visit only: a node with nine hundred of them is a list to
+    // scan, not a wall to read
+    openVisits.clear();
+    openVisits.add(`${selNode}:${runs.at(-1).visit}`);
+    autoOpen.set(selNode, runs.at(-1).visit);
+  }
+  const shown = runs.slice(-visitWindow);
+  const hidden = runs.length - shown.length;
+  const key = (run) => `${run.node}:${run.visit}`;
+  /**
+   * Only expanded visits are fetched, and only the transcript needs fetching
+   * at all — the Output tab is already on the record. So walking back through
+   * a poller's history costs one header row per visit and no requests, which
+   * is what used to lock the tab up: it was a thousand of them, one at a time.
+   */
+  const bodies = new Map();
+  if (logMode === "full") {
+    const open = shown.filter((run) => openVisits.has(key(run)));
+    const texts = await Promise.all(open.map((run) => fullTextFor(run)));
+    if (seq !== inspectorSeq) return;
+    open.forEach((run, index) => bodies.set(key(run), texts[index]));
+  }
+  const pinned = atBottom(pane);
+  pane.innerHTML = (hidden ? moreRow("morevisits", hidden, VISIT_PAGE, "visit") : "") +
+    shown.map((run) => visitCard(run, bodies.get(key(run)))).join("");
+  if (pinned) pane.scrollTop = pane.scrollHeight;
+  bindMore("morevisits", () => {
+    visitWindow += VISIT_PAGE;
+    renderInspector();
+  });
+  syncJump("logpane");
+  pane.querySelectorAll("[data-visit]").forEach((head) =>
+    head.onclick = () => {
+      const id = head.dataset.visit;
+      openVisits.has(id) ? openVisits.delete(id) : openVisits.add(id);
+      renderInspector();
+    }
+  );
+  pane.querySelectorAll("[data-goto]").forEach((button) =>
+    button.onclick = () => document.querySelector(`[data-mode="${button.dataset.goto}"]`)?.click()
+  );
+}
+
+/** the rail's body: the task's whole stream, its record, or the prewarm's output */
+let railSeq = 0;
+async function renderRailBody() {
+  const pane = $("railpane");
+  if (!cur || !pane) return;
+  const seq = ++railSeq;
+  if (railMode === "setup") {
+    $("railmeta").textContent = `setup · exit ${cur.setupExit ?? "?"}`;
+    const response = await fetch(`/api/task/${cur.id}/log/setup/0`);
+    const raw = response.ok ? await response.text() : "";
+    if (seq !== railSeq) return;
+    pane.innerHTML = raw ? esc(raw) : '<span class="sysline">No setup output was recorded.</span>';
+    syncJump("railpane", false);
+    return;
+  }
+  if (railMode === "details") {
+    $("railmeta").textContent = cur.id;
+    pane.innerHTML = renderDetails();
+    syncJump("railpane", false);
+    return;
+  }
+  const delivered = taskEvents.filter((ev) => ev.to !== undefined).length;
+  $("railmeta").textContent = `${taskEvents.length} event${
+    taskEvents.length === 1 ? "" : "s"
+  } · ${delivered} delivered`;
+  const pinned = atBottom(pane);
+  pane.innerHTML = renderEvents(taskEvents, eventWindow, "morerailevents") ||
+    '<span class="sysline">No events yet.</span>';
+  if (pinned) pane.scrollTop = pane.scrollHeight;
+  bindMore("morerailevents", () => {
+    eventWindow += EVENT_PAGE;
+    renderRailBody();
+  });
+  syncJump("railpane");
+}
+function bindConfig() {
+  const save = async (interrupt) => {
+    const workflow = structuredClone(cur.workflow);
+    const target = workflow.nodes.find((node) => node.id === selNode);
+    // `run` only. This used to also rewrite a `followUp` that matched it, back
+    // when nodes joining a warm session had to set both to the same text to be
+    // heard at all; they no longer do, and the two now say different things on
+    // purpose — silently rewriting one because the other was edited is how that
+    // comes undone.
+    target.run = $("configrun").value;
+    try {
+      cur = await requestJson(`/api/task/${cur.id}/workflow`, {
+        method: "POST", headers: { "content-type": "application/json" },
+        body: JSON.stringify({ workflow, interrupt }),
+      });
+      renderWorkspace();
+      showToast(interrupt ? "Configuration saved; node interrupted" : "Configuration saved");
+    } catch (error) { showToast(error.message, true); }
+  };
+  $("configsave").onclick = () => save(false);
+  $("configinterrupt").onclick = () => save(true);
+}
+/**
+ * Typing into the composer while looking at a node means talking to that node,
+ * so the target follows the selection — until the operator picks one by hand,
+ * at which point it stays where they put it for the rest of the task. Shell
+ * nodes are absent because there is nobody there to read it.
+ */
+function syncNoteTargets() {
+  const select = $("fbtarget");
+  if (!select) return;
+  select.innerHTML = '<option value="">All agents</option>' + cur.workflow.nodes
+    .filter((node) => (node.exec ?? (node.type === "shell" ? "shell" : "claude")) !== "shell")
+    .map((node) => `<option value="${esc(node.id)}">${esc(node.label ?? node.id)}</option>`).join("");
+  const addressable = [...select.options].some((option) => option.value === selNode);
+  select.value = noteTarget ?? (addressable ? selNode : "");
+  select.onchange = () => {
+    noteTarget = select.value;
+    syncNoteTargets();
+  };
+  const input = $("fbinput");
+  if (input) {
+    input.placeholder = `${
+      select.value ? `Steer ${select.value}` : "Steer the agents"
+    }…  Enter to send · Shift + Enter to interrupt`;
+  }
+}
+async function interject(urgent) {
+  const input = $("fbinput");
+  const message = input.value.trim();
+  if (!message) return;
+  try {
+    await requestJson(`/api/task/${cur.id}/interject`, {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ message, target: $("fbtarget").value || undefined, urgent }),
+    });
+    input.value = "";
+    showToast(urgent ? "Feedback sent; current node interrupted" : "Feedback queued");
+  } catch (error) { showToast(error.message, true); }
+}
+
+async function openSpawn() {
+  try {
+    const workflows = await requestJson("/api/workflows");
+    $("fworkflow").innerHTML = Object.keys(workflows).map((name) => `<option value="${esc(name)}">${esc(name.replaceAll("-", " "))}</option>`).join("");
+  } catch {}
+  $("spawnmodal").showModal();
+  setTimeout(() => $("ftitle").focus(), 0);
+}
+$("spawnform").addEventListener("submit", async (event) => {
+  if (event.submitter?.value === "cancel") return;
+  event.preventDefault();
+  const form = new FormData(event.currentTarget);
+  const body = Object.fromEntries([...form.entries()].filter(([, value]) => String(value).trim()));
+  if (!body.task) return $("ftask").focus();
+  $("spawnsubmit").disabled = true;
+  $("spawnsubmit").textContent = "Starting…";
+  try {
+    const { id } = await requestJson("/api/spawn", {
+      method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body),
+    });
+    $("spawnmodal").close();
+    $("spawnform").reset();
+    await loadBoard();
+    await selectTask(id);
+    showToast("Task started");
+  } catch (error) {
+    showToast(error.message, true);
+  } finally {
+    $("spawnsubmit").disabled = false;
+    $("spawnsubmit").textContent = "Start task";
+  }
+});
+$("newtask").onclick = openSpawn;
+$("spawncancel").onclick = () => $("spawnmodal").close();
+$("refresh").onclick = loadBoard;
+$("search").oninput = (event) => { query = event.target.value; renderList(); };
+document.querySelectorAll(".filter").forEach((button) => button.onclick = () => {
+  filter = button.dataset.filter;
+  document.querySelectorAll(".filter").forEach((item) => item.classList.toggle("on", item === button));
+  renderList();
+});
+document.addEventListener("keydown", (event) => {
+  if (event.key === "/" && !["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement.tagName)) {
+    event.preventDefault();
+    $("search").focus();
+  }
+  if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+    event.preventDefault();
+    $("search").focus();
+  }
+  if ((event.metaKey || event.ctrlKey) && event.key === "Enter") openSpawn();
+});
+
+const savedInspector = localStorage.getItem("af.inspectorH");
+if (savedInspector) document.documentElement.style.setProperty("--inspector-h", savedInspector);
+/**
+ * Both side panels are bound once, outside the workspace: they survive every
+ * task switch and every repaint, so how wide they are and whether they are up
+ * at all are settings rather than task state. The toggles are delegated
+ * because they live in the topbar, which is rebuilt on every render.
+ */
+const panel = (name, variable, storeKey, offClass, width) => {
+  const saved = localStorage.getItem(`af.${storeKey}W`);
+  if (saved) document.documentElement.style.setProperty(variable, saved);
+  if (localStorage.getItem(`af.${storeKey}Off`)) {
+    document.querySelector(".app").classList.add(offClass);
+  }
+  const grip = $(`${name}grip`);
+  grip.onpointerdown = (event) => {
+    grip.setPointerCapture(event.pointerId);
+    grip.classList.add("dragging");
+    grip.onpointermove = (move) => {
+      // only while the button is actually down; see the inspector splitter
+      if (!(move.buttons & 1)) return;
+      const next = `${width(move.clientX)}px`;
+      document.documentElement.style.setProperty(variable, next);
+      localStorage.setItem(`af.${storeKey}W`, next);
+    };
+  };
+  grip.onlostpointercapture = () => {
+    grip.onpointermove = null;
+    grip.classList.remove("dragging");
+    fitGraph();
+  };
+  document.addEventListener("click", (event) => {
+    if (!event.target.closest?.(`#${name}toggle`)) return;
+    const off = document.querySelector(".app").classList.toggle(offClass);
+    localStorage.setItem(`af.${storeKey}Off`, off ? "1" : "");
+    // the graph was fitted to a pane that just changed width
+    fitGraph();
+  });
+};
+/**
+ * Both keep the middle column above a floor: a graph pane narrower than that
+ * is not a view of a workflow, it is a column of boxes. What the *other* panel
+ * is already holding counts against it — measured rather than assumed, since
+ * either of them may be collapsed — or dragging each one to its own limit
+ * squeezes the middle between the two of them.
+ */
+const roomBeside = (other) => {
+  const taken = document.querySelector(other)?.getBoundingClientRect().width ?? 0;
+  return Math.max(240, innerWidth - taken - 640);
+};
+panel("rail", "--rail-w", "rail", "rail-off", (x) => Math.min(roomBeside(".sidebar"), Math.max(240, innerWidth - x)));
+panel("side", "--sidebar-w", "side", "side-off", (x) => Math.min(roomBeside(".rail"), Math.max(240, x)));
+$("topbar").innerHTML = emptyTopbar();
+// the webfont lands after the first paint, and until it does every node was
+// fitted to the fallback's metrics
+document.fonts?.ready.then(() => {
+  glyphs.clear();
+  renderGraph();
+});
+await loadBoard();
+const boardEvents = new EventSource("/api/board/events");
+boardEvents.onopen = () => setConnection(true);
+boardEvents.onerror = () => setConnection(false);
+boardEvents.addEventListener("board", (event) => {
+  tasks = JSON.parse(event.data);
+  renderList();
+});
+</script>
+</body>
+</html>
