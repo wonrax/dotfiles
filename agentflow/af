@@ -1,0 +1,10 @@
+#!/bin/sh
+# agentflow CLI shim. Resolves the repo next to this script so `af` works from
+# any directory and through a symlink on PATH.
+self=$0
+while [ -L "$self" ]; do
+  link=$(readlink "$self")
+  case $link in /*) self=$link ;; *) self=$(dirname "$self")/$link ;; esac
+done
+root=$(cd "$(dirname "$self")" && pwd)
+exec deno run --quiet --allow-net --allow-read --allow-env=AGENTFLOW_URL,NO_COLOR --allow-run=docker "$root/cli.ts" "$@"
