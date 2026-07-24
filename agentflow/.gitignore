@@ -1,0 +1,3 @@
+node_modules/
+.agentflow-state/
+*.log

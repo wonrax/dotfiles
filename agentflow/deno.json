@@ -1,0 +1,25 @@
+{
+  "name": "agentflow",
+  "version": "0.1.0",
+  "exports": "./sdk/mod.ts",
+  "nodeModulesDir": "auto",
+  "tasks": {
+    "daemon": "deno run --allow-all src/main.ts",
+    "af": "deno run --quiet --allow-net --allow-read --allow-env=AGENTFLOW_URL,NO_COLOR --allow-run=docker cli.ts",
+    "check": "deno check src/main.ts sdk/mod.ts cli.ts scripts/",
+    "test": "deno run --allow-all scripts/sandbox-e2e.ts"
+  },
+  "imports": {
+    "effect": "npm:effect@^3.14.0"
+  },
+  "fmt": {
+    "lineWidth": 100,
+    // Hand-authored and hand-wrapped. The formatter rewrites index.html three
+    // times over and reflows every paragraph of the README, which buries
+    // whatever the actual change was under its own churn.
+    "exclude": ["web/", "README.md"]
+  },
+  "compilerOptions": {
+    "strict": true
+  }
+}
