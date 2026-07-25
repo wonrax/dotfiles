@@ -2,6 +2,7 @@
   inputs,
   user,
   pkgs,
+  unstablePkgs,
   ...
 }:
 {
@@ -65,6 +66,8 @@
       nautilus # file manager
 
       librepods # airpods support
+
+      unstablePkgs.ticktick
     ];
   };
 

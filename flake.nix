@@ -135,7 +135,14 @@
       };
 
       commonSpecialArgs = user: arch: {
-        unstablePkgs = nixpkgs-unstable.legacyPackages.${arch};
+        # Instantiated rather than taken from legacyPackages: that attr is a
+        # nixpkgs frozen with the default config, so `nixpkgs.config.allowUnfree`
+        # from the NixOS/darwin modules never reaches it and unfree unstable
+        # packages fail to eval.
+        unstablePkgs = import nixpkgs-unstable {
+          system = arch;
+          config.allowUnfree = true;
+        };
         inherit
           user
           inputs
