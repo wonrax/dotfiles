@@ -30,9 +30,10 @@
           "~/.orbstack/bin",
           "/usr/local/bin",
           "~/go/bin",
-          "~/.local/bin"
-          "/etc/profiles/per-user/${user.username}/bin"
+          "~/.local/bin",
+          "/etc/profiles/per-user/${user.username}/bin",
           "/nix/var/nix/profiles/default/bin",
+          "/run/current-system/sw/bin"
         ] | each { |p| path expand }) ++ $env.PATH
 
         $env.DOTFILES_PATH_INITIALIZED = true
