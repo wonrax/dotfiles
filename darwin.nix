@@ -117,7 +117,6 @@ in
 
   environment.systemPackages = with pkgs; [
     google-chrome
-    telegram-desktop
     boring-notch
     raycast
     monitorcontrol

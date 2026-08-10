@@ -22,57 +22,12 @@ let
     "github-repo-management"
     "youtube-content"
   ];
-  # Upstream's daily/idle session reset is silently undone: the 4am expiry
-  # watcher ends the session with end_reason='agent_close' (via agent
-  # teardown), and on the next inbound message the #54878 stale-routing
-  # self-heal resurrects exactly those rows with full history, bypassing the
-  # reset policy. Carry PR #61743 (open, needs porting to the phased
-  # get_or_create_session refactor) until it lands upstream — drop the patch
-  # and this package override when it does. Build the patched gateway as a
-  # PYTHONPATH overlay instead of importing from an applyPatches derivation:
-  # importing the latter requires building it during evaluation, which fails
-  # when an aarch64-darwin host evaluates the aarch64-linux deployment.
+  # Previously carried two PYTHONPATH-overlay patches here; both landed
+  # upstream and are covered by the v2026.8.19 pin: the session-reset
+  # resurrection fix (PR #61743, merged via #65783) and idle-triggered
+  # compaction (PR #55800, merged via #69360).
   hermesPkgs = inputs.hermes-agent.inputs.nixpkgs.legacyPackages.${pkgs.stdenv.hostPlatform.system};
-  hermesSessionResetRecovery = hermesPkgs.runCommand "hermes-session-reset-recovery" {
-    nativeBuildInputs = [ hermesPkgs.patch ];
-    # Required: requiredPythonModules (used by the package's extraPythonPackages
-    # handling to build PYTHONPATH) filters out any derivation without a
-    # matching passthru.pythonModule — without this tag the overlay is
-    # silently dropped and the patch never loads.
-    passthru.pythonModule = hermesPkgs.python312;
-  } ''
-    site_packages="$out/${hermesPkgs.python312.sitePackages}"
-    mkdir -p "$site_packages"
-    cp -r ${inputs.hermes-agent}/gateway "$site_packages/gateway"
-    chmod -R u+w "$site_packages/gateway"
-    patch -d "$site_packages" -p1 < ${./61743-session-reset-recovery.patch}
-  '';
-  # Idle-triggered context compaction: carry upstream PR #55800 (open) —
-  # compression.idle_compact_after_seconds compacts a resumed session's
-  # accumulated history up front, before the first reply, when it comes back
-  # after that much inactivity. Re-based onto this rev (the config-parse hunk
-  # drifted); drop the patch and this overlay when it lands upstream. It works
-  # on the gateway only because the agent-cache idle sweep defers eviction for
-  # sessions with a finite reset policy (our daily/4am) until they expire, so
-  # agent._last_activity_ts survives long gaps. A gateway restart clears that
-  # state — the first resume after a deploy won't idle-compact (the size-based
-  # hygiene pass still backstops).
-  hermesIdleCompaction =
-    hermesPkgs.runCommand "hermes-idle-compaction"
-      {
-        nativeBuildInputs = [ hermesPkgs.patch ];
-        # See hermesSessionResetRecovery: the pythonModule tag is what keeps
-        # requiredPythonModules from dropping this overlay off PYTHONPATH.
-        passthru.pythonModule = hermesPkgs.python312;
-      }
-      ''
-        site_packages="$out/${hermesPkgs.python312.sitePackages}"
-        mkdir -p "$site_packages"
-        cp -r ${inputs.hermes-agent}/agent "$site_packages/agent"
-        chmod -R u+w "$site_packages/agent"
-        patch -d "$site_packages" -p1 < ${./55800-idle-compaction.patch}
-      '';
-  hermesPatched =
+  hermesPackage =
     (hermesPkgs.callPackage "${inputs.hermes-agent}/nix/hermes-agent.nix" {
       inherit (inputs.hermes-agent.inputs) uv2nix pyproject-nix pyproject-build-systems;
       npm-lockfile-fix =
@@ -86,10 +41,6 @@ let
           "firecrawl"
           "messaging"
           "voice"
-        ];
-        extraPythonPackages = [
-          hermesSessionResetRecovery
-          hermesIdleCompaction
         ];
       };
 
@@ -143,19 +94,6 @@ in
     wants = [ "opnix-secrets.service" ];
   };
 
-  # SOUL.md (agent identity/personality) is read from $HERMES_HOME/SOUL.md
-  # only — the module's `documents` option installs into the workspace, where
-  # the identity loader never looks. Install it ourselves. Re-read at every
-  # session start, so no service restart needed; the agent's own edits to it
-  # are clobbered on deploy (intentional — nix is the source of truth).
-  system.activationScripts.hermes-agent-soul =
-    let
-      cfg = config.services.hermes-agent;
-    in
-    lib.stringAfter [ "hermes-agent-setup" ] ''
-      install -o ${cfg.user} -g ${cfg.group} -m 0660 ${./SOUL.md} ${cfg.stateDir}/.hermes/SOUL.md
-    '';
-
   # Pin the flake registry's `nixpkgs` to the system's nixpkgs so the agent's
   # ephemeral `nix run nixpkgs#...` invocations resolve to the already-cached
   # rev instead of pulling unstable from the network on every fresh eval.
@@ -164,9 +102,17 @@ in
   services.hermes-agent = {
     enable = true;
     addToSystemPackages = true;
-    package = hermesPatched;
+    package = hermesPackage;
 
     environmentFiles = [ config.services.onepassword-secrets.secretPaths.hermesAgentEnv ];
+
+    # SOUL.md (agent identity) must live in $HERMES_HOME — `documents` installs
+    # into the workspace, where the identity loader never looks. Re-read at
+    # every session start, so no restart needed; the agent's own edits are
+    # clobbered on deploy (intentional — nix is the source of truth). Replaces
+    # the hand-rolled activation script we carried before upstream grew this
+    # option.
+    hermesHomeFiles."SOUL.md" = ./SOUL.md;
 
     # Home channel = where cron results and cross-platform messages land.
     # /sethome persists these same vars into $HERMES_HOME/.env, but nix
@@ -210,10 +156,10 @@ in
       # openai/ prefix) and cap context at 272k vs 1.05M on the raw API.
       model = {
         provider = "openai-codex";
-        default = "gpt-5.6-terra";
+        default = "gpt-5.6-sol";
       };
 
-      agent.reasoning_effort = "low";
+      agent.reasoning_effort = "medium";
 
       # Backend for the web_search/web_extract tools. Auto-detect would pick
       # firecrawl anyway from FIRECRAWL_API_KEY (in the opnix envfile item),
@@ -246,8 +192,8 @@ in
         at_hour = 4;
       };
 
-      # Consumed by the carried PR #55800 patch (hermesIdleCompaction above):
-      # a session resumed after >=3h of inactivity compacts its stale history
+      # Upstream-native since #69360 (we used to carry it as a patch): a
+      # session resumed after >=3h of inactivity compacts its stale history
       # first, then replies (the resuming message pays the summarization
       # latency; a 💤 status line shows while it runs). Skipped when the
       # context is already below the post-compaction target, so short threads
