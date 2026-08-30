@@ -39,7 +39,6 @@
       google-chrome
       tailscale-systray
       jetbrains.datagrip
-      vscode
 
       lazydocker
 
@@ -58,6 +57,11 @@
       # Vendored from nixpkgs PR #537215 until it lands; see the header of
       # pkgs/claude-desktop.nix for the quirks (keyring, FHS, no Cowork).
       (pkgs.callPackage ../pkgs/claude-desktop.nix { })
+
+      # Vendored from nixpkgs PR #551713 until it lands; see the header of
+      # pkgs/chatgpt-desktop.nix for the quirks (SIGILL asar patch, writable
+      # plugin cache, keyring). Built from unstable so codex stays fresh.
+      (unstablePkgs.callPackage ../pkgs/chatgpt-desktop.nix { })
 
       alsa-utils # alsamixer
 

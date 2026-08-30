@@ -1,14 +1,16 @@
 # Claude Desktop for Linux, vendored from nixpkgs PR #537215 with the version
 # bumped to the latest apt release. Delete this file and switch to the nixpkgs
-# package once the PR lands.
+# package once the PR lands. Last checked 2026-08-30: PR still open at
+# 1.26832.0 with one approval, no committer review yet.
 #
 # Deviations from the PR:
 # - Cowork VM support stripped (qemu, OVMF, virtiofsd, app.asar path patching
 #   and the /dev/kvm bwrap passthroughs) — we don't use Cowork and qemu alone
-#   adds ~1GB to the closure. This also sidesteps the PR's app.asar patch,
-#   which greps `.vite/build/index.js` with --replace-fail: since 1.24012.x the
-#   main process is split across content-hashed `index.chunk-*.js`, so that
-#   patch no longer finds its replacement sites.
+#   adds ~1GB to the closure. Not repacking app.asar also means the deb's
+#   app.asar.unpacked ships untouched: asar repacking drops exec bits, which is
+#   why the PR has to --unpack-dir + chmod 755 the static
+#   resources/github-mcp/github-mcp-server bundled since 1.26832.0 — with no
+#   repack the deb's own +x survives and the binary needs no handling here.
 # - passwordStore defaults to "gnome-libsecret": electron only auto-detects a
 #   keyring backend on GNOME/KDE, so under niri it silently falls back to the
 #   plaintext store and Claude refuses to persist sign-in. Requires a running
@@ -97,18 +99,18 @@ let
 
   unwrapped = stdenvNoCC.mkDerivation (finalAttrs: {
     pname = "claude-desktop";
-    version = "1.24012.9";
+    version = "1.40609.0";
 
     src =
       if stdenvNoCC.hostPlatform.system == "x86_64-linux" then
         fetchurl {
           url = "https://downloads.claude.ai/claude-desktop/apt/stable/pool/main/c/claude-desktop/claude-desktop_${finalAttrs.version}_amd64.deb";
-          hash = "sha256-MC5tII3YyOnlIGfaoo7zsRcaFhNYb9DhC+3GQiJbbuE=";
+          hash = "sha256-qW6W/4601Nf/p4Wrp/wj+GhLEqyD7S70Bg8PCfQXepg=";
         }
       else if stdenvNoCC.hostPlatform.system == "aarch64-linux" then
         fetchurl {
           url = "https://downloads.claude.ai/claude-desktop/apt/stable/pool/main/c/claude-desktop/claude-desktop_${finalAttrs.version}_arm64.deb";
-          hash = "sha256-Gpvhd7BjNluS5SL+3RnIfa9uvJKp9xEhvf9ynifeQIw=";
+          hash = "sha256-yX4aoM1JQ3BUsWG87R/qLr+uYEU+YW1bc1JKkUZCF3M=";
         }
       else
         throw "Unsupported system: ${stdenvNoCC.hostPlatform.system}";
