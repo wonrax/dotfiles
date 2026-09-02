@@ -22,8 +22,11 @@
       # Manual PATH prepend (not home.sessionPath) so that user-installed
       # binaries from npm/cargo/etc take precedence over nix-installed ones.
       # The guard prevents recursive subshells from re-prepending.
+      # /run/current-system/sw/bin is appended, never prepended: it holds a
+      # non-setuid sudo that must not shadow /run/wrappers/bin/sudo (sudo
+      # hard-fails when it wins, which breaks nh/nixos-rebuild).
       if not ("DOTFILES_PATH_INITIALIZED" in $env) {
-        $env.PATH = ([
+        $env.PATH = (([
           "~/.dotfiles/bin",
           "~/.cargo/bin",
           "~/.npm-packages/bin",
@@ -32,9 +35,11 @@
           "~/go/bin",
           "~/.local/bin",
           "/etc/profiles/per-user/${user.username}/bin",
-          "/nix/var/nix/profiles/default/bin",
+          "/nix/var/nix/profiles/default/bin"
+        ] | each { |p| path expand --no-symlink }) ++ $env.PATH ++ [
+          "/run/wrappers/bin",
           "/run/current-system/sw/bin"
-        ] | each { |p| path expand }) ++ $env.PATH
+        ] | uniq)
 
         $env.DOTFILES_PATH_INITIALIZED = true
       }
