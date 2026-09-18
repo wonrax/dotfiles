@@ -5,7 +5,7 @@
     configFile = ./Caddyfile;
     package = pkgs.caddy.withPlugins {
       plugins = [ "github.com/mholt/caddy-l4@v0.1.1" ];
-      hash = "sha256-EkX1kvwiwfvvdasSJyTdi1SNVHoM9Q9Y/UTX5gwiOQ4=";
+      hash = "sha256-iidNF6WoA1kzXJqT9bXB7Gmq2T9Ebhr+ZFrf7mnmnhA=";
     };
   };
 

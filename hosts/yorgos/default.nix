@@ -24,6 +24,7 @@
     ./household-tasks.nix
     ./dont-starve.nix
     ./cadence.nix
+    ./send2ereader.nix
   ];
 
   networking.hostName = "yorgos";

@@ -76,6 +76,10 @@ nha.wrx.sh {
 	encode zstd gzip
 }
 
+kobo.wrx.sh {
+	reverse_proxy localhost:3001
+}
+
 i.wrx.sh {
 	handle /static {
 		reverse_proxy https://us-assets.i.posthog.com:443 {
