@@ -1,7 +1,8 @@
 # Claude Desktop for Linux, vendored from nixpkgs PR #537215 with the version
 # bumped to the latest apt release. Delete this file and switch to the nixpkgs
-# package once the PR lands. Last checked 2026-09-02: PR still open at
-# 1.26832.0 with one approval, no committer review yet (idle since Aug 13).
+# package once the PR lands. Last checked 2026-09-26: PR still open at
+# 1.26832.0 with one approval, no committer review and no commits since Aug 10.
+# The expression still applies unchanged across upstream's 1.x -> 2.x jump.
 #
 # Deviations from the PR:
 # - Cowork VM support stripped (qemu, OVMF, virtiofsd, app.asar path patching
@@ -99,18 +100,18 @@ let
 
   unwrapped = stdenvNoCC.mkDerivation (finalAttrs: {
     pname = "claude-desktop";
-    version = "1.40609.1";
+    version = "2.7032.0";
 
     src =
       if stdenvNoCC.hostPlatform.system == "x86_64-linux" then
         fetchurl {
           url = "https://downloads.claude.ai/claude-desktop/apt/stable/pool/main/c/claude-desktop/claude-desktop_${finalAttrs.version}_amd64.deb";
-          hash = "sha256-gBguhRHGu+5t4mx+4iX70qmroidO8UBaHYnNj+ejgNw=";
+          hash = "sha256-Hn9FBLylsvay08QSPRRdcnZH538u4tBGhQcR5h59exE=";
         }
       else if stdenvNoCC.hostPlatform.system == "aarch64-linux" then
         fetchurl {
           url = "https://downloads.claude.ai/claude-desktop/apt/stable/pool/main/c/claude-desktop/claude-desktop_${finalAttrs.version}_arm64.deb";
-          hash = "sha256-STzMBgMMXbsiWt0TWCM4XYz7QApZInBN43fqj1WznEA=";
+          hash = "sha256-bcp5+kyLZSZ3gLVGDGJxWYUuLfoq0BHQOgSI978ibsM=";
         }
       else
         throw "Unsupported system: ${stdenvNoCC.hostPlatform.system}";

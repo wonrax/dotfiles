@@ -1,8 +1,8 @@
-# ChatGPT Desktop for Linux, vendored from nixpkgs PR #551713 (head as of
-# 2026-08-30, after the force-push that folded in the review fixes). Delete
-# this file and switch to the nixpkgs package once the PR lands. The competing
-# PR #551852 is a simpler take on the same deb (mutable /latest URL, no
-# detect-libc fix) and is effectively superseded.
+# ChatGPT Desktop for Linux, vendored from nixpkgs PR #551713, head as of
+# 2026-09-24 (darwin support, npm/coreutils on PATH). Delete this file and
+# switch to the nixpkgs package once the PR lands. The competing PR #551852 is
+# a simpler take on the same deb (mutable /latest URL, no detect-libc fix) and
+# is effectively superseded.
 #
 # Upstream quirks this packaging carries, learned the hard way in the PR
 # discussion:
@@ -20,6 +20,10 @@
 #   points the app at it via CODEX_ELECTRON_BUNDLED_PLUGINS_RESOURCES_PATH.
 # - Newer debs ship musl prebuilds that autoPatchelf chokes on; every prebuild
 #   not matching this platform/arch is pruned.
+# - 26.924 moved the bundled tectonic from the latex plugin's bin/ to
+#   resources/tectonic/tectonic; the app resolves it from process.resourcesPath
+#   and exports it as CODEX_TECTONIC_PATH, so the symlink follows it there. The
+#   PR is still on the old path (it last bumped at 26.917).
 # - OpenAI's Electron fork defaults to XWayland and ignores
 #   --ozone-platform-hint; native Wayland only engages via the explicit flag
 #   and is documented as experimental (focus/shortcut caveats). The launcher
@@ -94,6 +98,7 @@
 
   ### Host tools the app and bundled plugins exec
   bubblewrap,
+  coreutils,
   nodejs-slim,
   ripgrep,
   tectonic-unwrapped,
@@ -112,14 +117,14 @@ let
 
   sources = {
     x86_64-linux = {
-      version = "26.831.21537";
-      url = "https://persistent.oaistatic.com/codex-app-prod/linux/deb/pool/main/c/chatgpt/chatgpt_26.831.21537_amd64.deb";
-      hash = "sha256-XBVu8qLgKRWW0HuuhmDvTwt0jfO6+Rv8ko97XjxhCxE=";
+      version = "26.924.20706";
+      url = "https://persistent.oaistatic.com/codex-app-prod/linux/deb/pool/main/c/chatgpt/chatgpt_26.924.20706_amd64.deb";
+      hash = "sha256-dgoKmNzAWkDL2KNv7B3Xsycz5qHypShThq5/r5pqsDM=";
     };
     aarch64-linux = {
-      version = "26.831.21537";
-      url = "https://persistent.oaistatic.com/codex-app-prod/linux/deb/pool/main/c/chatgpt/chatgpt_26.831.21537_arm64.deb";
-      hash = "sha256-LT1oQMEb9AANb/e9uwqg25LfTOBiIIEu1U80pnc1BPc=";
+      version = "26.924.20706";
+      url = "https://persistent.oaistatic.com/codex-app-prod/linux/deb/pool/main/c/chatgpt/chatgpt_26.924.20706_arm64.deb";
+      hash = "sha256-BiDhiK9XvDPNPMAWx+w/z27Qh8GpAoPQV1mMlCiXVkg=";
     };
   };
 
@@ -324,7 +329,7 @@ stdenv.mkDerivation (finalAttrs: {
     done
     find "$resources" -type f -name '*.musl.node' -delete
 
-    ln -sf ${lib.getExe tectonic-unwrapped} "$out/lib/chatgpt/resources/plugins/openai-bundled/plugins/latex/bin/tectonic"
+    ln -sf ${lib.getExe tectonic-unwrapped} "$out/lib/chatgpt/resources/tectonic/tectonic"
     ln -sf ${lib.getExe ripgrep} "$out/lib/chatgpt/resources/rg"
     ln -sf ${lib.getExe nodejs-slim} "$out/lib/chatgpt/resources/cua_node/bin/node"
 
@@ -347,9 +352,11 @@ stdenv.mkDerivation (finalAttrs: {
       --set CHATGPT_RESOURCES_CACHE_LABEL ${lib.escapeShellArg "${finalAttrs.version}-${system}"} \
       --prefix PATH : ${
         lib.makeBinPath [
-          nodejs-slim
-          xdg-utils
           bubblewrap
+          coreutils
+          nodejs-slim
+          nodejs-slim.npm
+          xdg-utils
         ]
       } \
       --set-default CODEX_BROWSER_USE_NODE_PATH ${lib.getExe nodejs-slim} \
