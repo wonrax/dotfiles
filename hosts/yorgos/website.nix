@@ -56,7 +56,12 @@
     environment = {
       # hf-hub expects a $HOME dir, but nixos does not define one
       HOME = "/";
+      # The Discord bot's sandboxes, set up in discord-sandbox.nix
+      DISCORD_SANDBOX_SOCKET = "/run/wrx-sandbox/podman.sock";
     };
+    volumes = [
+      "/run/wrx-sandbox:/run/wrx-sandbox"
+    ];
     dependsOn = [
       "schema-migrator"
     ];

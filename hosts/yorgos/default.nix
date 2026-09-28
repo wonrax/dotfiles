@@ -16,6 +16,7 @@
     ./postgres.nix
     ./caddy.nix
     ./website.nix
+    ./discord-sandbox.nix
     ./open-webui.nix
     ./db-backup.nix
     ./windmill.nix
