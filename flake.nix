@@ -93,7 +93,7 @@
     # Pinned to a release tag so `nix flake update` can't bump it — upstream
     # moves fast and config/module drift needs review on every upgrade
     # (hosts/pumpkin/hermes/default.nix documents what we depend on).
-    hermes-agent.url = "github:NousResearch/hermes-agent/v2026.8.19";
+    hermes-agent.url = "github:NousResearch/hermes-agent/v0.21.7";
 
     diffui = {
       url = "github:wonrax/diffui";

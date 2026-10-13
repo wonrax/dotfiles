@@ -33,6 +33,8 @@ let
       npm-lockfile-fix =
         inputs.hermes-agent.inputs.npm-lockfile-fix.packages.${pkgs.stdenv.hostPlatform.system}.default;
       rev = inputs.hermes-agent.rev or null;
+      version = "0.21.7";
+      lastModified = inputs.hermes-agent.lastModified or null;
     }).override
       {
         # Deliberately slimmer than upstream packages.default (the "full"
@@ -156,7 +158,7 @@ in
       # openai/ prefix) and cap context at 272k vs 1.05M on the raw API.
       model = {
         provider = "openai-codex";
-        default = "gpt-5.6-sol";
+        default = "gpt-6.1-sol";
       };
 
       agent.reasoning_effort = "medium";
