@@ -110,6 +110,7 @@ in
   # The op item must be an env file containing at least:
   #   TELEGRAM_BOT_TOKEN=123456:ABC...
   #   FIRECRAWL_API_KEY=fc-...  (web_search/web_extract backend)
+  #   MONEYLOVER_EMAIL=... / MONEYLOVER_PASSWORD=...  (Money Lover MCP)
   # (OPENROUTER_API_KEY may remain for fallback use; the main model now runs
   # via ChatGPT Codex OAuth, whose tokens live in auth.json, not here.)
   # Secret rotations need a rebuild: the module copies environmentFiles into
@@ -215,6 +216,7 @@ in
     extraPackages = with pkgs; [
       gh
       jujutsu
+      nodejs
       # SOUL.md tells the agent to pull missing tools via `nix run/shell`;
       # the unit PATH is only this explicit list (no /run/current-system/sw/bin),
       # so nix itself has to be added here.
@@ -229,6 +231,19 @@ in
     mcpServers.ticktick = {
       url = "https://mcp.ticktick.com";
       headers.Authorization = "Bearer \${TICKTICK_MCP_TOKEN}";
+    };
+
+    mcpServers.moneylover = {
+      command = "${pkgs.nodejs}/bin/npx";
+      args = [
+        "--yes"
+        "@ferdhika31/moneylover-mcp@0.0.3"
+      ];
+      env = {
+        EMAIL = "\${MONEYLOVER_EMAIL}";
+        PASSWORD = "\${MONEYLOVER_PASSWORD}";
+        MONEYLOVER_MCP_DISABLE_ENV_FILE = "1";
+      };
     };
 
     settings = {
