@@ -11,6 +11,14 @@ MCP servers, enabled skills, toolsets, memory settings, daily session reset,
 and idle compaction. They also share `home/hermes/SOUL.md`; each host appends
 its own role. The Mac adds Cua computer use and the desktop launcher.
 
+The shared skill policy disables unselected skills in the pinned upstream
+bundled and optional catalogs, plus retired bundled skills retained in the
+configuration. It matches directory names, declared names, and path aliases
+used when Hermes finds duplicate skill names.
+Agent-created and separately installed skills stay available; Hermes's
+required `hermes-agent` manual also stays enabled. Disabled skills remain on
+disk.
+
 The Mac's A2A server binds its Tailscale address, 100.65.46.20:9900.
 Pumpkin connects directly to `http://chauffeur:9900` over the tailnet.
 A per-peer A2A token authenticates Pumpkin; the worker checks the trusted

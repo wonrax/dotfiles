@@ -12,10 +12,10 @@ let
     hash = "sha256-Ax//zlao53+YOwP/+v3AOYIH0R30U9ON7ixI3EjEEVI=";
   };
   # Hermes only supports a skills *denylist* (skills.disabled), so emulate a
-  # whitelist by enumerating every bundled skill from the flake source at eval
-  # time and disabling all but these. New upstream skills are therefore
+  # whitelist by enumerating the bundled and optional catalogs at eval time
+  # and disabling all but these. New upstream skills are therefore
   # disabled by default. Agent-created skills (in $HERMES_HOME/skills) are
-  # unaffected. Skill names == their directory basenames (verified upstream).
+  # unaffected. Declared skill names can differ from folder names.
   enabledSkills = [
     "arxiv"
     "github-auth"
@@ -23,6 +23,23 @@ let
     "github-pr-workflow"
     "github-repo-management"
     "youtube-content"
+  ];
+  # Retained from Pumpkin's .bundled_manifest after upstream catalog removals.
+  legacyBundledSkills = [
+    "merge-reconciler"
+    "touchdesigner-mcp"
+    "github-code-review"
+    "github-issue-to-pr"
+    "nano-pdf"
+    "ocr-and-documents"
+    "session-librarian"
+    "plan"
+    "github/codebase-inspection"
+    "research/blocked-page-recovery"
+    "web/blocked-page-recovery"
+    "software-development/codebase-inspection"
+    "autonomous-ai-agents/computer-use"
+    "software-development/dogfood"
   ];
   hermesPkgs = inputs.hermes-agent.inputs.nixpkgs.legacyPackages.${pkgs.stdenv.hostPlatform.system};
   hermesBasePackage =
@@ -90,22 +107,43 @@ let
 
   bundledSkills =
     let
-      skillsDir = "${inputs.hermes-agent}/skills";
+      skillNames =
+        prefix: dir: name:
+        let
+          text = lib.replaceStrings [ "\r\n" ] [ "\n" ] (builtins.readFile "${dir}/${name}/SKILL.md");
+          frontmatter = lib.splitString "\n" (
+            builtins.head (lib.splitString "\n---" (lib.removePrefix "---\n" text))
+          );
+          nameLine = lib.findFirst (line: lib.hasPrefix "name:" line) "name: ${name}" frontmatter;
+          declaredName = lib.strings.trim (lib.removePrefix "name:" nameLine);
+          unquotedName = lib.removeSuffix "'" (
+            lib.removePrefix "'" (lib.removeSuffix "\"" (lib.removePrefix "\"" declaredName))
+          );
+        in
+        [
+          name
+          unquotedName
+        ]
+        ++ lib.optional (!(lib.elem unquotedName enabledSkills)) "${prefix}${name}";
       listSkills =
-        dir:
+        prefix: dir:
         lib.flatten (
           lib.mapAttrsToList (
             name: type:
             if type != "directory" then
               [ ]
             else if builtins.pathExists "${dir}/${name}/SKILL.md" then
-              [ name ]
+              skillNames prefix dir name
             else
-              listSkills "${dir}/${name}"
+              listSkills "${prefix}${name}/" "${dir}/${name}"
           ) (builtins.readDir dir)
         );
     in
-    listSkills skillsDir;
+    lib.unique (
+      listSkills "" "${inputs.hermes-agent}/skills"
+      ++ listSkills "" "${inputs.hermes-agent}/optional-skills"
+      ++ legacyBundledSkills
+    );
 in
 rec {
   package = hermesPackage;
