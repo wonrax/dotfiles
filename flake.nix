@@ -226,7 +226,9 @@
 
       darwinConfigurations = {
         wonraxs-macbook-air = mkDarwin user 6 "25.11";
-        chauffeur = mkDarwin user 7 "26.05";
+        chauffeur = (mkDarwin user 7 "26.05").extendModules {
+          modules = [ { services.hermes-mac.enable = true; } ];
+        };
         wonraxs-work-macbook = mkDarwin (
           user
           // {

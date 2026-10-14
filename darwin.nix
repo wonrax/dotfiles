@@ -98,7 +98,10 @@ in
   # Define this so that home-manager won't complain about null home path
   users.users.${user.username}.home = "/Users/${user.username}";
 
-  imports = [ home-manager.darwinModules.home-manager ];
+  imports = [
+    home-manager.darwinModules.home-manager
+    ./home/hermes-mac
+  ];
   home-manager.useUserPackages = true;
   home-manager.useGlobalPkgs = true;
   home-manager.extraSpecialArgs = {

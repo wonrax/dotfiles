@@ -10,99 +10,9 @@ let
   telegramGroupId = "-1003508166716";
   dashboardUrl = "http://pumpkin:9119";
   dashboardAuthFile = "/var/lib/hermes-dashboard/auth.env";
-  sessionResetPolicyPlugin = pkgs.fetchFromGitHub {
-    owner = "fastfinge";
-    repo = "hermes-session-reset-policy";
-    name = "hermes-session-reset-policy";
-    rev = "493df020496d2782d3fe15308cc3b6672c2224c4";
-    hash = "sha256-Ax//zlao53+YOwP/+v3AOYIH0R30U9ON7ixI3EjEEVI=";
-  };
+  common = import ../../../home/hermes/common.nix { inherit inputs pkgs lib; };
+  inherit (common) sessionResetPolicyPlugin;
 
-  # Hermes only supports a skills *denylist* (skills.disabled), so emulate a
-  # whitelist by enumerating every bundled skill from the flake source at eval
-  # time and disabling all but these. New upstream skills are therefore
-  # disabled by default. Agent-created skills (in $HERMES_HOME/skills) are
-  # unaffected. Skill names == their directory basenames (verified upstream).
-  enabledSkills = [
-    "arxiv"
-    "github-auth"
-    "github-issues"
-    "github-pr-workflow"
-    "github-repo-management"
-    "youtube-content"
-  ];
-  hermesPkgs = inputs.hermes-agent.inputs.nixpkgs.legacyPackages.${pkgs.stdenv.hostPlatform.system};
-  hermesBasePackage =
-    (hermesPkgs.callPackage "${inputs.hermes-agent}/nix/hermes-agent.nix" {
-      inherit (inputs.hermes-agent.inputs) uv2nix pyproject-nix pyproject-build-systems;
-      npm-lockfile-fix =
-        inputs.hermes-agent.inputs.npm-lockfile-fix.packages.${pkgs.stdenv.hostPlatform.system}.default;
-      rev = inputs.hermes-agent.rev or null;
-      version = "0.21.7";
-      lastModified = inputs.hermes-agent.lastModified or null;
-    }).override
-      {
-        # Deliberately slimmer than upstream packages.default (the "full"
-        # variant with every integration): only the groups actually used.
-        extraDependencyGroups = [
-          "firecrawl"
-          "messaging"
-          "voice"
-        ];
-      };
-
-  # Import the Nix package from the ordinary input, then patch Python at build
-  # time; importing a patched derivation would require Linux builds during
-  # evaluation on macOS. Hermes puts its source root first during bootstrap,
-  # so retain the complete Python source and bind the wrappers to that root.
-  hermesIdleCompaction =
-    hermesPkgs.runCommand "hermes-idle-compaction-pr135759"
-      {
-        nativeBuildInputs = [ hermesPkgs.patch ];
-      }
-      ''
-        cp -R ${hermesBasePackage.hermesNpmLib.pythonSrc} src
-        chmod -R u+w src
-        cd src
-        mkdir -p tests/agent
-        patch -p1 < ${./135759-idle-compaction.patch}
-        mkdir -p $out/${hermesBasePackage.python.sitePackages}
-        cp -R . $out/${hermesBasePackage.python.sitePackages}
-        install -Dm644 tests/agent/test_idle_compaction_reference.py \
-          $out/share/hermes-idle-compaction/test_idle_compaction_reference.py
-      '';
-
-  hermesPackage =
-    (hermesBasePackage.override {
-      extraPythonPackages = [ hermesIdleCompaction ];
-    }).overrideAttrs
-      (old: {
-        postFixup = (old.postFixup or "") + ''
-          for executable in "$out"/bin/*; do
-            wrapProgram "$executable" --set HERMES_PYTHON_SRC_ROOT \
-              ${hermesIdleCompaction}/${hermesBasePackage.python.sitePackages}
-          done
-        '';
-      });
-
-  bundledSkills =
-    let
-      skillsDir = "${inputs.hermes-agent}/skills";
-      listSkills =
-        dir:
-        lib.flatten (
-          lib.mapAttrsToList (
-            name: type:
-            if type != "directory" then
-              [ ]
-            else if builtins.pathExists "${dir}/${name}/SKILL.md" then
-              [ name ]
-            else
-              listSkills "${dir}/${name}"
-          ) (builtins.readDir dir)
-        );
-    in
-    listSkills skillsDir;
 in
 {
   imports = [ inputs.hermes-agent.nixosModules.default ];
@@ -134,8 +44,13 @@ in
   # process directly and order the gateway after opnix so a stale .env can
   # never leave it tokenless. ("-" prefix: don't fail if the file is missing.)
   systemd.services.hermes-agent = {
-    restartTriggers = [ sessionResetPolicyPlugin ];
-    serviceConfig.EnvironmentFile = "-${config.services.onepassword-secrets.secretPaths.hermesAgentEnv}";
+    restartTriggers = [
+      sessionResetPolicyPlugin
+    ];
+    serviceConfig.EnvironmentFile = [
+      "-${config.services.onepassword-secrets.secretPaths.hermesAgentEnv}"
+      "/var/lib/hermes/mac-node.env"
+    ];
     after = [ "opnix-secrets.service" ];
     wants = [ "opnix-secrets.service" ];
   };
@@ -182,8 +97,8 @@ in
   services.hermes-agent = {
     enable = true;
     addToSystemPackages = true;
-    package = hermesPackage;
-    extraPlugins = [ sessionResetPolicyPlugin ];
+    package = common.package;
+    extraPlugins = common.extraPlugins;
 
     backend = {
       mode = "dashboard";
@@ -192,7 +107,10 @@ in
       port = 9119;
     };
 
-    environmentFiles = [ config.services.onepassword-secrets.secretPaths.hermesAgentEnv ];
+    environmentFiles = [
+      config.services.onepassword-secrets.secretPaths.hermesAgentEnv
+      "/var/lib/hermes/mac-node.env"
+    ];
 
     # SOUL.md (agent identity) must live in $HERMES_HOME — `documents` installs
     # into the workspace, where the identity loader never looks. Re-read at
@@ -200,7 +118,9 @@ in
     # clobbered on deploy (intentional — nix is the source of truth). Replaces
     # the hand-rolled activation script we carried before upstream grew this
     # option.
-    hermesHomeFiles."SOUL.md" = ./SOUL.md;
+    hermesHomeFiles."SOUL.md" = pkgs.writeText "hermes-pumpkin-SOUL.md" (
+      builtins.readFile ../../../home/hermes/SOUL.md + "\n" + builtins.readFile ./SOUL.md
+    );
 
     # Home channel = where cron results and cross-platform messages land.
     # /sethome persists these same vars into $HERMES_HOME/.env, but nix
@@ -213,123 +133,46 @@ in
       TELEGRAM_HOME_CHANNEL_NAME = "Life";
     };
 
-    extraPackages = with pkgs; [
-      gh
-      jujutsu
-      nodejs
-      # SOUL.md tells the agent to pull missing tools via `nix run/shell`;
-      # the unit PATH is only this explicit list (no /run/current-system/sw/bin),
-      # so nix itself has to be added here.
-      config.nix.package
-    ];
+    extraPackages = common.extraPackages ++ [ config.nix.package ];
+    mcpServers = common.mcpServers;
 
-    mcpServers.affine = {
-      url = "https://a.wrx.sh/api/workspaces/dace8f22-701f-4bb6-8c78-cbcb6d73cc42/mcp";
-      headers.Authorization = "Bearer \${AFFINE_MCP_TOKEN}";
-    };
-
-    mcpServers.ticktick = {
-      url = "https://mcp.ticktick.com";
-      headers.Authorization = "Bearer \${TICKTICK_MCP_TOKEN}";
-    };
-
-    mcpServers.moneylover = {
-      command = "${pkgs.nodejs}/bin/npx";
-      args = [
-        "--yes"
-        "@ferdhika31/moneylover-mcp@0.0.3"
-      ];
-      env = {
-        EMAIL = "\${MONEYLOVER_EMAIL}";
-        PASSWORD = "\${MONEYLOVER_PASSWORD}";
-        MONEYLOVER_MCP_DISABLE_ENV_FILE = "1";
-      };
-    };
-
-    settings = {
+    settings = lib.recursiveUpdate common.settings {
       dashboard.public_url = dashboardUrl;
-      plugins.enabled = [ "hermes-session-reset-policy" ];
-
-      # The module deep-merges config.yaml, so explicitly clear any OAuth
-      # mode left behind from an earlier TickTick configuration.
-      mcp_servers.ticktick.auth = null;
-
-      # ChatGPT-subscription auth (Codex OAuth), not the API: credentials come
-      # from a one-time interactive `sudo -u hermes hermes auth add openai-codex`
-      # device-code login, stored in $HERMES_HOME/auth.json (survives deploys;
-      # refresh tokens rotate automatically). Codex models use bare slugs (no
-      # openai/ prefix) and cap context at 272k vs 1.05M on the raw API.
-      model = {
-        provider = "openai-codex";
-        default = "gpt-6.1-sol";
+      mcp_servers.chauffeur = null;
+      a2a_agents.chauffeur = {
+        owner_trusted = true;
+        url = "http://chauffeur:9900";
+        auth = {
+          type = "bearer";
+          token = "\${HERMES_MAC_A2A_TOKEN}";
+        };
+        timeout = 300;
+        capabilities = [
+          "macos"
+          "computer_use"
+          "code"
+        ];
       };
-
-      agent.reasoning_effort = "medium";
-
-      # Backend for the web_search/web_extract tools. Auto-detect would pick
-      # firecrawl anyway from FIRECRAWL_API_KEY (in the opnix envfile item),
-      # but be explicit. The tools silently drop out of the model's schema
-      # when the key is missing.
-      web.backend = "firecrawl";
-
-      # Stream replies into the chat via progressive message edits (plain text
-      # while streaming, MarkdownV2 on the final edit). Gateway streaming is
-      # controlled by this top-level key; display.streaming is CLI-only.
-      streaming.enabled = true;
-
-      display.platforms.telegram = {
-        # Telegram's mobile-tuned platform default is "off"; "all" shows every
-        # tool call with a short preview, accumulated into one edited bubble.
-        tool_progress = "all";
-        show_reasoning = false;
-      };
-
-      skills.disabled = lib.subtractLists enabledSkills bundledSkills;
-
-      # Built-in memory replaces the mem0 plugin used with openclaw
-      memory = {
-        memory_enabled = true;
-        user_profile_enabled = true;
-      };
-
-      # Core no longer applies this policy; the reset plugin checks the 4am
-      # boundary on the next inbound message.
-      session_reset = {
-        mode = "daily";
-        at_hour = 4;
-      };
-
-      # PR #135759 uses persisted transcript timestamps so idle detection
-      # survives the watchdog reset, cache eviction, and gateway restarts.
-      compression.idle_compact_after_seconds = 3 * 60 * 60;
 
       telegram = {
-        dm_policy = "allowlist";
-        allow_from = [ "653083546" ];
-        group_policy = "allowlist";
-        group_allow_from = [ "653083546" ];
-        group_allowed_chats = [ telegramGroupId ];
-        # Only the two forum topics the bot lives in; messages in other topics
-        # of this group are ignored entirely (openclaw mention-gated them
-        # instead, but they were never used). Topic 1 is the forum General
-        # topic.
+        # Topic 3 belongs to the Mac bot; Pumpkin handles General only.
         allowed_topics = [
           "1"
-          "3"
         ];
-        require_mention = false;
-        # Per-topic prompts replace openclaw's two agents (Life/Coding) bound
-        # to these topics; keys are forum topic ids.
+        # Keys are Telegram forum topic IDs.
         channel_prompts = {
           "1" = ''
-            This is the "Life" topic: personal assistant duties — planning,
-            reminders, research, accountability and day-to-day life admin.
+            This is the "Life" topic. You are the always-on assistant and
+            coordinator on Pumpkin: planning, reminders, research,
+            accountability, and day-to-day life admin belong here.
+            The A2A peer chauffeur runs Hermes on the user's Mac with its own
+            agent loop, memory, and local computer-use tools. Delegate tasks
+            that need Mac apps, the Mac desktop, or files on that Mac to
+            chauffeur. Keep the conversation and coordination here.
+            Topic 3 belongs to the separate Mac Telegram bot. Local terminal
+            commands in this topic execute on Pumpkin.
           '';
-          "3" = ''
-            This is the "Coding" topic: software engineering work. gh and jj
-            (jujutsu) are available in the terminal; the user uses jj for
-            version control, so prefer jj over git for mutating operations.
-          '';
+
         };
       };
     };
