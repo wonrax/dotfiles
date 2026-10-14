@@ -8,6 +8,15 @@
 }:
 let
   telegramGroupId = "-1003508166716";
+  dashboardUrl = "http://pumpkin:9119";
+  dashboardAuthFile = "/var/lib/hermes-dashboard/auth.env";
+  sessionResetPolicyPlugin = pkgs.fetchFromGitHub {
+    owner = "fastfinge";
+    repo = "hermes-session-reset-policy";
+    name = "hermes-session-reset-policy";
+    rev = "493df020496d2782d3fe15308cc3b6672c2224c4";
+    hash = "sha256-Ax//zlao53+YOwP/+v3AOYIH0R30U9ON7ixI3EjEEVI=";
+  };
 
   # Hermes only supports a skills *denylist* (skills.disabled), so emulate a
   # whitelist by enumerating every bundled skill from the flake source at eval
@@ -22,12 +31,8 @@ let
     "github-repo-management"
     "youtube-content"
   ];
-  # Previously carried two PYTHONPATH-overlay patches here; both landed
-  # upstream and are covered by the v2026.8.19 pin: the session-reset
-  # resurrection fix (PR #61743, merged via #65783) and idle-triggered
-  # compaction (PR #55800, merged via #69360).
   hermesPkgs = inputs.hermes-agent.inputs.nixpkgs.legacyPackages.${pkgs.stdenv.hostPlatform.system};
-  hermesPackage =
+  hermesBasePackage =
     (hermesPkgs.callPackage "${inputs.hermes-agent}/nix/hermes-agent.nix" {
       inherit (inputs.hermes-agent.inputs) uv2nix pyproject-nix pyproject-build-systems;
       npm-lockfile-fix =
@@ -45,6 +50,40 @@ let
           "voice"
         ];
       };
+
+  # Import the Nix package from the ordinary input, then patch Python at build
+  # time; importing a patched derivation would require Linux builds during
+  # evaluation on macOS. Hermes puts its source root first during bootstrap,
+  # so retain the complete Python source and bind the wrappers to that root.
+  hermesIdleCompaction =
+    hermesPkgs.runCommand "hermes-idle-compaction-pr135759"
+      {
+        nativeBuildInputs = [ hermesPkgs.patch ];
+      }
+      ''
+        cp -R ${hermesBasePackage.hermesNpmLib.pythonSrc} src
+        chmod -R u+w src
+        cd src
+        mkdir -p tests/agent
+        patch -p1 < ${./135759-idle-compaction.patch}
+        mkdir -p $out/${hermesBasePackage.python.sitePackages}
+        cp -R . $out/${hermesBasePackage.python.sitePackages}
+        install -Dm644 tests/agent/test_idle_compaction_reference.py \
+          $out/share/hermes-idle-compaction/test_idle_compaction_reference.py
+      '';
+
+  hermesPackage =
+    (hermesBasePackage.override {
+      extraPythonPackages = [ hermesIdleCompaction ];
+    }).overrideAttrs
+      (old: {
+        postFixup = (old.postFixup or "") + ''
+          for executable in "$out"/bin/*; do
+            wrapProgram "$executable" --set HERMES_PYTHON_SRC_ROOT \
+              ${hermesIdleCompaction}/${hermesBasePackage.python.sitePackages}
+          done
+        '';
+      });
 
   bundledSkills =
     let
@@ -77,7 +116,10 @@ in
   # $HERMES_HOME/.env at activation time, not at service start.
   services.onepassword-secrets.secrets.hermesAgentEnv = {
     reference = "op://host-pumpkin/hermes-agent/envfile";
-    services = [ "hermes-agent" ];
+    services = [
+      "hermes-agent"
+      "hermes-backend"
+    ];
   };
 
   # Let the interactive user share HERMES_HOME with the gateway (the state dir
@@ -91,10 +133,45 @@ in
   # process directly and order the gateway after opnix so a stale .env can
   # never leave it tokenless. ("-" prefix: don't fail if the file is missing.)
   systemd.services.hermes-agent = {
+    restartTriggers = [ sessionResetPolicyPlugin ];
     serviceConfig.EnvironmentFile = "-${config.services.onepassword-secrets.secretPaths.hermesAgentEnv}";
     after = [ "opnix-secrets.service" ];
     wants = [ "opnix-secrets.service" ];
   };
+
+  systemd.services.hermes-dashboard-auth = {
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      StateDirectory = "hermes-dashboard";
+      StateDirectoryMode = "0700";
+      UMask = "0077";
+    };
+    script = ''
+      if [ ! -s ${dashboardAuthFile} ]; then
+        password=$(${pkgs.openssl}/bin/openssl rand -hex 24)
+        secret=$(${pkgs.openssl}/bin/openssl rand -hex 32)
+        printf 'HERMES_DASHBOARD_BASIC_AUTH_USERNAME=${user.username}\nHERMES_DASHBOARD_BASIC_AUTH_PASSWORD=%s\nHERMES_DASHBOARD_BASIC_AUTH_SECRET=%s\n' \
+          "$password" "$secret" > ${dashboardAuthFile}.tmp
+        mv ${dashboardAuthFile}.tmp ${dashboardAuthFile}
+      fi
+    '';
+  };
+
+  systemd.services.hermes-backend = {
+    serviceConfig.EnvironmentFile = [
+      "-${config.services.onepassword-secrets.secretPaths.hermesAgentEnv}"
+      dashboardAuthFile
+    ];
+    after = [
+      "opnix-secrets.service"
+      "hermes-dashboard-auth.service"
+    ];
+    wants = [ "opnix-secrets.service" ];
+    requires = [ "hermes-dashboard-auth.service" ];
+  };
+
+  networking.firewall.interfaces.tailscale0.allowedTCPPorts = [ 9119 ];
 
   # Pin the flake registry's `nixpkgs` to the system's nixpkgs so the agent's
   # ephemeral `nix run nixpkgs#...` invocations resolve to the already-cached
@@ -105,6 +182,14 @@ in
     enable = true;
     addToSystemPackages = true;
     package = hermesPackage;
+    extraPlugins = [ sessionResetPolicyPlugin ];
+
+    backend = {
+      mode = "dashboard";
+      waitFor = "interface";
+      interfaceName = "tailscale0";
+      port = 9119;
+    };
 
     environmentFiles = [ config.services.onepassword-secrets.secretPaths.hermesAgentEnv ];
 
@@ -147,6 +232,9 @@ in
     };
 
     settings = {
+      dashboard.public_url = dashboardUrl;
+      plugins.enabled = [ "hermes-session-reset-policy" ];
+
       # The module deep-merges config.yaml, so explicitly clear any OAuth
       # mode left behind from an earlier TickTick configuration.
       mcp_servers.ticktick.auth = null;
@@ -189,17 +277,15 @@ in
         user_profile_enabled = true;
       };
 
+      # Core no longer applies this policy; the reset plugin checks the 4am
+      # boundary on the next inbound message.
       session_reset = {
         mode = "daily";
         at_hour = 4;
       };
 
-      # Upstream-native since #69360 (we used to carry it as a patch): a
-      # session resumed after >=3h of inactivity compacts its stale history
-      # first, then replies (the resuming message pays the summarization
-      # latency; a 💤 status line shows while it runs). Skipped when the
-      # context is already below the post-compaction target, so short threads
-      # never pay for it. Overnight gaps are covered by the 4am reset instead.
+      # PR #135759 uses persisted transcript timestamps so idle detection
+      # survives the watchdog reset, cache eviction, and gateway restarts.
       compression.idle_compact_after_seconds = 3 * 60 * 60;
 
       telegram = {
