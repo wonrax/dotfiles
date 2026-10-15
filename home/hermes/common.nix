@@ -78,6 +78,9 @@ let
         mkdir -p tests/agent
         patch -p1 < ${../../hosts/pumpkin/hermes/135759-idle-compaction.patch}
         patch -p1 < ${./a2a-owner-peers.patch}
+        # Upstream tells the agent to keep memory small and drop anything
+        # stale within a week, which produced a pointer-only USER.md.
+        patch -p1 < ${./memory-profile-prompts.patch}
         mkdir -p $out/${hermesBasePackage.python.sitePackages}
         cp -R . $out/${hermesBasePackage.python.sitePackages}
         install -Dm644 tests/agent/test_idle_compaction_reference.py \
@@ -250,6 +253,10 @@ rec {
     memory = {
       memory_enabled = true;
       user_profile_enabled = true;
+      # Defaults are 2200/1375 (~800/~500 tokens). Both files ride in every
+      # system prompt in full, so this is a per-session token cost.
+      memory_char_limit = 8000;
+      user_char_limit = 24000;
     };
 
     # Core no longer applies this policy; the reset plugin checks the 4am

@@ -1,0 +1,108 @@
+--- a/agent/background_review.py
++++ b/agent/background_review.py
+@@ -361,8 +361,9 @@
+ # same lesson into both stores until both hit their size limits (#30220).
+ _MEMORY_ROUTING_BLOCK = (
+     "TWO distinct stores — pick the right one for each fact:\n"
+-    "  • USER.md (memory tool, target='user'): who the user is — persona, preferences, "
+-    "communication and work style, personal details they revealed, and expectations about how you "
++    "  • USER.md (memory tool, target='user'): a detailed profile of the user — persona, "
++    "preferences, communication and work style, personal details they revealed, the people and "
++    "ongoing situations in their life and where they stand now, and expectations about how you "
+     "should behave.\n"
+     "  • MEMORY.md (memory tool, target='memory'): facts about the ENVIRONMENT you operate in — "
+     "tool quirks, project conventions, config gotchas, paths and endpoints that matter.\n\n"
+@@ -375,8 +376,9 @@
+ _MEMORY_REVIEW_PROMPT = (
+     "Review the conversation above and consider saving to memory if appropriate.\n\n"
+     "Memory has " + _MEMORY_ROUTING_BLOCK +
+-    "If something stands out, save it once, in the right store, using the memory tool with the "
+-    "matching target. If nothing is worth saving, just say 'Nothing to save.' and stop."
++    "Save anything a future session would want to know, including updates that make an existing "
++    "entry out of date, once, in the right store, using the memory tool with the matching target. "
++    "If nothing is worth saving, just say 'Nothing to save.' and stop."
+ )
+ 
+ # Shared shape contract for anything written into a skill. The failure mode this prevents is the
+--- a/agent/prompt_builder.py
++++ b/agent/prompt_builder.py
+@@ -217,16 +217,19 @@
+         "even when skill writing is unavailable. "
+     )
+     return frame + skill_routing + (
+-        "Memory is the narrow exception for facts that apply to EVERY "
+-        "session regardless of task (who the user is, environment facts, "
+-        "standing conventions with no task home); it has a hard character "
+-        "budget, so when it fills, replace or consolidate stale entries "
+-        "rather than skipping the save. Write entries as declarative facts, "
+-        "not instructions to yourself: 'User prefers concise responses' ✓ — "
+-        "'Always respond concisely' ✗ (imperative phrasing gets re-read as "
+-        "a directive in later sessions and can override the user's current "
+-        "request). A fact stale within a week belongs in session history; "
+-        "procedures and workflows belong in skills."
++        "Memory holds what every session should already know before the "
++        "user says anything: the user profile is a detailed picture of the "
++        "user's life, people, and ongoing situations; your notes hold "
++        "environment facts and standing conventions with no task home. "
++        "When a profile entry points to a file for depth and the "
++        "conversation touches its topic, even obliquely, read that file "
++        "before replying instead of answering from the summary. Write "
++        "entries as declarative facts, not instructions to yourself: 'User "
++        "prefers concise responses' ✓ — 'Always respond concisely' ✗ "
++        "(imperative phrasing gets re-read as a directive in later sessions "
++        "and can override the user's current request). Memory has a "
++        "character budget; when it fills, consolidate or replace stale "
++        "entries rather than skipping the save."
+     )
+ 
+ 
+--- a/tools/memory_tool.py
++++ b/tools/memory_tool.py
+@@ -346,8 +346,9 @@
+ MEMORY_SCHEMA = {
+     "name": "memory",
+     "description": (
+-        "Save durable facts to persistent memory that survive across sessions. Memory is "
+-        "injected into every future turn, so keep entries compact and high-signal.\n\n"
++        "Save facts to persistent memory that survive across sessions. Both stores are "
++        "injected into every new session and decide what you know before the user says "
++        "anything, so favor recall and precision over brevity.\n\n"
+         "HOW: make ALL your changes in ONE call via an 'operations' array (each item: "
+         "{action, content?, old_text?}). The batch applies atomically and the char limit is "
+         "checked only on the FINAL result — so a single call can remove/replace stale entries "
+@@ -355,17 +356,26 @@
+         "reports current/limit chars and confirms completion; one batch call finishes the "
+         "update, so don't repeat it. Use the bare action/content/old_text fields only for a "
+         "single lone change.\n\n"
+-        "WHEN: only for facts that apply to EVERY session regardless of task: who the user "
+-        "is, stable environment facts, standing conventions with no task home. Anything "
+-        "learned while doing a task (procedures, pitfalls, and the user's preferences and "
+-        "corrections for that kind of work) belongs in the task's skill via skill_manage, "
+-        "where it loads only when relevant; memory is injected into every turn and must "
+-        "stay small.\n\n"
++        "WHEN: you learn something about the user or their life that a future session would "
++        "want, or an existing entry has gone out of date. Anything learned while doing a task "
++        "(procedures, pitfalls, and the user's preferences and corrections for that kind of "
++        "work) belongs in the task's skill via skill_manage, where it loads only when "
++        "relevant.\n\n"
+         "IF FULL: an add is rejected with the current entries shown. Reissue as ONE batch that "
+         "removes or shortens enough stale entries and adds the new one together.\n\n"
+-        "TARGETS: 'user' = who the user is (name, role, preferences, style). 'memory' = your "
+-        "notes (environment, conventions, tool quirks, lessons).\n\n"
+-        "SKIP: trivial/obvious info, easily re-discovered facts, raw data dumps, task progress, "
++        "TARGETS:\n"
++        "'user' = a detailed profile: background, work, interests, the people in their life "
++        "with enough identifying detail that a bare 'her' or first name resolves, ongoing "
++        "situations and plans and where they stand, and how they want to be treated. Date "
++        "time-bound facts (YYYY-MM-DD) and revise them as things change, keeping the history "
++        "that still explains the present. Mark claims that are the user's own interpretation "
++        "or unconfirmed as such ('their account, not verified'; 'no outcome known'). Keep easily "
++        "confused people explicitly distinct. Bulky or sensitive depth can live in a workspace "
++        "file; the entry then still carries enough summary to recognize the topic, plus the "
++        "path and the conversational cues that should trigger reading it.\n"
++        "'memory' = your notes about the environment: tool quirks, paths and endpoints, "
++        "standing conventions with no task home.\n\n"
++        "SKIP: trivial chit-chat, facts re-discoverable from the environment, raw data dumps, task progress, "
+         "completed-work logs, temporary TODO state (use session_search for those). Reusable "
+         "procedures belong in a skill, not memory."
+     ),
