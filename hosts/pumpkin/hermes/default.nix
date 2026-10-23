@@ -138,6 +138,9 @@ in
 
     settings = lib.recursiveUpdate common.settings {
       dashboard.public_url = dashboardUrl;
+      # Deliver cron output as-is, without the "Cronjob Response: <name>
+      # (job_id: ...)" header and "To stop or manage this job" footer.
+      cron.wrap_response = false;
       mcp_servers.chauffeur = null;
       a2a_agents.chauffeur = {
         owner_trusted = true;
