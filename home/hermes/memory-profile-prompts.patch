@@ -1,6 +1,6 @@
 --- a/agent/background_review.py
 +++ b/agent/background_review.py
-@@ -361,8 +361,9 @@
+@@ -369,8 +369,9 @@
  # same lesson into both stores until both hit their size limits (#30220).
  _MEMORY_ROUTING_BLOCK = (
      "TWO distinct stores — pick the right one for each fact:\n"
@@ -12,7 +12,7 @@
      "should behave.\n"
      "  • MEMORY.md (memory tool, target='memory'): facts about the ENVIRONMENT you operate in — "
      "tool quirks, project conventions, config gotchas, paths and endpoints that matter.\n\n"
-@@ -375,8 +376,9 @@
+@@ -383,8 +384,9 @@
  _MEMORY_REVIEW_PROMPT = (
      "Review the conversation above and consider saving to memory if appropriate.\n\n"
      "Memory has " + _MEMORY_ROUTING_BLOCK +
@@ -58,7 +58,7 @@
  
 --- a/tools/memory_tool.py
 +++ b/tools/memory_tool.py
-@@ -346,8 +346,9 @@
+@@ -373,8 +373,9 @@
  MEMORY_SCHEMA = {
      "name": "memory",
      "description": (
@@ -67,10 +67,10 @@
 +        "Save facts to persistent memory that survive across sessions. Both stores are "
 +        "injected into every new session and decide what you know before the user says "
 +        "anything, so favor recall and precision over brevity.\n\n"
-         "HOW: make ALL your changes in ONE call via an 'operations' array (each item: "
-         "{action, content?, old_text?}). The batch applies atomically and the char limit is "
-         "checked only on the FINAL result — so a single call can remove/replace stale entries "
-@@ -355,17 +356,26 @@
+         "HOW: make ALL your changes to one target in ONE call via an 'operations' array (each "
+         "item: {action, content?, old_text?}). The batch applies atomically and the char limit is "
+         "checked only on the FINAL result — so a single call can remove/patch stale entries "
+@@ -382,17 +383,26 @@
          "reports current/limit chars and confirms completion; one batch call finishes the "
          "update, so don't repeat it. Use the bare action/content/old_text fields only for a "
          "single lone change.\n\n"

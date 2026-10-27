@@ -1,6 +1,6 @@
 --- a/plugins/platforms/a2a/security.py
 +++ b/plugins/platforms/a2a/security.py
-@@ -62,6 +62,7 @@
+@@ -67,6 +67,7 @@
      allow_all_users: bool
      requested_host: str
      push_secret: str
@@ -8,17 +8,17 @@
  
      @classmethod
      def capture(cls) -> A2ASecurityContext:
-@@ -69,7 +70,8 @@
+@@ -74,7 +75,8 @@
          return cls(bearer_token=bearer_token, peer_tokens=tuple(_parse_peer_tokens(_startup_env("A2A_PEER_TOKENS")).items()),
                     trusted_peers=_configured_trusted_peers(),
                     allow_all_users=_startup_env("A2A_ALLOW_ALL_USERS").lower() in {"1", "true", "yes"},
--                   requested_host=_startup_env("A2A_HOST") or "127.0.0.1", push_secret=_startup_env("A2A_PUSH_SECRET") or bearer_token)
-+                   requested_host=_startup_env("A2A_HOST") or "127.0.0.1", push_secret=_startup_env("A2A_PUSH_SECRET") or bearer_token,
+-                   requested_host=_unbracket(_startup_env("A2A_HOST")) or "127.0.0.1", push_secret=_startup_env("A2A_PUSH_SECRET") or bearer_token)
++                   requested_host=_unbracket(_startup_env("A2A_HOST")) or "127.0.0.1", push_secret=_startup_env("A2A_PUSH_SECRET") or bearer_token,
 +                   owner_peers=frozenset(p.strip() for p in _startup_env("A2A_OWNER_PEERS").split(",") if p.strip()))
  
      def localhost_only(self) -> bool:
          return not (self.bearer_token or self.peer_tokens)
-@@ -114,6 +116,10 @@
+@@ -119,6 +121,10 @@
              return False  # the misconfiguration is logged once in A2AAdapter.connect()
          return self.allow_all_users or self.localhost_only() or not self.trusted_peers or identity in self.trusted_peers
  
@@ -29,7 +29,7 @@
      def sign_push_payload(self, payload: dict) -> str:
          """HMAC-SHA256 hex over the sorted-key JSON body; "" when no secret."""
          if not self.push_secret:
-@@ -159,16 +165,19 @@
+@@ -164,16 +170,19 @@
      return text
  
  
@@ -54,16 +54,16 @@
  
 --- a/plugins/platforms/a2a/adapter.py
 +++ b/plugins/platforms/a2a/adapter.py
-@@ -546,7 +546,7 @@
+@@ -576,7 +576,7 @@
                                    f"{max_turns} turns. Start a new context or increase A2A_MAX_PINGPONG_TURNS.")
          if not text:
              return self._end_task(rec, protocol.STATE_REJECTED, "Empty task — nothing to do.")
 -        framed = security.wrap_inbound(peer, text)
 +        framed = security.wrap_inbound(peer, text, owner_trusted=self._security_context.is_owner_peer(peer))
          security.audit("inbound", peer, task_id, text)
-         protocol.persist_message(context_id, "user", text, task_id)
-         protocol.metrics.inbound_total += 1
-@@ -567,7 +567,7 @@
+         if not retry:
+             protocol.persist_message(context_id, "user", text, task_id, input_id=input_id or "")
+@@ -598,7 +598,7 @@
          try:
              asyncio.run_coroutine_threadsafe(self.handle_message(event), self._loop)
          except Exception as e:
@@ -72,28 +72,20 @@
              try:
                  return self._end_task(rec, protocol.STATE_FAILED, msg, stored_reply=msg)
              finally:
-@@ -601,17 +601,17 @@
-             except subprocess.TimeoutExpired:
-                 return "[profile did not reply in time]", protocol.STATE_FAILED
-             except Exception as e:
--                return security.redact_outbound(f"Profile dispatch failed: {e}"), protocol.STATE_FAILED
-+                return security.redact_outbound(f"Profile dispatch failed: {e}", owner_trusted=self._security_context.is_owner_peer(peer)), protocol.STATE_FAILED
-             if proc.returncode != 0:
-                 msg = (proc.stderr or proc.stdout or f"profile exited {proc.returncode}").strip()
--                return security.redact_outbound(msg[-2000:]), protocol.STATE_FAILED
-+                return security.redact_outbound(msg[-2000:], owner_trusted=self._security_context.is_owner_peer(peer)), protocol.STATE_FAILED
-             if not session_id and (session_id := _state_db(
-                     profile, "SELECT id FROM sessions WHERE source = 'a2a' AND started_at >= ? ORDER BY started_at DESC LIMIT 1",
-                     (start - 2.0,), "A2A: could not find latest forwarded session")):
-                 self._profile_sessions[key] = session_id
-                 _state_db(profile, "UPDATE sessions SET title = ? WHERE id = ?", (session_title, session_id),
-                           "A2A: could not title forwarded session", commit=True)
--            return security.redact_outbound((proc.stdout or "").strip()), protocol.STATE_COMPLETED
-+            return security.redact_outbound((proc.stdout or "").strip(), owner_trusted=self._security_context.is_owner_peer(peer)), protocol.STATE_COMPLETED
+@@ -625,10 +625,10 @@
+         except Exception as exc:
+             # Boundary for a network peer: the full error stays in the local log, the reply is redacted.
+             logger.warning("A2A: dispatch to profile %r unverified", profile, exc_info=True)
+-            return security.redact_outbound(f"Profile dispatch unverified: {exc}"), protocol.STATE_FAILED
++            return security.redact_outbound(f"Profile dispatch unverified: {exc}", owner_trusted=self._security_context.is_owner_peer(peer)), protocol.STATE_FAILED
+         result = receipt.get('result') or {}
+         completed = receipt.get('outcome') == 'completed' and not result.get('failed')
+-        return (security.redact_outbound(result.get('final_response') or ''),
++        return (security.redact_outbound(result.get('final_response') or '', owner_trusted=self._security_context.is_owner_peer(peer)),
+                 protocol.STATE_COMPLETED if completed else protocol.STATE_FAILED)
  
      def _record_outcome(self, task_id: str, context_id: str, peer: str, state: str, reply: str,
-                         started: Optional[float] = None) -> None:
-@@ -633,7 +633,7 @@
+@@ -651,7 +651,7 @@
          input-required detection (a leading marker flags a clarification request)."""
          task_id, context_id, peer = pending["task_id"], pending["context_id"], pending["peer"]
          try:
@@ -163,28 +155,28 @@
          return text
  
      # Lone UTF-16 surrogates make Telegram/Signal ``.encode()`` raise; last defense for legacy/plugin paths.
---- a/gateway/run_turn.py
-+++ b/gateway/run_turn.py
-@@ -1565,7 +1565,8 @@
+--- a/gateway/run_turn_persistence.py
++++ b/gateway/run_turn_persistence.py
+@@ -122,7 +122,8 @@
          # Fix for #18765.
          if not _intentional_silence:
              response = _normalize_empty_agent_response(agent_result, response, history_len=len(history))
 -            response = _sanitize_gateway_final_response(source.platform, response)
 +            response = _sanitize_gateway_final_response(
-+                source.platform, response, source=source, adapter=self._delivery_adapter_for(source))
++                source.platform, response, source=source, adapter=self._intake_adapter_for(source))
  
          # The agent thread already updated the contextvar; propagate to SessionEntry + _save() only
          # if the binding still points at the session this run was launched against.
 --- a/gateway/run_turn_runner.py
 +++ b/gateway/run_turn_runner.py
-@@ -1982,7 +1982,9 @@
-         }
+@@ -1391,7 +1391,9 @@
+             }
          if not final_response:
              final_response = _normalize_empty_agent_response(result, final_response or "", history_len=len(agent_history))
 -            final_response = _sanitize_gateway_final_response(ctx.source.platform, final_response)
 +            final_response = _sanitize_gateway_final_response(
 +                ctx.source.platform, final_response, source=ctx.source,
-+                adapter=self._runner._delivery_adapter_for(ctx.source))
++                adapter=self._runner._intake_adapter_for(ctx.source))
              if not final_response:
                  final_response = t("gateway.shared.warn_passthrough", error=result["error"]) if result.get("error") else ""
-             # NOTE: deliberately omits agent_persisted/last_reasoning/response_* — the caller
+             # NOTE: deliberately omits agent_persisted/response_reused (and last_reasoning outside a local

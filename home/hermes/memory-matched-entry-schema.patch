@@ -1,0 +1,10 @@
+--- a/tools/memory_tool.py
++++ b/tools/memory_tool.py
+@@ -435,6 +435,7 @@
+                         "content": {"type": "string", "description": "Required for add and patch, as 'content' above."},
+                         "new_text": {"type": "string", "description": "Alias for 'content' in a batch op."},
+                         "old_text": {"type": "string", "description": "As 'old_text' above."},
++                        "matched_entry": {"type": "string", "description": "Optional exact full-entry pin for patch/remove, checked under the memory-file lock. If that exact entry no longer exists, the entire batch is refused; never fall back to substring matching. Preserve pins from validated payloads verbatim."},
+                     },
+                     "required": ["action"],
+                     "additionalProperties": False,

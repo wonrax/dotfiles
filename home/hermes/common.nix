@@ -47,8 +47,11 @@ let
       inherit (inputs.hermes-agent.inputs) uv2nix pyproject-nix pyproject-build-systems;
       npm-lockfile-fix =
         inputs.hermes-agent.inputs.npm-lockfile-fix.packages.${pkgs.stdenv.hostPlatform.system}.default;
+      pmPackages = lib.filterAttrs (_: lib.isDerivation) (
+        hermesPkgs.callPackage "${inputs.hermes-agent}/nix/pm-packages.nix" { }
+      );
       rev = inputs.hermes-agent.rev or null;
-      version = "0.21.7";
+      version = "0.22.5";
       lastModified = inputs.hermes-agent.lastModified or null;
     }).override
       {
@@ -81,6 +84,7 @@ let
         # Upstream tells the agent to keep memory small and drop anything
         # stale within a week, which produced a pointer-only USER.md.
         patch -p1 < ${./memory-profile-prompts.patch}
+        patch -p1 < ${./memory-matched-entry-schema.patch}
         mkdir -p $out/${hermesBasePackage.python.sitePackages}
         cp -R . $out/${hermesBasePackage.python.sitePackages}
         install -Dm644 tests/agent/test_idle_compaction_reference.py \
