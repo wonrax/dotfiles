@@ -137,6 +137,11 @@ in
     extraPackages = common.extraPackages ++ [ config.nix.package ];
     mcpServers = common.mcpServers;
 
+    workingDirectory = "/var/lib/hermes/workspace";
+    documents = {
+      "dreamer/test_memory_schema_compat.py" = ../../../home/hermes/test_memory_schema_compat.py;
+    };
+
     settings = lib.recursiveUpdate common.settings {
       dashboard.public_url = dashboardUrl;
       # Deliver cron output as-is, without the "Cronjob Response: <name>

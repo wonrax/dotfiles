@@ -1,10 +1,15 @@
 import json
+import os
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
 import jsonschema
+
+if source_root := os.environ.get("HERMES_PYTHON_SRC_ROOT"):
+    sys.path.insert(0, source_root)
 
 from tools import memory_tool as native
 from tools.memory_tool_store import MemoryStore
@@ -62,6 +67,17 @@ class MemorySchemaCompatTests(unittest.TestCase):
                             {"action": "add", "content": "Replacement"}])
         self.assertFalse(result["success"])
         self.assertEqual(self.paths["user"].read_bytes(), before)
+
+    def test_model_pipeline_and_codex_transport_keep_pin(self):
+        from model_tools import get_tool_definitions
+        from agent.codex_responses_adapter import _responses_tools
+
+        definitions = get_tool_definitions(enabled_toolsets=["memory"], quiet_mode=True)
+        memory = next(tool for tool in definitions if tool["function"]["name"] == "memory")
+        wire = _responses_tools([memory])[0]
+        properties = wire["parameters"]["properties"]["operations"]["items"]["properties"]
+        self.assertEqual(properties["matched_entry"]["type"], "string")
+        self.assertEqual(properties["action"]["enum"], ["add", "patch", "remove"])
 
     def test_successful_pinned_rewrite(self):
         self.assertTrue(self.call([{"action": "add", "content": "Original fact"}])["success"])
