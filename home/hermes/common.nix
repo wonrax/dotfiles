@@ -107,7 +107,8 @@ let
           mv "$out/share/hermes-agent/plugins-patched" "$out/share/hermes-agent/plugins"
           for executable in "$out"/bin/*; do
             wrapProgram "$executable" --set HERMES_PYTHON_SRC_ROOT \
-              ${hermesIdleCompaction}/${hermesBasePackage.python.sitePackages}
+              ${hermesIdleCompaction}/${hermesBasePackage.python.sitePackages} \
+              --prefix PYTHONPATH : ${hermesIdleCompaction}/${hermesBasePackage.python.sitePackages}
           done
         '';
       });

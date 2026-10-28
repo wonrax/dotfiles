@@ -1,5 +1,6 @@
 import json
 import os
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -21,6 +22,24 @@ def operation_properties(schema):
 
 
 class MemorySchemaCompatTests(unittest.TestCase):
+    def test_cli_startup_keeps_patched_source(self):
+        result = subprocess.run(
+            [sys.executable, "-c", """
+import os
+from pathlib import Path
+import hermes_cli.main
+from tools import memory_tool
+root = Path(os.environ['HERMES_PYTHON_SRC_ROOT']).resolve()
+assert Path(hermes_cli.main.__file__).resolve().is_relative_to(root), hermes_cli.main.__file__
+assert Path(memory_tool.__file__).resolve().is_relative_to(root), memory_tool.__file__
+assert 'matched_entry' in memory_tool.MEMORY_SCHEMA['parameters']['properties']['operations']['items']['properties']
+"""],
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)

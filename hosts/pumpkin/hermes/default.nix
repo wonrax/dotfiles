@@ -139,6 +139,8 @@ in
 
     workingDirectory = "/var/lib/hermes/workspace";
     documents = {
+      "dreamer/python-with-source.sh" = ../../../home/hermes/python-with-source.sh;
+      "dreamer/run.sh" = ../../../home/hermes/dreamer-run.sh;
       "dreamer/test_memory_schema_compat.py" = ../../../home/hermes/test_memory_schema_compat.py;
     };
 
