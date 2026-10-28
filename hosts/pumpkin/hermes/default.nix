@@ -33,10 +33,6 @@ in
     ];
   };
 
-  # Let the interactive user share HERMES_HOME with the gateway (the state dir
-  # is group-writable) so the hermes CLI/TUI works from a normal shell
-  users.users.${user.username}.extraGroups = [ config.services.hermes-agent.group ];
-
   # The hermes module copies environmentFiles into $HERMES_HOME/.env at
   # activation time, but opnix provisions secrets in a systemd service that
   # runs *after* activation — on first deploy the gateway came up with an
@@ -50,9 +46,14 @@ in
     serviceConfig.EnvironmentFile = [
       "-${config.services.onepassword-secrets.secretPaths.hermesAgentEnv}"
       "/var/lib/hermes/mac-node.env"
+      dashboardAuthFile
     ];
-    after = [ "opnix-secrets.service" ];
+    after = [
+      "opnix-secrets.service"
+      "hermes-dashboard-auth.service"
+    ];
     wants = [ "opnix-secrets.service" ];
+    requires = [ "hermes-dashboard-auth.service" ];
   };
 
   systemd.services.hermes-dashboard-auth = {
