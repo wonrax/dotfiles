@@ -73,6 +73,7 @@ in
     ./vector.nix
     ./qui.nix
     ./hermes
+    ./rex.nix
   ];
 
   nixpkgs.config.allowUnfree = true;

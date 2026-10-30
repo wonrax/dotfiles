@@ -903,6 +903,23 @@
         "type": "github"
       }
     },
+    "rex": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1793311550,
+        "narHash": "sha256-nkLkheEVUEUsdlPC5aTG+cbphqXgP7qXWh3CM2hSKNY=",
+        "type": "tarball",
+        "url": "https://pkgs.superlogical.com/rex/nix/preview/0.1.0-preview.11.tar.gz"
+      },
+      "original": {
+        "type": "tarball",
+        "url": "https://pkgs.superlogical.com/rex/nix/preview/0.1.0-preview.11.tar.gz"
+      }
+    },
     "root": {
       "inputs": {
         "darwin": "darwin",
@@ -925,6 +942,7 @@
         "nixpkgs-vlc": "nixpkgs-vlc",
         "opnix": "opnix",
         "qylock": "qylock",
+        "rex": "rex",
         "starship-jj": "starship-jj",
         "xremap-flake": "xremap-flake"
       }
