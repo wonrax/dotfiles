@@ -42,14 +42,36 @@ let
     "software-development/dogfood"
   ];
   hermesPkgs = inputs.hermes-agent.inputs.nixpkgs.legacyPackages.${pkgs.stdenv.hostPlatform.system};
+  # Upstream's pm packages attach ELF fixups even to Darwin's Mach-O archives.
+  pmPackages =
+    lib.mapAttrs
+      (
+        _: package:
+        if pkgs.stdenv.isDarwin then
+          package.overrideAttrs (old: {
+            nativeBuildInputs = builtins.filter (
+              input:
+              !(builtins.elem input [
+                hermesPkgs.autoPatchelfHook
+                hermesPkgs.patchelf
+              ])
+            ) (old.nativeBuildInputs or [ ]);
+            postFixup = "";
+          })
+        else
+          package
+      )
+      (
+        lib.filterAttrs (_: lib.isDerivation) (
+          hermesPkgs.callPackage "${inputs.hermes-agent}/nix/pm-packages.nix" { }
+        )
+      );
   hermesBasePackage =
     (hermesPkgs.callPackage "${inputs.hermes-agent}/nix/hermes-agent.nix" {
       inherit (inputs.hermes-agent.inputs) uv2nix pyproject-nix pyproject-build-systems;
       npm-lockfile-fix =
         inputs.hermes-agent.inputs.npm-lockfile-fix.packages.${pkgs.stdenv.hostPlatform.system}.default;
-      pmPackages = lib.filterAttrs (_: lib.isDerivation) (
-        hermesPkgs.callPackage "${inputs.hermes-agent}/nix/pm-packages.nix" { }
-      );
+      inherit pmPackages;
       rev = inputs.hermes-agent.rev or null;
       version = "0.22.5";
       lastModified = inputs.hermes-agent.lastModified or null;
