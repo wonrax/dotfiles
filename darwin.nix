@@ -196,6 +196,9 @@ in
         QuitMenuItem = true; # enable quit menu item
       };
       CustomUserPreferences = {
+        "com.superlogical.rex" = {
+          "Workspace.terminalStartupCommand" = "${pkgs.nushell}/bin/nu";
+        };
         "com.apple.symbolichotkeys" = {
           # Change the "Select next source in Input menu" shortcut to
           # Option+Space and disable "Select previous source in Input menu"
