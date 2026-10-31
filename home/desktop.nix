@@ -157,6 +157,12 @@ in
     executable = false;
   };
 
+  xdg.configFile.rex = {
+    source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/rex";
+    recursive = true;
+    executable = false;
+  };
+
   # Packages that should be installed to the user profile.
   home.packages =
     with pkgs;
