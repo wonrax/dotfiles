@@ -121,6 +121,11 @@ in
   xdg.configFile."opencode/skills" = agentsSkills;
   xdg.configFile."opencode/AGENTS.md" = agentsMd;
   home.file.".agents/skills" = agentsSkills;
+  home.file.".agents/AGENTS.md" = agentsMd;
+  # dsh reads instructions from $DSH_HOME/AGENTS.md then the shared agents root,
+  # and skills from $DSH_HOME/skills then the shared agents root.
+  home.file.".dsh/AGENTS.md" = agentsMd;
+  home.file.".dsh/skills" = agentsSkills;
   home.file.".codex/AGENTS.md" = agentsMd;
   home.file.".claude/skills" = agentsSkills;
   home.file.".claude/CLAUDE.md" = agentsMd;
