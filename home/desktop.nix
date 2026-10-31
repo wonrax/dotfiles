@@ -60,6 +60,7 @@ in
     ./git.nix
     ./jujutsu.nix
     ./nushell.nix
+    ./dsh.nix
     ./starship
     ./zoxide.nix
   ];
