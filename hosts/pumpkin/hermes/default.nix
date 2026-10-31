@@ -21,6 +21,7 @@ in
   #   TELEGRAM_BOT_TOKEN=123456:ABC...
   #   FIRECRAWL_API_KEY=fc-...  (web_search/web_extract backend)
   #   MONEYLOVER_EMAIL=... / MONEYLOVER_PASSWORD=...  (Money Lover MCP)
+  #   OPENCODE_GO_API_KEY=...  (optional OpenCode Go provider)
   # (OPENROUTER_API_KEY may remain for fallback use; the main model now runs
   # via ChatGPT Codex OAuth, whose tokens live in auth.json, not here.)
   # Secret rotations need a rebuild: the module copies environmentFiles into
