@@ -171,6 +171,10 @@ in
         allowed_topics = [
           "1"
         ];
+        channel_overrides.${telegramGroupId} = {
+          provider = "opencode-go";
+          model = "gemini-4-argon";
+        };
         # Keys are Telegram forum topic IDs.
         channel_prompts = {
           "1" = ''
