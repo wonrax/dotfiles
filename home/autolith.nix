@@ -42,6 +42,8 @@ in
   xdg.configFile."autolith/mcp-deferred.lisp".source =
     ../.config/autolith/mcp-deferred.lisp;
 
+  xdg.configFile."autolith/desktop.lisp".source = ../.config/autolith/desktop.lisp;
+
   xdg.configFile."autolith/mcp.sexp".text = ''
     (:version 1
      :servers

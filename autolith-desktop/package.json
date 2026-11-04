@@ -1,0 +1,34 @@
+{
+  "name": "autolith-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/main.mjs",
+  "scripts": {
+    "build": "npm run check && vite build && tsc -p tsconfig.electron.json",
+    "start": "npm run build && electron .",
+    "probe": "node dist/probe.mjs",
+    "check": "tsc"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "4.3.4",
+    "@xterm/xterm": "6.0.0",
+    "class-variance-authority": "0.7.1",
+    "clsx": "2.1.1",
+    "cmdk": "1.1.1",
+    "lucide-react": "1.68.0",
+    "radix-ui": "1.8.1",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "react-markdown": "10.1.0",
+    "tailwind-merge": "3.7.0",
+    "tailwindcss": "4.3.4"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "electron": "43.8.1",
+    "typescript": "5.9.3",
+    "vite": "7.3.7"
+  }
+}
