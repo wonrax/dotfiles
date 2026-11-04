@@ -56,6 +56,7 @@ in
   };
 
   imports = [
+    ./autolith.nix
     ./git.nix
     ./jujutsu.nix
     ./nushell.nix

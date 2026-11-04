@@ -95,6 +95,9 @@
     # (hosts/pumpkin/hermes/default.nix documents what we depend on).
     hermes-agent.url = "github:NousResearch/hermes-agent/v0.22.5";
 
+    # Autolith pins nixpkgs to match its SBCL and Lisp dependencies.
+    autolith.url = "github:lambda-symbolics/autolith";
+
     rex = {
       url = "https://pkgs.superlogical.com/rex/nix/preview/0.1.0-preview.11.tar.gz";
       inputs.nixpkgs.follows = "nixpkgs";
