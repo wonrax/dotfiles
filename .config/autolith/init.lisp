@@ -41,3 +41,11 @@
          walked)
      :test #'string=
      :key  #'namestring)))
+
+;; The bridge uses the pinned runtime's terminal and Localgroup internals.
+(when (string= *autolith-version* "0.67.22")
+  (let ((script (merge-pathnames
+                 "desktop.lisp"
+                 (uiop:pathname-directory-pathname *load-pathname*))))
+    (when (uiop:file-exists-p script)
+      (load script))))

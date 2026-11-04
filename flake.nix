@@ -288,7 +288,17 @@
       # Use qemu to build the pumpkin image on x86_64-linux.
       # Requires `boot.binfmt.emulatedSystems = [ "aarch64-linux" ];` on the
       # builder host (configured in hosts/peggy/configuration.nix).
-      packages.x86_64-linux.pumpkin-image = self.pumpkin-image.config.system.build.sdImage;
+      packages = forAllSystems (
+        system:
+        {
+          autolith-desktop =
+            nixpkgs.legacyPackages.${system}.callPackage ./pkgs/autolith-desktop/package.nix
+              { };
+        }
+        // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
+          pumpkin-image = self.pumpkin-image.config.system.build.sdImage;
+        }
+      );
       # pkgsCross is avoided here because it rebuilds the whole dependency
       # chain from scratch, which takes comically long compared to binfmt.
 
