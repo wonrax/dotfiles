@@ -16,7 +16,7 @@ in
     stalwartAdminPw = {
       reference = "op://host-yorgos/stalwart/admin-pw";
       owner = "stalwart-mail";
-      services = [ "stalwart-mail" ];
+      services = [ "stalwart" ];
     };
   };
 
@@ -28,7 +28,7 @@ in
       # If Caddy is on port 80, use webroot
       webroot = "/var/lib/acme/acme-challenge";
       reloadServices = [
-        "stalwart-mail"
+        "stalwart"
         "caddy"
       ];
     };
@@ -134,7 +134,7 @@ in
         ];
       };
 
-      webadmin.resource = "file://${config.services.stalwart-mail.package.webadmin}/webadmin.zip";
+      webadmin.resource = "file://${config.services.stalwart.package.webadmin}/webadmin.zip";
       webadmin.path = "/var/cache/stalwart-mail";
 
       calendar.default.display-name = "Personal Calendar";
