@@ -197,11 +197,9 @@ rec {
     };
 
     moneylover = {
-      command = "${pkgs.nodejs}/bin/npx";
-      args = [
-        "--yes"
-        "@ferdhika31/moneylover-mcp@0.0.3"
-      ];
+      # Build pinned dependencies and the auth-recovery patch at deploy time.
+      command = "${import ./moneylover-mcp.nix { inherit pkgs; }}/bin/moneylover-mcp";
+      args = [ ];
       env = {
         EMAIL = "\${MONEYLOVER_EMAIL}";
         PASSWORD = "\${MONEYLOVER_PASSWORD}";
