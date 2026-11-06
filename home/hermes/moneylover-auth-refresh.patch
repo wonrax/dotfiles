@@ -1,0 +1,18 @@
+diff --git a/src/server.js b/src/server.js
+--- a/src/server.js
++++ b/src/server.js
+@@ -236,11 +236,12 @@ const isAuthError = error => {
+   if (!(error instanceof MoneyloverApiError)) {
+     return false;
+   }
+-  if (typeof error.code === 'number' && (error.code === 1 || error.code === 401)) {
++  // Expired JWTs return HTTP 200 with { e: 706, msg: 'Not authorized error' }.
++  if (typeof error.code === 'number' && (error.code === 1 || error.code === 401 || error.code === 706)) {
+     return true;
+   }
+   const message = error.message?.toLowerCase?.() ?? '';
+-  return message.includes('unauth') || message.includes('token');
++  return message.includes('unauth') || message.includes('token') || message.includes('not authorized');
+ };
+ 
+ const runWithResolvedToken = async (providedToken, fn) => {
