@@ -1,6 +1,7 @@
 {
   inputs,
   pkgs,
+  unstablePkgs,
   lib,
 }:
 let
@@ -11,6 +12,21 @@ let
     rev = "493df020496d2782d3fe15308cc3b6672c2224c4";
     hash = "sha256-Ax//zlao53+YOwP/+v3AOYIH0R30U9ON7ixI3EjEEVI=";
   };
+  # Model provider that runs turns on the Claude subscription through the
+  # `claude` CLI (in extraPackages). The plugin lives in a subdirectory of the
+  # monorepo, and extraPlugins wants plugin.yaml at the package root.
+  claudeSubscriptionPlugin =
+    let
+      src = pkgs.fetchFromGitHub {
+        owner = "NousResearch";
+        repo = "hermes-official-plugins";
+        rev = "ab348e1d8d8691f56000875420bc3b29349a902b"; # 0.3.5
+        hash = "sha256-kUd2NKPPfixSoYUDLYUtd5kQWrNCAqyuDl+SPlrfpTU=";
+      };
+    in
+    pkgs.runCommand "claude-subscription-directsdk" { } ''
+      cp -R ${src}/claude-subscription-directsdk $out
+    '';
   # Hermes only supports a skills *denylist* (skills.disabled), so emulate a
   # whitelist by enumerating the bundled and optional catalogs at eval time
   # and disabling all but these. New upstream skills are therefore
@@ -42,38 +58,33 @@ let
     "software-development/dogfood"
   ];
   hermesPkgs = inputs.hermes-agent.inputs.nixpkgs.legacyPackages.${pkgs.stdenv.hostPlatform.system};
-  # Upstream's pm packages attach ELF fixups even to Darwin's Mach-O archives.
-  pmPackages =
-    lib.mapAttrs
-      (
-        _: package:
-        if pkgs.stdenv.isDarwin then
-          package.overrideAttrs (old: {
-            nativeBuildInputs = builtins.filter (
-              input:
-              !(builtins.elem input [
-                hermesPkgs.autoPatchelfHook
-                hermesPkgs.patchelf
-              ])
-            ) (old.nativeBuildInputs or [ ]);
-            postFixup = "";
-          })
-        else
-          package
-      )
-      (
-        lib.filterAttrs (_: lib.isDerivation) (
-          hermesPkgs.callPackage "${inputs.hermes-agent}/nix/pm-packages.nix" { }
-        )
-      );
+  pmPackages = lib.filterAttrs (_: lib.isDerivation) (
+    hermesPkgs.callPackage "${inputs.hermes-agent}/nix/pm-packages.nix" { }
+  );
   hermesBasePackage =
     (hermesPkgs.callPackage "${inputs.hermes-agent}/nix/hermes-agent.nix" {
+      # NousResearch/hermes-agent#150967 (open): pnpm's macOS clone probe
+      # leaves an empty v11/links in the store, so the pnpm-deps hash only
+      # matches on Linux. Drop once that lands in a tag.
+      callPackage = lib.callPackageWith (
+        hermesPkgs
+        // {
+          fetchPnpmDeps =
+            args:
+            hermesPkgs.fetchPnpmDeps (
+              args
+              // {
+                preFixup = (args.preFixup or "") + ''
+                  rmdir "$storePath/v11/links" 2>/dev/null || true
+                '';
+              }
+            );
+        }
+      );
       inherit (inputs.hermes-agent.inputs) uv2nix pyproject-nix pyproject-build-systems;
-      npm-lockfile-fix =
-        inputs.hermes-agent.inputs.npm-lockfile-fix.packages.${pkgs.stdenv.hostPlatform.system}.default;
       inherit pmPackages;
       rev = inputs.hermes-agent.rev or null;
-      version = "0.22.5";
+      version = "0.23.1";
       lastModified = inputs.hermes-agent.lastModified or null;
     }).override
       {
@@ -182,9 +193,13 @@ rec {
     jujutsu
     nodejs
     nix
+    unstablePkgs.claude-code
   ];
-  extraPlugins = [ sessionResetPolicyPlugin ];
-  inherit sessionResetPolicyPlugin;
+  extraPlugins = [
+    sessionResetPolicyPlugin
+    claudeSubscriptionPlugin
+  ];
+  inherit sessionResetPolicyPlugin claudeSubscriptionPlugin;
   mcpServers = {
     affine = {
       url = "https://a.wrx.sh/api/workspaces/dace8f22-701f-4bb6-8c78-cbcb6d73cc42/mcp";
@@ -242,14 +257,15 @@ rec {
     # mode left behind from an earlier TickTick configuration.
     mcp_servers.ticktick.auth = null;
 
-    # ChatGPT-subscription auth (Codex OAuth), not the API: credentials come
-    # from a one-time interactive `sudo -u hermes hermes auth add openai-codex`
-    # device-code login, stored in $HERMES_HOME/auth.json (survives deploys;
-    # refresh tokens rotate automatically). Codex models use bare slugs (no
-    # openai/ prefix) and cap context at 272k vs 1.05M on the raw API.
+    # Claude-subscription auth through the claude-subscription-directsdk
+    # plugin, which drives the `claude` CLI. The CLI authenticates from
+    # CLAUDE_CODE_OAUTH_TOKEN (a `claude setup-token` token) in the gateway's
+    # environment; the plugin passes it through and strips only ANTHROPIC_*
+    # API credentials. The openai-codex OAuth login in auth.json stays usable
+    # via /model.
     model = {
-      provider = "openai-codex";
-      default = "gpt-6.1-sol";
+      provider = "claude-subscription-directsdk-experimental";
+      default = "opus";
     };
 
     agent.reasoning_effort = "medium";

@@ -4,6 +4,7 @@
   pkgs,
   user,
   inputs,
+  unstablePkgs,
   ...
 }:
 let
@@ -14,7 +15,7 @@ let
   driver = "${app}/Contents/MacOS/cua-driver";
   hermesHome = "${home}/.hermes";
   installPython = pkgs.python3.withPackages (ps: [ ps.pyyaml ]);
-  common = import ../hermes/common.nix { inherit inputs pkgs lib; };
+  common = import ../hermes/common.nix { inherit inputs pkgs unstablePkgs lib; };
   hermesPackage = common.package;
   workerConfig = (pkgs.formats.yaml { }).generate "hermes-mac-config.yaml" (
     lib.recursiveUpdate common.settings {
@@ -102,6 +103,7 @@ let
     PY
     mkdir -p ${lib.escapeShellArg "${hermesHome}/plugins"}
     /bin/ln -sfn ${common.sessionResetPolicyPlugin} ${lib.escapeShellArg "${hermesHome}/plugins/nix-managed-hermes-session-reset-policy"}
+    /bin/ln -sfn ${common.claudeSubscriptionPlugin} ${lib.escapeShellArg "${hermesHome}/plugins/nix-managed-claude-subscription-directsdk"}
     /bin/cp ${soul} ${lib.escapeShellArg "${hermesHome}/SOUL.md"}
     echo "Installed CuaDriver. Grant desktop access with: ${driver} permissions grant"
   '';

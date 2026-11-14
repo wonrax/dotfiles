@@ -3,6 +3,7 @@
   config,
   user,
   pkgs,
+  unstablePkgs,
   lib,
   ...
 }:
@@ -10,8 +11,8 @@ let
   telegramGroupId = "-1003508166716";
   dashboardUrl = "http://pumpkin:9119";
   dashboardAuthFile = "/var/lib/hermes-dashboard/auth.env";
-  common = import ../../../home/hermes/common.nix { inherit inputs pkgs lib; };
-  inherit (common) sessionResetPolicyPlugin;
+  common = import ../../../home/hermes/common.nix { inherit inputs pkgs unstablePkgs lib; };
+  inherit (common) sessionResetPolicyPlugin claudeSubscriptionPlugin;
 
 in
 {
@@ -22,8 +23,10 @@ in
   #   FIRECRAWL_API_KEY=fc-...  (web_search/web_extract backend)
   #   MONEYLOVER_EMAIL=... / MONEYLOVER_PASSWORD=...  (Money Lover MCP)
   #   OPENCODE_GO_API_KEY=...  (optional OpenCode Go provider)
-  # (OPENROUTER_API_KEY may remain for fallback use; the main model now runs
-  # via ChatGPT Codex OAuth, whose tokens live in auth.json, not here.)
+  #   CLAUDE_CODE_OAUTH_TOKEN=...  (from `claude setup-token`; the main model's
+  #     claude-subscription-directsdk provider passes it to the `claude` CLI)
+  # (OPENROUTER_API_KEY may remain for fallback use; the ChatGPT Codex OAuth
+  # tokens for the openai-codex provider live in auth.json, not here.)
   # Secret rotations need a rebuild: the module copies environmentFiles into
   # $HERMES_HOME/.env at activation time, not at service start.
   services.onepassword-secrets.secrets.hermesAgentEnv = {
@@ -43,6 +46,7 @@ in
   systemd.services.hermes-agent = {
     restartTriggers = [
       sessionResetPolicyPlugin
+      claudeSubscriptionPlugin
     ];
     serviceConfig.EnvironmentFile = [
       "-${config.services.onepassword-secrets.secretPaths.hermesAgentEnv}"
@@ -171,10 +175,6 @@ in
         allowed_topics = [
           "1"
         ];
-        channel_overrides.${telegramGroupId} = {
-          provider = "opencode-go";
-          model = "gemini-4-argon";
-        };
         # Keys are Telegram forum topic IDs.
         channel_prompts = {
           "1" = ''

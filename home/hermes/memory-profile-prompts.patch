@@ -12,7 +12,7 @@
      "should behave.\n"
      "  • MEMORY.md (memory tool, target='memory'): facts about the ENVIRONMENT you operate in — "
      "tool quirks, project conventions, config gotchas, paths and endpoints that matter.\n\n"
-@@ -383,8 +384,9 @@
+@@ -391,8 +392,9 @@
  _MEMORY_REVIEW_PROMPT = (
      "Review the conversation above and consider saving to memory if appropriate.\n\n"
      "Memory has " + _MEMORY_ROUTING_BLOCK +
@@ -26,7 +26,7 @@
  # Shared shape contract for anything written into a skill. The failure mode this prevents is the
 --- a/agent/prompt_builder.py
 +++ b/agent/prompt_builder.py
-@@ -217,16 +217,19 @@
+@@ -220,16 +220,19 @@
          "even when skill writing is unavailable. "
      )
      return frame + skill_routing + (
@@ -58,7 +58,7 @@
  
 --- a/tools/memory_tool.py
 +++ b/tools/memory_tool.py
-@@ -373,8 +373,9 @@
+@@ -373,25 +373,35 @@
  MEMORY_SCHEMA = {
      "name": "memory",
      "description": (
@@ -70,10 +70,9 @@
          "HOW: make ALL your changes to one target in ONE call via an 'operations' array (each "
          "item: {action, content?, old_text?}). The batch applies atomically and the char limit is "
          "checked only on the FINAL result — so a single call can remove/patch stale entries "
-@@ -382,17 +383,26 @@
+         "to free room AND add new ones, even when an add alone would overflow. The response "
          "reports current/limit chars and confirms completion; one batch call finishes the "
-         "update, so don't repeat it. Use the bare action/content/old_text fields only for a "
-         "single lone change.\n\n"
+         "update, so don't repeat it.\n\n"
 -        "WHEN: only for facts that apply to EVERY session regardless of task: who the user "
 -        "is, stable environment facts, standing conventions with no task home. Anything "
 -        "learned while doing a task (procedures, pitfalls, and the user's preferences and "

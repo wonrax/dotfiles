@@ -93,7 +93,7 @@
     # Pinned to a release tag so `nix flake update` can't bump it — upstream
     # moves fast and config/module drift needs review on every upgrade
     # (hosts/pumpkin/hermes/default.nix documents what we depend on).
-    hermes-agent.url = "github:NousResearch/hermes-agent/v0.22.5";
+    hermes-agent.url = "github:NousResearch/hermes-agent/v0.23.1";
 
     # Autolith pins nixpkgs to match its SBCL and Lisp dependencies.
     autolith.url = "github:lambda-symbolics/autolith";
