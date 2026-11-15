@@ -171,6 +171,9 @@ in
       };
 
       telegram = {
+        # The module deep-merges config.yaml, so a removed key lingers on
+        # disk; clear the old per-group model override explicitly.
+        channel_overrides = null;
         # Topic 3 belongs to the Mac bot; Pumpkin handles General only.
         allowed_topics = [
           "1"
