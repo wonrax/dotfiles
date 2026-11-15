@@ -272,16 +272,58 @@ rec {
 
     agent.reasoning_effort = "medium";
 
+    # Tried in order when the subscription is rate-limited, overloaded or
+    # failing auth. The primary is benched until its declared reset time;
+    # resets due sooner than min_switch_reset_seconds are waited out instead.
+    fallback_providers = [
+      {
+        provider = "opencode-go";
+        model = "gemini-4-argon";
+      }
+      {
+        provider = "openrouter";
+        model = "openai/gpt-6.1-sol";
+      }
+    ];
+    fallback.min_switch_reset_seconds = 600;
+
+    # Tool output is most of a session's growth. These caps apply when a
+    # result enters history, so they never rewrite the cached prefix.
+    tool_budget.mcp_result_size_chars = 16000;
+    tool_output.max_bytes = 20000;
+    file_read_max_chars = 40000;
+
+    # A follow-up sent mid-run joins after the next tool call instead of
+    # interrupting the turn.
+    display.busy_input_mode = "steer";
+
+    # Memories carry timestamps too; give the model send-times to match.
+    gateway.message_timestamps.enabled = true;
+
+    # Nous Portal isn't used; guest mode still advertised the
+    # manage_connections tool (~1.1k tokens) in every prompt.
+    tools.connectors.enabled = false;
+    nous.guest = false;
+
     # Backend for the web_search/web_extract tools. Auto-detect would pick
     # firecrawl anyway from FIRECRAWL_API_KEY (in the opnix envfile item),
     # but be explicit. The tools silently drop out of the model's schema
     # when the key is missing.
-    web.backend = "firecrawl";
+    web = {
+      backend = "firecrawl";
+      # Default 15000; the full page stays in cache/web for follow-up reads.
+      extract_char_limit = 8000;
+    };
 
     # Stream replies into the chat via progressive message edits (plain text
     # while streaming, MarkdownV2 on the final edit). Gateway streaming is
     # controlled by this top-level key; display.streaming is CLI-only.
-    streaming.enabled = true;
+    # Edits don't notify, so a reply whose preview was visible for 20s+ is
+    # sent as a fresh message when it finishes.
+    streaming = {
+      enabled = true;
+      fresh_final_after_seconds = 20;
+    };
 
     display.platforms.telegram = {
       # Telegram's mobile-tuned platform default is "off"; "all" shows every
@@ -300,6 +342,9 @@ rec {
       # system prompt in full, so this is a per-session token cost.
       memory_char_limit = 8000;
       user_char_limit = 24000;
+      # The 03:30 dreamer cron reviews each day's sessions for memories, so
+      # the per-10-turn background review fork is redundant.
+      nudge_interval = 0;
     };
 
     # Core no longer applies this policy; the reset plugin checks the 4am
