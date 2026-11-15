@@ -113,6 +113,8 @@ let
         cd src
         mkdir -p tests/agent
         patch -p1 < ${../../hosts/pumpkin/hermes/135759-idle-compaction.patch}
+        # Idle floor is otherwise threshold × target_ratio (≥75K at 0.75 × 1M).
+        patch -p1 < ${./idle-compact-min-tokens.patch}
         patch -p1 < ${./a2a-owner-peers.patch}
         # Upstream tells the agent to keep memory small and drop anything
         # stale within a week, which produced a pointer-only USER.md.
@@ -309,7 +311,11 @@ rec {
 
     # PR #135759 uses persisted transcript timestamps so idle detection
     # survives the watchdog reset, cache eviction, and gateway restarts.
-    compression.idle_compact_after_seconds = 3 * 60 * 60;
+    compression = {
+      threshold = 0.75;
+      idle_compact_after_seconds = 60 * 60;
+      idle_compact_min_tokens = 50000;
+    };
 
   };
 }

@@ -1,0 +1,73 @@
+--- a/agent/agent_init.py
++++ b/agent/agent_init.py
+@@ -1396,6 +1396,8 @@
+     # Opt-in idle compaction: compact up front when a session resumes after this many
+     # seconds idle (0 = disabled). Consumed by build_turn_context().
+     idle_compact_after_seconds = max(0, int(cfg.get("idle_compact_after_seconds", 0)))
++    # Optional history-only floor for idle compaction (0 = threshold × target_ratio).
++    idle_compact_min_tokens = max(0, _parse_config_int(cfg.get("idle_compact_min_tokens", 0), 0))
+     return CompressionSettings(
+         threshold=threshold,
+         autoraise_notice_enabled=autoraise_notice_enabled,
+@@ -1443,6 +1445,7 @@
+         codex_responses_native=responses_native,
+         codex_responses_compact_threshold=compact_threshold,
+         idle_compact_after_seconds=idle_compact_after_seconds,
++        idle_compact_min_tokens=idle_compact_min_tokens,
+         prepare_ahead=is_truthy_value(cfg.get("prepare_ahead"), default=False),
+     )
+ 
+@@ -1900,6 +1903,7 @@
+     )
+     agent.max_compression_attempts = cs.max_attempts
+     agent.compression_idle_compact_after_seconds = cs.idle_compact_after_seconds
++    agent.compression_idle_compact_min_tokens = cs.idle_compact_min_tokens
+ 
+ 
+ def _enforce_minimum_context(agent):
+--- a/agent/turn_context_compaction.py
++++ b/agent/turn_context_compaction.py
+@@ -197,6 +197,21 @@
+     )
+     # Don't summarise a thread already below the post-compression target size.
+     _idle_floor = int(_compressor.threshold_tokens * _compressor.summary_target_ratio)
++    # idle_compact_min_tokens gates on conversation history alone: the preflight figure above
++    # also carries the system prompt and tool schemas, so an absolute floor on it is meaningless.
++    _idle_min_tokens = getattr(agent, "compression_idle_compact_min_tokens", 0)
++    if isinstance(_idle_min_tokens, int) and not isinstance(_idle_min_tokens, bool) and _idle_min_tokens > 0:
++        from agent.model_metadata import estimate_messages_tokens_rough
++        _end = out.current_turn_user_idx
++        _prior = messages[:_end] if isinstance(_end, int) and _end >= 0 else messages
++        _idle_history = estimate_messages_tokens_rough(_prior)
++        if _idle_history < _idle_min_tokens:
++            logger.info(
++                "Idle compaction skipped: %ss idle, ~%s history tokens < %s min (session %s)",
++                int(_idle_gap), f"{_idle_history:,}", f"{_idle_min_tokens:,}", agent.session_id or "none",
++            )
++            return
++        _idle_floor = 0
+     _idle_cooldown = getattr(
+         _compressor, "get_active_compression_failure_cooldown", lambda: None
+     )()
+--- a/hermes_cli/config_defaults.py
++++ b/hermes_cli/config_defaults.py
+@@ -678,6 +678,8 @@
+         # front, before the first reply. Time-based complement to `threshold`; skipped when already at/below
+         # threshold × target_ratio; honors the same cooldown/anti-thrash/lock guards. Example: 1800 = 30 min.
+         "idle_compact_after_seconds": 0,
++        # Idle compaction skips sessions whose history (excluding system prompt and tools) is below this; 0 keeps threshold × target_ratio.
++        "idle_compact_min_tokens": 0,
+         # Opt-in: write the next summary in the background near the trigger; compaction uses (or waits for) it if it still covers the same messages.
+         "prepare_ahead": False,
+     },
+--- a/tui_gateway/session_compression.py
++++ b/tui_gateway/session_compression.py
+@@ -111,6 +111,8 @@
+     # Absence restores the agent_init/config default (0 = disabled).
+     with contextlib.suppress(TypeError, ValueError):
+         agent.compression_idle_compact_after_seconds = max(0, int(compression.get("idle_compact_after_seconds", 0) or 0))
++    with contextlib.suppress(TypeError, ValueError):
++        agent.compression_idle_compact_min_tokens = max(0, int(compression.get("idle_compact_min_tokens", 0) or 0))
+     cc = getattr(agent, "context_compressor", None)
+     if cc is None:
+         return
