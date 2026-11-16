@@ -117,6 +117,15 @@ in
   ];
 
   server.swapSize = 4 * 1024; # 4 GiB swap file
+  # The swapfile lives on eMMC; an idle hermes gateway paged out there took
+  # >10s to answer the 03:30 dreamer's loopback connect. zram outranks it
+  # (priority 5 vs -2), so the swapfile only takes overflow.
+  zramSwap = {
+    enable = true;
+    algorithm = "zstd";
+    memoryPercent = 50;
+  };
+  boot.kernel.sysctl."vm.swappiness" = 20;
   server.opnix.enable = true;
 
   system.stateVersion = "25.05";
