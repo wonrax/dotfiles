@@ -37,7 +37,7 @@
 # - passwordStore defaults to "gnome-libsecret" for the same reason as
 #   claude-desktop.nix: electron only auto-detects a keyring backend on
 #   GNOME/KDE, and under niri it silently falls back to the plaintext store.
-#   Requires the gnome-keyring daemon (enabled in nixos/system.nix).
+#   Requires the gnome-keyring daemon (enabled in nixos/desktop/default.nix).
 # - postPatch asserts app.asar's size is unchanged after the sed (suggested in
 #   review but not adopted upstream yet).
 #

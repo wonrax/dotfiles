@@ -1,3 +1,7 @@
+# Graphical bare-metal desktop on top of ../core: GUI apps, 1Password app,
+# keyring, input method, audio/keyboard hardware tweaks. The compositor
+# modules (niri, dms, gnome) are imported here but each is gated behind its
+# own enable option, set per host.
 {
   inputs,
   user,
@@ -6,41 +10,27 @@
   ...
 }:
 {
-  nixpkgs.config.allowUnfree = true;
-  nix.settings.trusted-users = [ user.username ];
-
-  nix.gc = {
-    automatic = true;
-    dates = "weekly";
-    options = "--delete-older-than 30d";
-  };
-
-  environment.systemPackages = with pkgs; [
-    vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-    git
-    xclip
-    unzip
-    tmux
+  imports = [
+    ../core
+    ./keyboard.nix
+    ./services.nix
+    ./niri.nix
+    ./dms.nix
+    ./gnome.nix
   ];
 
-  virtualisation.docker.enable = true;
+  environment.systemPackages = [ pkgs.xclip ];
 
   users.users.${user.username} = {
-    isNormalUser = true;
-    description = user.fullname;
     extraGroups = [
       "networkmanager"
-      "wheel"
       "i2c"
-      "docker"
     ];
 
     packages = with pkgs; [
       google-chrome
       tailscale-systray
       jetbrains.datagrip
-
-      lazydocker
 
       # NOTE: These packages are NixOS specific because on macOS I'd like
       # for these programs to be able to update itself, which is only
@@ -56,12 +46,12 @@
 
       # Vendored from nixpkgs PR #537215 until it lands; see the header of
       # pkgs/claude-desktop.nix for the quirks (keyring, FHS, no Cowork).
-      (pkgs.callPackage ../pkgs/claude-desktop.nix { })
+      (pkgs.callPackage ../../pkgs/claude-desktop.nix { })
 
       # Vendored from nixpkgs PR #551713 until it lands; see the header of
       # pkgs/chatgpt-desktop.nix for the quirks (SIGILL asar patch, writable
       # plugin cache, keyring). Built from unstable so codex stays fresh.
-      (unstablePkgs.callPackage ../pkgs/chatgpt-desktop.nix { })
+      (unstablePkgs.callPackage ../../pkgs/chatgpt-desktop.nix { })
 
       alsa-utils # alsamixer
 
@@ -104,19 +94,11 @@
     };
   };
 
-  # NixOS does not follow the XDG Base Directory Specification by default.
-  # Tracking issue: https://github.com/NixOS/nixpkgs/issues/224525
-  environment.variables = {
-    XDG_CACHE_HOME = "$HOME/.cache";
-    XDG_CONFIG_HOME = "$HOME/.config";
-    XDG_DATA_HOME = "$HOME/.local/share";
-    XDG_STATE_HOME = "$HOME/.local/state";
-  };
-
   fonts.fontconfig.enable = true;
 
-  programs.nh = {
-    enable = true;
-    flake = "/home/${user.username}/.dotfiles";
+  home-manager.users.${user.username} = {
+    programs.ghostty.enable = true;
+    programs.git.settings.gpg.ssh.program = "${pkgs._1password-gui}/bin/op-ssh-sign";
+    programs.jujutsu.settings.signing.backends.ssh.program = "${pkgs._1password-gui}/bin/op-ssh-sign";
   };
 }

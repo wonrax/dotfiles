@@ -80,13 +80,18 @@
 
     # Standalone daemon that focuses the source window when a notification is
     # clicked (DMS/quickshell never tells niri to focus the app). Not a flake;
-    # packaged in nixos/niri.nix.
+    # packaged in nixos/desktop/niri.nix.
     niri-notify-focus = {
       url = "github:Oaklight/niri-notify-focus/v0.2.1";
       flake = false;
     };
 
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
+
+    nixos-wsl = {
+      url = "github:nix-community/NixOS-WSL/release-26.05";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     # Intentionally not following our nixpkgs: hermes seals its Python venv
     # with uv2nix against its own pinned nixpkgs.
@@ -225,12 +230,27 @@
         specialArgs = commonSpecialArgs user "x86_64-linux";
         modules = [
           { nixpkgs.overlays = [ overlays ]; }
-          ./nixos
+          ./nixos/desktop
           ./hosts/peggy
           inputs.minegrub-theme.nixosModules.default
           inputs.minegrub-world-sel-theme.nixosModules.default
         ];
       };
+
+      nixosConfigurations.opswat-wsl =
+        let
+          wslUser = user // {
+            email = "hai.ha@opswat.com";
+          };
+        in
+        nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          specialArgs = commonSpecialArgs wslUser "x86_64-linux";
+          modules = [
+            { nixpkgs.overlays = [ overlays ]; }
+            ./hosts/wsl
+          ];
+        };
 
       darwinConfigurations = {
         wonraxs-macbook-air = mkDarwin user 6 "25.11";

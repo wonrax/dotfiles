@@ -11,11 +11,6 @@
 }:
 
 {
-  nix.settings.experimental-features = [
-    "nix-command"
-    "flakes"
-  ];
-
   boot.initrd.systemd.enable = true; # SystemD as PID1 for faster Plymouth and TTY resolution initialization
 
   # Bootloader.
@@ -73,8 +68,6 @@
   # Enable networking
   networking.networkmanager.enable = true;
 
-  # Set your time zone.
-  time.timeZone = "Asia/Ho_Chi_Minh";
   # Fixes time drift on dual-boot systems.
   time.hardwareClockInLocalTime = true;
 
@@ -126,7 +119,7 @@
       # [Theme]CursorTheme alone shows the default X cursor: libXcursor's
       # compiled-in search path (~/.icons, the libxcursor store path, ...) does
       # not include /run/current-system/sw/share/icons, the only place Bibata is
-      # installed (environment.systemPackages, nixos/niri.nix), so the greeter
+      # installed (environment.systemPackages, nixos/desktop/niri.nix), so the greeter
       # can't resolve the theme. GreeterEnvironment is the channel that reaches
       # the greeter process; XCURSOR_PATH is the actual missing ingredient.
       General.GreeterEnvironment = "XCURSOR_THEME=Bibata-Modern-Classic,XCURSOR_SIZE=24,XCURSOR_PATH=/run/current-system/sw/share/icons";
@@ -149,16 +142,11 @@
       enableWindup = true;
     };
     # Provides the `qylock-lock` quickshell lockscreen, bound to Super+Alt+L in
-    # nixos/dms.nix. Shares the same theme as the greeter.
+    # nixos/desktop/dms.nix. Shares the same theme as the greeter.
     quickshell.enable = true;
   };
 
-  # niri & dank-material-shell
-  imports = [
-    ../../nixos/niri.nix
-    ../../nixos/dms.nix
-    inputs.qylock.nixosModules.default
-  ];
+  imports = [ inputs.qylock.nixosModules.default ];
   programs.niri.enable = true;
   wonrax.dank-material-shell.enable = true;
 
