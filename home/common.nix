@@ -20,6 +20,11 @@ let
   };
   agentsMd = mkAgentLink "AGENTS.md";
   agentsSkills = mkAgentLink "skills";
+  # Claude syncs cloud skills into ~/.claude/skills/synced, so that dir has to
+  # stay real and outside the repo; link each of our skills into it instead.
+  claudeSkills = lib.mapAttrs' (
+    name: _: lib.nameValuePair ".claude/skills/${name}" (mkAgentLink "skills/${name}")
+  ) (lib.filterAttrs (name: type: type == "directory") (builtins.readDir ../.config/agents/skills));
   onePassPath =
     if pkgs.stdenv.isDarwin then
       "${config.home.homeDirectory}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
@@ -62,6 +67,7 @@ in
     ./nushell.nix
     ./starship
     ./zoxide.nix
+    { home.file = claudeSkills; }
   ];
 
   xdg.configFile.nvim = {
@@ -128,7 +134,6 @@ in
   home.file.".dsh/AGENTS.md" = agentsMd;
   home.file.".dsh/skills" = agentsSkills;
   home.file.".codex/AGENTS.md" = agentsMd;
-  home.file.".claude/skills" = agentsSkills;
   home.file.".claude/CLAUDE.md" = agentsMd;
 
   home.activation.assertDotfilesLocation =

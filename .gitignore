@@ -2,3 +2,5 @@
 result/
 pi-secrets.nix
 
+.config/agents/skills/synced/
+.config/agents/skills/.trash/
