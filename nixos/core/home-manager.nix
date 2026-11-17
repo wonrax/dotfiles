@@ -13,16 +13,5 @@
   home-manager.useUserPackages = true;
   home-manager.useGlobalPkgs = true;
   home-manager.extraSpecialArgs = { inherit user unstablePkgs inputs; };
-  home-manager.users.${user.username} = {
-    imports = [
-      ../home/desktop.nix
-      (
-        { pkgs, ... }:
-        {
-          programs.git.settings.gpg.ssh.program = "${pkgs._1password-gui}/bin/op-ssh-sign";
-          programs.jujutsu.settings.signing.backends.ssh.program = "${pkgs._1password-gui}/bin/op-ssh-sign";
-        }
-      )
-    ];
-  };
+  home-manager.users.${user.username}.imports = [ ../../home/common.nix ];
 }

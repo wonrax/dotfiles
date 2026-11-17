@@ -15,7 +15,7 @@
 # - passwordStore defaults to "gnome-libsecret": electron only auto-detects a
 #   keyring backend on GNOME/KDE, so under niri it silently falls back to the
 #   plaintext store and Claude refuses to persist sign-in. Requires a running
-#   gnome-keyring daemon (enabled in nixos/system.nix).
+#   gnome-keyring daemon (enabled in nixos/desktop/default.nix).
 # - dieWithParent stays false. Upstream flipped it to true to avoid orphaned
 #   electron after `nix run`, but the DMS launcher spawns detached, so PDEATHSIG
 #   would tie the app's lifetime to the shell process that launched it.

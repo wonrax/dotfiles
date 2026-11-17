@@ -1,6 +1,6 @@
-# Home Manager configuration that can be shared across machines and platforms
-# including MacOS and Linux distributions other than NixOS. NixOS specific HM
-# configurations should be put inside `nixos.nix`.
+# Home Manager configuration shared across every machine and platform (macOS,
+# NixOS desktop, NixOS-WSL). NixOS-only HM bits live next to the NixOS module
+# that needs them under ../nixos.
 {
   config,
   pkgs,
@@ -144,9 +144,9 @@ in
         fi
       '';
 
-  programs.ghostty = {
-    enable = pkgs.stdenv.isLinux; # ghostty package is currently marked as broken on MacOS
-  };
+  # Config above is shared; the package is only installed on graphical NixOS
+  # (nixos/desktop). On macOS ghostty is installed outside nix.
+  programs.ghostty.enable = lib.mkDefault false;
 
   programs.atuin = {
     enable = true;

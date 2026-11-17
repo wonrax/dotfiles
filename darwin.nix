@@ -108,7 +108,7 @@ in
     inherit user unstablePkgs inputs;
   };
   home-manager.users.${user.username} = {
-    imports = [ ./home/desktop.nix ];
+    imports = [ ./home/common.nix ];
 
     # NOTE: ssh agent must be enabled and configured manually in
     # 1password on macos for now
