@@ -38,8 +38,12 @@ in
   imports = [
     inputs.nixos-wsl.nixosModules.default
     ../../nixos/core
+    ../../nixos/mdcore.nix
     ./rex.nix
   ];
+
+  # MetaDefender Core, repackaged from the deb. Web UI on http://localhost:8008.
+  services.mdcore.enable = true;
 
   wsl = {
     enable = true;
