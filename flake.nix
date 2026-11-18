@@ -237,20 +237,14 @@
         ];
       };
 
-      nixosConfigurations.opswat-wsl =
-        let
-          wslUser = user // {
-            email = "hai.ha@opswat.com";
-          };
-        in
-        nixpkgs.lib.nixosSystem {
-          system = "x86_64-linux";
-          specialArgs = commonSpecialArgs wslUser "x86_64-linux";
-          modules = [
-            { nixpkgs.overlays = [ overlays ]; }
-            ./hosts/wsl
-          ];
-        };
+      nixosConfigurations.opswat-wsl = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        specialArgs = commonSpecialArgs user "x86_64-linux";
+        modules = [
+          { nixpkgs.overlays = [ overlays ]; }
+          ./hosts/wsl
+        ];
+      };
 
       darwinConfigurations = {
         wonraxs-macbook-air = mkDarwin user 6 "25.11";

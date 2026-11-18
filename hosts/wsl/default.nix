@@ -23,6 +23,15 @@ let
   windowsHome = "/mnt/c/Users/${windowsUser}";
   # App execution alias installed by the Microsoft Store build of 1Password.
   opSshSign = "${windowsHome}/AppData/Local/Microsoft/WindowsApps/op-ssh-sign-wsl.exe";
+
+  # Work GitHub account. Repos under workDir commit, sign and push as it;
+  # everything else stays on the personal identity from flake.nix.
+  work = {
+    email = "hai.ha@opswat.com";
+    # 1password "opswat-ssh-key"
+    ssh-pub-key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFwcwqCJewutubPA1brWqVNVLqlu1PWoEAauA7bJhq6S";
+    sshHost = "github-work";
+  };
 in
 {
   imports = [
@@ -57,6 +66,44 @@ in
     {
       programs.git.settings.gpg.ssh.program = opSshSign;
       programs.jujutsu.settings.signing.backends.ssh.program = opSshSign;
+
+      # GitHub picks the account from whichever key authenticates first, and
+      # the 1Password agent offers every key it holds. Pinning a public key
+      # with IdentitiesOnly makes the agent sign with that key alone.
+      home.file.".ssh/github-personal.pub".text = user.ssh-pub-key;
+      home.file.".ssh/github-work.pub".text = work.ssh-pub-key;
+      programs.ssh.settings = {
+        "github.com" = {
+          IdentityFile = "~/.ssh/github-personal.pub";
+          IdentitiesOnly = "yes";
+        };
+        ${work.sshHost} = {
+          HostName = "github.com";
+          User = "git";
+          IdentityFile = "~/.ssh/github-work.pub";
+          IdentitiesOnly = "yes";
+        };
+      };
+
+      # Clone work repos into ~/work with `git@github-work:<org>/<repo>`.
+      # Inside ~/work, github.com remotes are rewritten to the work alias too.
+      programs.git.includes = [
+        {
+          condition = "gitdir:~/work/";
+          contents = {
+            user.email = work.email;
+            user.signingKey = work.ssh-pub-key;
+            url."git@${work.sshHost}:".insteadOf = "git@github.com:";
+          };
+        }
+      ];
+      programs.jujutsu.settings."--scope" = [
+        {
+          "--when".repositories = [ "${config.home.homeDirectory}/work" ];
+          user.email = work.email;
+          signing.key = work.ssh-pub-key;
+        }
+      ];
 
       # Relay 1Password's Windows SSH agent to the socket IdentityAgent uses.
       systemd.user.services."1password-ssh-agent-bridge" = {
