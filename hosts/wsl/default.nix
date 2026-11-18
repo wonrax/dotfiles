@@ -40,6 +40,9 @@ in
 
   networking.hostName = "opswat-wsl";
 
+  # Deploys to pumpkin build its aarch64 closure here.
+  boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
+
   users.users.${user.username}.shell = pkgs.nushell;
   environment.shells = [ pkgs.nushell ];
 
