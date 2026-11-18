@@ -1,13 +1,14 @@
+# Single-user Rex server on the host's tailscaled. With tailnetAllowIdentified
+# left off, Rex only admits the Tailscale account that owns this node, so this
+# relies on pumpkin staying untagged (a tagged node has no owner).
 { inputs, user, ... }:
 {
   imports = [ inputs.rex.nixosModules.default ];
 
-  services.rex.loginServer = {
+  services.rex = {
     enable = true;
-    pam = true;
-    allowAnonymous = false;
-    accounts.${user.username}.principals = [ "tailscale:${user.email}" ];
-    defaults."tailscale:${user.email}" = user.username;
+    user = user.username;
+    group = "users";
     extraListen = [ "tailnet://:7297" ];
   };
 

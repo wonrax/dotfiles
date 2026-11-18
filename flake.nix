@@ -104,7 +104,7 @@
     autolith.url = "github:lambda-symbolics/autolith";
 
     rex = {
-      url = "https://pkgs.superlogical.com/rex/nix/preview/0.1.0-preview.11.tar.gz";
+      url = "https://pkgs.superlogical.com/rex/nix/snapshot/0.0.1794951079-gc914c9.tar.gz";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 

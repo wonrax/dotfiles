@@ -28,6 +28,7 @@ in
   imports = [
     inputs.nixos-wsl.nixosModules.default
     ../../nixos/core
+    ./rex.nix
   ];
 
   wsl = {
