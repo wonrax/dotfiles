@@ -24,9 +24,10 @@ let
   # App execution alias installed by the Microsoft Store build of 1Password.
   opSshSign = "${windowsHome}/AppData/Local/Microsoft/WindowsApps/op-ssh-sign-wsl.exe";
 
-  # Work GitHub account. Repos under workDir commit, sign and push as it;
+  # Work GitHub account. Repos under ~/work commit, sign and push as it;
   # everything else stays on the personal identity from flake.nix.
   work = {
+    name = "Hai Ha";
     email = "hai.ha@opswat.com";
     # 1password "opswat-ssh-key"
     ssh-pub-key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFwcwqCJewutubPA1brWqVNVLqlu1PWoEAauA7bJhq6S";
@@ -91,6 +92,7 @@ in
         {
           condition = "gitdir:~/work/";
           contents = {
+            user.name = work.name;
             user.email = work.email;
             user.signingKey = work.ssh-pub-key;
             url."git@${work.sshHost}:".insteadOf = "git@github.com:";
@@ -100,6 +102,7 @@ in
       programs.jujutsu.settings."--scope" = [
         {
           "--when".repositories = [ "${config.home.homeDirectory}/work" ];
+          user.name = work.name;
           user.email = work.email;
           signing.key = work.ssh-pub-key;
         }
