@@ -1,28 +1,37 @@
 return {
   {
-    'mrjones2014/smart-splits.nvim',
-    config = function()
-    version = '*',
+    'smart-splits-nvim/smart-splits.nvim',
+    version = '^3.0.0',
+    dependencies = {
+      { 'smart-splits-nvim/backend-tmux', main = 'smart-splits-backend-tmux', opts = {} },
+      { 'smart-splits-nvim/backend-zellij-lua', main = 'smart-splits-backend-zellij-lua', opts = {} },
+    },
+    opts = {
+      mux = {
+        backend = { 'smart-splits-backend-tmux', 'smart-splits-backend-zellij-lua' },
+        -- don't warn when running nvim outside of a multiplexer
+        warn_if_unusable = false,
+      },
+    },
+    config = function(_, opts)
+      local smart_splits = require 'smart-splits'
+      smart_splits.setup(opts)
+
       -- resizing splits
       -- these keymaps will also accept a range,
-      -- for example `10<M-h>` will `resize_left` by `(10 * config.default_amount)`
-      vim.keymap.set('n', '<C-M-h>', require('smart-splits').resize_left)
-      vim.keymap.set('n', '<C-M-j>', require('smart-splits').resize_down)
-      vim.keymap.set('n', '<C-M-k>', require('smart-splits').resize_up)
-      vim.keymap.set('n', '<C-M-l>', require('smart-splits').resize_right)
+      -- for example `10<M-h>` will `resize_left` by `(10 * config.resize.amount)`
+      vim.keymap.set('n', '<C-M-h>', smart_splits.resize_left)
+      vim.keymap.set('n', '<C-M-j>', smart_splits.resize_down)
+      vim.keymap.set('n', '<C-M-k>', smart_splits.resize_up)
+      vim.keymap.set('n', '<C-M-l>', smart_splits.resize_right)
 
       -- moving between splits
-      vim.keymap.set('n', '<M-h>', require('smart-splits').move_cursor_left)
-      vim.keymap.set('n', '<M-j>', require('smart-splits').move_cursor_down)
-      vim.keymap.set('n', '<M-k>', require('smart-splits').move_cursor_up)
-      vim.keymap.set('n', '<M-l>', require('smart-splits').move_cursor_right)
-      vim.keymap.set('n', '<M-\\>', require('smart-splits').move_cursor_previous)
-
-      -- swapping buffers between windows
-      -- vim.keymap.set('n', '<leader><leader>h', require('smart-splits').swap_buf_left)
-      -- vim.keymap.set('n', '<leader><leader>j', require('smart-splits').swap_buf_down)
-      -- vim.keymap.set('n', '<leader><leader>k', require('smart-splits').swap_buf_up)
-      -- vim.keymap.set('n', '<leader><leader>l', require('smart-splits').swap_buf_right)
+      vim.keymap.set('n', '<M-h>', smart_splits.move_cursor_left)
+      vim.keymap.set('n', '<M-j>', smart_splits.move_cursor_down)
+      vim.keymap.set('n', '<M-k>', smart_splits.move_cursor_up)
+      vim.keymap.set('n', '<M-l>', smart_splits.move_cursor_right)
+      -- v3 dropped move_cursor_previous, this only jumps between nvim windows
+      vim.keymap.set('n', '<M-\\>', '<cmd>wincmd p<cr>')
     end,
   },
 }
