@@ -112,7 +112,8 @@ return {
       require('mason-lspconfig').setup {
         ensure_installed = ensure_installed,
         automatic_installation = true,
-        automatic_enable = true,
+        -- ltex_plus is noisy, start it on demand with `:LspStart ltex_plus`
+        automatic_enable = { exclude = { 'ltex_plus' } },
       }
 
       -- List of servers that we don't want to be managed by mason
