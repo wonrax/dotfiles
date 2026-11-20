@@ -104,6 +104,8 @@ let
     mkdir -p ${lib.escapeShellArg "${hermesHome}/plugins"}
     /bin/ln -sfn ${common.sessionResetPolicyPlugin} ${lib.escapeShellArg "${hermesHome}/plugins/nix-managed-hermes-session-reset-policy"}
     /bin/ln -sfn ${common.claudeSubscriptionPlugin} ${lib.escapeShellArg "${hermesHome}/plugins/nix-managed-claude-subscription-directsdk"}
+    /bin/rm -f ${lib.escapeShellArg "${hermesHome}/plugins/nix-managed-github-copilot"}
+    /bin/ln -sfn ${common.githubCopilotPlugin} ${lib.escapeShellArg "${hermesHome}/plugins/github-copilot"}
     /bin/cp ${soul} ${lib.escapeShellArg "${hermesHome}/SOUL.md"}
     echo "Installed CuaDriver. Grant desktop access with: ${driver} permissions grant"
   '';

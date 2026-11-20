@@ -12,7 +12,7 @@ let
   dashboardUrl = "http://pumpkin:9119";
   dashboardAuthFile = "/var/lib/hermes-dashboard/auth.env";
   common = import ../../../home/hermes/common.nix { inherit inputs pkgs unstablePkgs lib; };
-  inherit (common) sessionResetPolicyPlugin claudeSubscriptionPlugin;
+  inherit (common) sessionResetPolicyPlugin claudeSubscriptionPlugin githubCopilotPlugin;
 
 in
 {
@@ -47,7 +47,11 @@ in
     restartTriggers = [
       sessionResetPolicyPlugin
       claudeSubscriptionPlugin
+      githubCopilotPlugin
     ];
+    preStart = lib.mkAfter ''
+      ln -sfn ${githubCopilotPlugin} ${config.services.hermes-agent.stateDir}/.hermes/plugins/github-copilot
+    '';
     serviceConfig.EnvironmentFile = [
       "-${config.services.onepassword-secrets.secretPaths.hermesAgentEnv}"
       "/var/lib/hermes/mac-node.env"

@@ -27,6 +27,23 @@ let
     pkgs.runCommand "claude-subscription-directsdk" { } ''
       cp -R ${src}/claude-subscription-directsdk $out
     '';
+  # Copilot left core in v0.23 and ships as a labs plugin: providers `copilot`
+  # (Copilot API, `hermes auth add copilot` device login) and `copilot-acp`.
+  # Not in extraPlugins: core's left-core migration only counts
+  # $HERMES_HOME/plugins/github-copilot as installed and otherwise tries to
+  # fetch it from GitHub, so hosts link it under that exact name.
+  githubCopilotPlugin =
+    let
+      src = pkgs.fetchFromGitHub {
+        owner = "NousResearch";
+        repo = "hermes-labs-plugins";
+        rev = "af1cb0173494e4f3e975f475f7647aae77bfc5bf"; # github-copilot 1.0.1
+        hash = "sha256-AsNdjB9RjqNTUaUtagZUrLKoS5VKgj7PFja8D7NHgJM=";
+      };
+    in
+    pkgs.runCommand "github-copilot" { } ''
+      cp -R ${src}/github-copilot $out
+    '';
   # Hermes only supports a skills *denylist* (skills.disabled), so emulate a
   # whitelist by enumerating the bundled and optional catalogs at eval time
   # and disabling all but these. New upstream skills are therefore
@@ -201,7 +218,7 @@ rec {
     sessionResetPolicyPlugin
     claudeSubscriptionPlugin
   ];
-  inherit sessionResetPolicyPlugin claudeSubscriptionPlugin;
+  inherit sessionResetPolicyPlugin claudeSubscriptionPlugin githubCopilotPlugin;
   mcpServers = {
     affine = {
       url = "https://a.wrx.sh/api/workspaces/dace8f22-701f-4bb6-8c78-cbcb6d73cc42/mcp";
@@ -259,23 +276,26 @@ rec {
     # mode left behind from an earlier TickTick configuration.
     mcp_servers.ticktick.auth = null;
 
-    # Claude-subscription auth through the claude-subscription-directsdk
-    # plugin, which drives the `claude` CLI. The CLI authenticates from
-    # CLAUDE_CODE_OAUTH_TOKEN (a `claude setup-token` token) in the gateway's
-    # environment; the plugin passes it through and strips only ANTHROPIC_*
-    # API credentials. The openai-codex OAuth login in auth.json stays usable
-    # via /model.
+    # Copilot subscription through the github-copilot plugin. It authenticates
+    # from the `hermes auth add copilot` login in auth.json or a
+    # COPILOT_GITHUB_TOKEN in the environment. The claude-subscription-directsdk
+    # (CLAUDE_CODE_OAUTH_TOKEN) and openai-codex providers stay usable via
+    # /model.
     model = {
-      provider = "claude-subscription-directsdk-experimental";
-      default = "opus";
+      provider = "copilot";
+      default = "gemini-4-neon";
     };
 
     agent.reasoning_effort = "medium";
 
-    # Tried in order when the subscription is rate-limited, overloaded or
+    # Tried in order when the primary is rate-limited, overloaded or
     # failing auth. The primary is benched until its declared reset time;
     # resets due sooner than min_switch_reset_seconds are waited out instead.
     fallback_providers = [
+      {
+        provider = "claude-subscription-directsdk-experimental";
+        model = "opus";
+      }
       {
         provider = "opencode-go";
         model = "gemini-4-argon";
