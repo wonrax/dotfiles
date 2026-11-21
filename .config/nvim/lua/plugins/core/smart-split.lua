@@ -3,12 +3,21 @@ return {
     'smart-splits-nvim/smart-splits.nvim',
     version = '^3.0.0',
     dependencies = {
+      {
+        -- Rex's init.lua passes alt+hjkl and ctrl+alt+hjkl through to nvim, so
+        -- this backend hands off to Rex panes at nvim's edges.
+        'rawnly/smart-splits-backend-rex',
+        opts = {
+          -- REX_BIN_DIR is set in every Rex terminal; the CLI isn't on PATH elsewhere.
+          bin = vim.env.REX_BIN_DIR and vim.env.REX_BIN_DIR .. '/rex' or 'rex',
+        },
+      },
       { 'smart-splits-nvim/backend-tmux', main = 'smart-splits-backend-tmux', opts = {} },
       { 'smart-splits-nvim/backend-zellij-lua', main = 'smart-splits-backend-zellij-lua', opts = {} },
     },
     opts = {
       mux = {
-        backend = { 'smart-splits-backend-tmux', 'smart-splits-backend-zellij-lua' },
+        backend = { 'smart-splits-backend-rex', 'smart-splits-backend-tmux', 'smart-splits-backend-zellij-lua' },
         -- don't warn when running nvim outside of a multiplexer
         warn_if_unusable = false,
       },
