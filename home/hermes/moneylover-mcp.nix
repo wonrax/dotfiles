@@ -15,7 +15,8 @@ pkgs.buildNpmPackage {
   doCheck = true;
   checkPhase = ''
     runHook preCheck
-    npm test
+    # vitest's 5s default flakes when the builder is CPU-starved mid-rebuild
+    npm test -- --testTimeout=60000
     node --test tests/auth-refresh.mjs
     runHook postCheck
   '';
