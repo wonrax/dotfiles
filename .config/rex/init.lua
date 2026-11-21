@@ -36,18 +36,39 @@ local function finish(name, args)
   end)
 end
 
-local function enter(name)
-  return action("zellij_enter_" .. name, "Enter " .. name .. " mode", function()
+-- Scroll mode rides on Rex's copy mode, which only exists while a terminal is
+-- in it. Queue pane.copy_mode.exit last: it is unavailable once copy mode is
+-- already gone, and nothing queued after it should depend on it.
+local function enter(name, leaving_scroll)
+  local id = "zellij_enter_" .. name .. (leaving_scroll and "_from_scroll" or "")
+  return action(id, "Enter " .. name .. " mode", function()
     rex.client.queue("client.mode.exit_all")
     rex.client.queue("client.mode.enter", { name = name })
+    if name == "scroll" then rex.client.queue("pane.copy_mode.enter") end
+    if leaving_scroll then rex.client.queue("pane.copy_mode.exit") end
+  end)
+end
+
+local function leave_scroll(name, args)
+  local id = "zellij_leave_scroll" .. (name and "_" .. name:gsub("%.", "_") or "")
+  return action(id, "Leave scroll mode" .. (name and " and run " .. name or ""), function()
+    rex.client.queue("client.mode.exit_all")
+    if name then
+      rex.client.queue("pane.copy_mode.exit")
+      rex.client.queue(name, args)
+    else
+      rex.client.queue("pane.copy_mode.exit")
+    end
   end)
 end
 
 local enter_mode = {}
 for _, mode in ipairs(modes) do
-  rex.mode(mode, { exclusive = true })
+  -- Scroll stays non-exclusive so copy mode's own vim keys (v, y, w, b, g, /...)
+  -- reach it; only the zellij-specific keys are bound below.
+  rex.mode(mode, { exclusive = mode ~= "scroll" })
   enter_mode[mode] = enter(mode)
-  bind({ mode .. "/escape", mode .. "/enter" }, "client.mode.exit_all")
+  bind({ mode .. "/escape", mode .. "/enter" }, mode == "scroll" and leave_scroll() or "client.mode.exit_all")
 end
 
 local function everywhere(key, name, args)
@@ -109,6 +130,27 @@ local function resize(direction, shrink, divider)
   end, true)
 end
 
+local terminal = "com.superlogical.terminal"
+
+local function focused_block(ctx)
+  if ctx and ctx.block_id then return ctx.block_id end
+  local view = rex.session.view {}
+  local window = view and active_window(view)
+  return window and window.focused_block_id
+end
+
+local function in_vim(ctx)
+  local block_id = focused_block(ctx)
+  if not block_id then return false end
+  local process = rex.block.call(terminal, "process", { block_id = block_id })
+  local fg = process and process.foreground
+  if not fg then return false end
+  for _, name in ipairs({ fg.name, fg.argv0, fg.path }) do
+    if name and name:match("[^/]*$"):match("^%.?n?vim") then return true end
+  end
+  return false
+end
+
 local grow, shrink = resize(), resize(nil, true)
 everywhere("alt+shift+=", grow)
 everywhere("alt+=", grow)
@@ -125,6 +167,20 @@ for _, item in ipairs({ { "h", "left" }, { "j", "down" }, { "k", "up" }, { "l", 
   bind({ "move/" .. key, "move/" .. direction }, "pane.move", { direction = direction })
   bind({ "resize/" .. key, "resize/" .. direction }, resize(direction))
   bind("resize/shift+" .. key, resize(direction, true))
+  -- vim-zellij-navigator: hand alt+hjkl and ctrl+alt+hjkl to (n)vim so
+  -- smart-splits moves between its own splits and calls back into Rex at the
+  -- edge. Function bindings can't live in modes, so modes keep the plain action.
+  rex.bind("alt+" .. key, function(ctx)
+    if in_vim(ctx) then return false end
+    rex.session.focus_direction { direction = direction, wrap = false }
+    return true
+  end)
+  local divider = resize(direction, false, true)
+  rex.bind("ctrl+alt+" .. key, function(ctx)
+    if in_vim(ctx) then return false end
+    rex.invoke(divider)
+    return true
+  end)
   local focus = "pane.focus"
   if direction == "left" or direction == "right" then
     focus = action("zellij_focus_or_tab_" .. direction, "Focus pane or tab " .. direction, function()
@@ -141,7 +197,19 @@ for _, item in ipairs({ { "h", "left" }, { "j", "down" }, { "k", "up" }, { "l", 
 end
 
 everywhere("alt+n", "pane.split", { direction = "auto" })
-everywhere("alt+f", "pane.float")
+-- ToggleFloatingPanes: open one when there are none, otherwise hide/show them all.
+local function toggle_floating()
+  local window = active_window(check(rex.session.view {}))
+  if not window then return end
+  for _, layer in ipairs(window.layers or {}) do
+    if layer.kind ~= "tiled" then
+      rex.client.queue("pane.minimize_all_floating")
+      return
+    end
+  end
+  rex.client.queue("pane.new_floating")
+end
+everywhere("alt+f", action("zellij_toggle_floating", "Toggle floating panes", toggle_floating))
 everywhere("alt+i", "client.tab.move", { direction = "backward" })
 everywhere("alt+o", "client.tab.move", { direction = "forward" })
 
@@ -153,7 +221,7 @@ for key, target in pairs(mode_keys) do
   everywhere(key, enter_mode[target])
   if target ~= "tmux" then bind(target .. "/" .. key, "client.mode.exit_all") end
 end
-rex.unbind("tmux/ctrl+;")
+bind("tmux/ctrl+;", finish("pane.send_key", { key = "ctrl+b" }))
 
 rex.mode("locked")
 local lock = enter("locked")
@@ -170,7 +238,34 @@ bind({ "pane/d", "tmux/s", "tmux/shift+'" }, finish("pane.split", { direction = 
 bind({ "pane/r", "tmux/v", "tmux/shift+5" }, finish("pane.split", { direction = "right" }))
 bind("pane/n", finish("pane.split", { direction = "auto" }))
 bind({ "pane/f", "tmux/z" }, finish("pane.zoom"))
-bind("pane/e", finish("pane.float"))
+bind("pane/e", action("zellij_toggle_embed", "Toggle pane embedded or floating", function(ctx)
+  rex.client.queue("client.mode.exit_all")
+  local window = active_window(check(rex.session.view {}))
+  if not window then return end
+  local block_id = ctx.block_id or window.focused_block_id
+  local tiled, floating
+  for _, layer in ipairs(window.layers or {}) do
+    if layer.kind == "tiled" then tiled = layer end
+    for _, block in ipairs(layer.blocks or {}) do
+      if block.block_id == block_id and layer.kind ~= "tiled" then floating = true end
+    end
+  end
+  if not floating then
+    rex.client.queue("pane.float")
+    return
+  end
+  local anchor = tiled and tiled.layout and leaf(tiled.layout)
+  if anchor then
+    check(rex.session.move_block { block_id = block_id, anchor_block_id = anchor })
+    check(rex.session.focus_block { block_id = block_id })
+  end
+end))
+bind("pane/w", action("zellij_finish_toggle_floating", "Toggle floating panes and leave mode", function()
+  rex.client.queue("client.mode.exit_all")
+  toggle_floating()
+end))
+bind("pane/c", finish("pane.rename"))
+bind("pane/z", finish("client.setting.interface.panes.headers"))
 bind({ "pane/x", "tmux/x" }, finish("pane.close"))
 bind({ "pane/p", "tmux/o" }, "pane.focus_next")
 
@@ -220,6 +315,8 @@ for _, item in ipairs({ { "[", -1 }, { "]", 1 } }) do
 end
 for _, key in ipairs({ "left", "up", "h", "k" }) do bind("tab/" .. key, "client.tab.previous") end
 for _, key in ipairs({ "right", "down", "l", "j" }) do bind("tab/" .. key, "client.tab.next") end
+bind("tab/tab", "client.tab.recent.in_session")
+bind("tmux/tab", finish("client.tab.recent.in_session"))
 bind("tmux/n", finish("client.tab.next"))
 bind("tmux/p", finish("client.tab.previous"))
 for index = 1, 9 do
@@ -228,11 +325,58 @@ end
 
 bind("tmux/[", enter_mode.scroll)
 bind("move/ctrl+h", "client.mode.exit_all")
-bind("scroll/ctrl+c", "client.mode.exit_all")
-bind("scroll/s", finish("client.find.open"))
-bind("scroll/n", "client.find.next")
-bind("scroll/p", "client.find.previous")
-bind("scroll/ctrl+enter", finish("pane.send_key", { key = "ctrl+b" }))
+for key, target in pairs(mode_keys) do
+  if target ~= "scroll" then bind("scroll/" .. key, enter(target, true)) end
+end
+bind("scroll/ctrl+g", enter("locked", true))
+bind({ "scroll/ctrl+c", "scroll/q" }, leave_scroll())
+bind("scroll/ctrl+enter", leave_scroll("pane.send_key", { key = "ctrl+b" }))
+local scroll_moves = {
+  j = "down", down = "down", k = "up", up = "up",
+  d = "half_page_down", u = "half_page_up",
+  l = "page_down", right = "page_down", pagedown = "page_down", ["ctrl+f"] = "page_down",
+  h = "page_up", left = "page_up", pageup = "page_up",
+}
+for key, to in pairs(scroll_moves) do bind("scroll/" .. key, "pane.copy_mode.move", { to = to }) end
+-- Starting at the bottom of the scrollback, so search upward; n keeps going, p reverses.
+bind("scroll/s", "pane.copy_mode.search", { direction = "backward" })
+bind("scroll/n", "pane.copy_mode.search_again", { direction = "same" })
+bind("scroll/p", "pane.copy_mode.search_again", { direction = "opposite" })
+bind("scroll/y", finish("pane.copy_mode.yank"))
+-- EditScrollback. Queued actions only run after this returns, so the editor
+-- can't be focused here without stealing pane.copy_mode.exit from the source
+-- pane; the editor's own shell focuses itself once copy mode is gone.
+bind("scroll/e", action("zellij_edit_scrollback", "Edit scrollback in nvim", function(ctx)
+  rex.client.queue("client.mode.exit_all")
+  rex.client.queue("pane.copy_mode.exit")
+  local window = active_window(check(rex.session.view {}))
+  if not window then return end
+  local block_id = ctx.block_id or window.focused_block_id
+  local r = check(rex.block.call(terminal, "format", {
+    block_id = block_id, format = "text", unwrap = true, trim = true, max_bytes = 983040,
+  }))
+  local parts, offset = { r.content }, #r.content
+  while r.id and not r.eof do
+    r = check(rex.block.call(terminal, "blob_read", { block_id = block_id, id = r.id, offset = offset }))
+    table.insert(parts, r.data)
+    offset = offset + #r.data
+  end
+  local file = check(rex.exec({ "/bin/sh", "-c", 'f=$(mktemp -t rex-scrollback) && cat >"$f" && printf %s "$f"' },
+    { stdin = table.concat(parts) }))
+  if not file.ok then error(file.stderr, 0) end
+  check(rex.session.new_layer {
+    window_id = window.window_id, bounds = { 0.05, 0.05, 0.9, 0.9 },
+    layout = rex.layout.block {
+      flavor = "com.superlogical.terminal.shell",
+      options = {
+        shell = "none",
+        command = { "/bin/zsh", "-lc",
+          'sleep 0.2; "$REX_BIN_DIR/rex" focus "$REX_BLOCK" >/dev/null 2>&1; nvim +"normal G" -- "$1"; rm -f -- "$1"',
+          "rex-scrollback", file.stdout },
+      },
+    },
+  })
+end))
 bind("session/ctrl+s", finish("pane.send_key", { key = "ctrl+b" }))
 bind("session/w", finish("session.switch"))
 bind("session/c", finish("client.settings"))
