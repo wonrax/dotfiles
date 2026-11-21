@@ -42,7 +42,7 @@ for key, binding in pairs(bindings) do
     assert(binding.name:find("%.") or actions[binding.name], key .. ": " .. binding.name)
   end
 end
-for _, key in ipairs({ "alt+=", "alt+-", "pane/ctrl+alt+h", "pane/ctrl+alt+l", "resize/h", "resize/shift+h", "alt+left", "move/n" }) do
+for _, key in ipairs({ "alt+=", "alt+-", "pane/ctrl+alt+h", "pane/ctrl+alt+l", "pane/alt+h", "pane/h", "resize/h", "resize/shift+h", "alt+left", "move/n" }) do
   assert(definitions[bindings[key].name].repeats, key .. " must support held-key repeat")
 end
 assert(not definitions[bindings["ctrl+q"].name].repeats)
@@ -63,7 +63,7 @@ assert(q[1].name == "client.mode.exit_all")
 assert(q[2].name == "pane.split" and q[2].args.direction == "right")
 q = press("ctrl+t")
 assert(q[1].name == "client.mode.exit_all" and q[2].args.name == "tab")
-assert(press("pane/h")[1].name == "pane.focus")
+assert(bindings["pane/h"].name == "zellij_focus_left")
 assert(press("tmux/o")[1].name == "pane.focus_next")
 assert(press("locked/alt+h")[1].args.key == "alt+h")
 assert(press("locked/ctrl+q")[1].args.key == "ctrl+q")
@@ -96,8 +96,8 @@ assert(press("pane/z")[2].name == "client.setting.interface.panes.headers")
 local function layout(focused)
   view = { active_window_id = "w", windows = {
     { window_id = "w", focused_block_id = focused, layers = {
-      { kind = "tiled", layout = { split = { direction = "horizontal", ratio = 0.5,
-        before = { block_id = "a" }, after = { block_id = "b" } } } },
+      { kind = "tiled", blocks = { { block_id = "a" }, { block_id = "b" } }, layout = { split = { direction = "horizontal", ratio = 0.5,
+        before = { block_id = "a", rect = { 0, 0, 0.5, 1 } }, after = { block_id = "b", rect = { 0.5, 0, 0.5, 1 } } } } },
     } },
   } }
 end
@@ -108,16 +108,62 @@ assert(press("pane/w")[2].name == "pane.new_floating")
 assert(press("pane/e")[2].name == "pane.float")
 table.insert(view.windows[1].layers, { kind = "floating", blocks = { { block_id = "f" } } })
 assert(press("alt+f")[1].name == "pane.minimize_all_floating")
+assert(press("alt+n", "b")[1].name == "pane.split")
+assert(press("alt+n", "f")[1].name == "pane.new_floating")
+q = press("pane/n", "f")
+assert(q[1].name == "client.mode.exit_all" and q[2].name == "pane.new_floating")
+assert(press("locked/alt+n")[1].args.key == "alt+n")
 local moved
 rex.session.move_block = function(args) moved = args; return {} end
 rex.session.focus_block = function() return {} end
 press("pane/e", "f")
 assert(moved.block_id == "f" and moved.anchor_block_id == "a")
 
+-- CloseFocus escalates to the tab, then the session
+local closed_window, destroyed
+rex.session.close_window = function(args) closed_window = args.window_id; return {} end
+rex.call = function(method, args) if method == "session.destroy" then destroyed = args.session_id end return {} end
+layout("b")
+q = press("tmux/x")
+assert(q[1].name == "client.mode.exit_all" and q[2].name == "pane.close")
+view.windows[1].layers = { { kind = "tiled", blocks = { { block_id = "b" } }, layout = { block_id = "b" } } }
+q = press("pane/x")
+assert(#q == 1 and destroyed == "s" and not closed_window)
+destroyed = nil
+table.insert(view.windows, { window_id = "w2", layers = {} })
+press("tmux/x")
+assert(closed_window == "w" and not destroyed)
+
+-- MoveFocus stays within its plane: tiled panes or visible floating panes
+local focused_block
+rex.session.focus_block = function(args) focused_block = args.block_id; return {} end
+view = { active_window_id = "w", windows = { { window_id = "w", layers = {
+  { kind = "tiled", blocks = { { block_id = "a" }, { block_id = "b" } }, layout = { rect = { 0, 0, 1, 1 }, split = {
+    direction = "horizontal", ratio = 0.5,
+    before = { block_id = "a", rect = { 0, 0, 0.5, 1 } }, after = { block_id = "b", rect = { 0.5, 0, 0.5, 1 } } } } },
+  { kind = "floating", blocks = { { block_id = "f1" } }, layout = { block_id = "f1", rect = { 0.05, 0.1, 0.3, 0.3 } } },
+  { kind = "floating", blocks = { { block_id = "f2" } }, layout = { block_id = "f2", rect = { 0.6, 0.1, 0.3, 0.3 } } },
+} } } }
+local function focus_from(key, from)
+  focused_block = nil
+  view.windows[1].focused_block_id = from
+  return press(key, from), focused_block
+end
+local _, to = focus_from("pane/l", "f1"); assert(to == "f2", tostring(to))
+_, to = focus_from("pane/h", "f2"); assert(to == "f1")
+_, to = focus_from("pane/h", "f1"); assert(to == nil, "no float left of f1, and tiled a must not be picked")
+_, to = focus_from("pane/h", "b"); assert(to == "a", "tiled focus must skip floats")
+_, to = focus_from("pane/l", "a"); assert(to == "b")
+view.windows[1].layers[3].state = "minimized"
+_, to = focus_from("pane/l", "f1"); assert(to == nil, "minimized floats are out of reach")
+q, to = focus_from("alt+right", "b"); assert(to == nil and q[1].name == "client.tab.next")
+_, to = focus_from("alt+left", "b"); assert(to == "a")
+
 -- vim-zellij-navigator: alt+hjkl falls through to (n)vim, otherwise focuses
 layout("b")
 focused_dir = nil
-assert(#press("alt+h") == 0 and focused_dir == "left")
+focused_block = nil
+assert(#press("alt+h") == 0 and focused_block == "a")
 foreground = "nvim"
 assert(press("alt+h")[1].name == "<terminal>")
 resized = nil

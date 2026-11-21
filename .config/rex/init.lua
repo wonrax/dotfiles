@@ -158,12 +158,85 @@ everywhere("alt+-", shrink)
 bind({ "resize/shift+=", "resize/=" }, grow)
 bind("resize/-", shrink)
 
+-- MoveFocus the zellij way: tiled and floating panes are separate planes, and
+-- focus only moves within the plane it's on. Rex's own focus_direction mixes
+-- them, jumping from a float to the tiled pane under it and back.
+local function plane_blocks(window, block_id)
+  local planes = { tiled = {}, floating = {} }
+  local plane, kind
+  local function walk(node, list)
+    if node.block_id then
+      local r = node.rect
+      table.insert(list, { id = node.block_id, x = r[1], y = r[2], w = r[3], h = r[4] })
+    elseif node.split then
+      walk(node.split.before, list)
+      walk(node.split.after, list)
+    end
+  end
+  for _, layer in ipairs(window.layers or {}) do
+    local list = layer.kind == "tiled" and planes.tiled or planes.floating
+    if layer.layout and layer.state ~= "minimized" then
+      local start = #list
+      walk(layer.layout, list)
+      for i = start + 1, #list do
+        if list[i].id == block_id then plane, kind = list, layer.kind == "tiled" and "tiled" or "floating" end
+      end
+    end
+  end
+  return plane or {}, kind
+end
+
+local function overlap(a1, a2, b1, b2) return math.min(a2, b2) - math.max(a1, b1) end
+
+local function focus_in_plane(ctx, direction)
+  local window = active_window(check(rex.session.view {}))
+  if not window then return false end
+  local block_id = ctx.block_id or window.focused_block_id
+  local blocks, kind = plane_blocks(window, block_id)
+  local current
+  for _, b in ipairs(blocks) do if b.id == block_id then current = b end end
+  if not current then return false end
+  local horizontal = direction == "left" or direction == "right"
+  local sign = (direction == "left" or direction == "up") and -1 or 1
+  local function center(b) return b.x + b.w / 2, b.y + b.h / 2 end
+  local cx, cy = center(current)
+  local best, best_score
+  for _, b in ipairs(blocks) do
+    if b.id ~= block_id then
+      local bx, by = center(b)
+      local along = ((horizontal and bx - cx) or (by - cy)) * sign
+      -- Edge distance keeps tiled neighbours adjacent; floats may overlap, so
+      -- they only need their centre past ours.
+      local gap = horizontal
+        and (sign > 0 and b.x - (current.x + current.w) or current.x - (b.x + b.w))
+        or (sign > 0 and b.y - (current.y + current.h) or current.y - (b.y + b.h))
+      local shared = horizontal and overlap(b.y, b.y + b.h, current.y, current.y + current.h)
+        or overlap(b.x, b.x + b.w, current.x, current.x + current.w)
+      if along > 1e-6 and (kind == "floating" or gap > -1e-3) then
+        local perp = horizontal and math.abs(by - cy) or math.abs(bx - cx)
+        local score = math.max(gap, 0) * 4 + along + (shared > 0 and 0 or 1 + perp)
+        if not best_score or score < best_score then best, best_score = b, score end
+      end
+    end
+  end
+  if not best then return false end
+  check(rex.session.focus_block { block_id = best.id })
+  return true
+end
+
 for _, item in ipairs({ { "h", "left" }, { "j", "down" }, { "k", "up" }, { "l", "right" } }) do
   local key, direction = item[1], item[2]
-  everywhere("alt+" .. key, "pane.focus", { direction = direction, wrap = false })
+  local focus_action = action("zellij_focus_" .. direction, "Focus pane " .. direction, function(ctx)
+    focus_in_plane(ctx, direction)
+  end, true)
+  everywhere("alt+" .. key, focus_action)
   everywhere("ctrl+alt+" .. key, resize(direction, false, true))
-  bind({ "pane/" .. key, "pane/" .. direction }, "pane.focus", { direction = direction, wrap = false })
-  bind({ "tmux/" .. key, "tmux/" .. direction }, finish("pane.focus", { direction = direction, wrap = false }))
+  bind({ "pane/" .. key, "pane/" .. direction }, focus_action)
+  bind({ "tmux/" .. key, "tmux/" .. direction }, action("zellij_finish_focus_" .. direction,
+    "Focus pane " .. direction .. " and leave mode", function(ctx)
+      rex.client.queue("client.mode.exit_all")
+      focus_in_plane(ctx, direction)
+    end))
   bind({ "move/" .. key, "move/" .. direction }, "pane.move", { direction = direction })
   bind({ "resize/" .. key, "resize/" .. direction }, resize(direction))
   bind("resize/shift+" .. key, resize(direction, true))
@@ -172,7 +245,7 @@ for _, item in ipairs({ { "h", "left" }, { "j", "down" }, { "k", "up" }, { "l", 
   -- edge. Function bindings can't live in modes, so modes keep the plain action.
   rex.bind("alt+" .. key, function(ctx)
     if in_vim(ctx) then return false end
-    rex.session.focus_direction { direction = direction, wrap = false }
+    focus_in_plane(ctx, direction)
     return true
   end)
   local divider = resize(direction, false, true)
@@ -181,22 +254,38 @@ for _, item in ipairs({ { "h", "left" }, { "j", "down" }, { "k", "up" }, { "l", 
     rex.invoke(divider)
     return true
   end)
-  local focus = "pane.focus"
+  local focus = focus_action
   if direction == "left" or direction == "right" then
-    focus = action("zellij_focus_or_tab_" .. direction, "Focus pane or tab " .. direction, function()
-      local before = active_window(check(rex.session.view {}))
-      if not before then return end
-      check(rex.session.focus_direction { direction = direction, wrap = false })
-      local after = active_window(check(rex.session.view {}))
-      if after and after.focused_block_id == before.focused_block_id then
+    focus = action("zellij_focus_or_tab_" .. direction, "Focus pane or tab " .. direction, function(ctx)
+      if not focus_in_plane(ctx, direction) then
         rex.client.queue(direction == "left" and "client.tab.previous" or "client.tab.next")
       end
     end, true)
   end
-  everywhere("alt+" .. direction, focus, focus == "pane.focus" and { direction = direction, wrap = false } or nil)
+  everywhere("alt+" .. direction, focus)
 end
 
-everywhere("alt+n", "pane.split", { direction = "auto" })
+-- NewPane: like zellij, a new pane joins the floating panes when one of them
+-- has focus, and splits the tiled layout otherwise.
+local function new_pane(leave_mode)
+  return action("zellij_new_pane" .. (leave_mode and "_and_leave" or ""), "New pane", function(ctx)
+    if leave_mode then rex.client.queue("client.mode.exit_all") end
+    local window = active_window(check(rex.session.view {}))
+    local block_id = window and (ctx.block_id or window.focused_block_id)
+    for _, layer in ipairs(window and window.layers or {}) do
+      if layer.kind ~= "tiled" then
+        for _, block in ipairs(layer.blocks or {}) do
+          if block.block_id == block_id then
+            rex.client.queue("pane.new_floating")
+            return
+          end
+        end
+      end
+    end
+    rex.client.queue("pane.split", { direction = "auto" })
+  end)
+end
+everywhere("alt+n", new_pane())
 -- ToggleFloatingPanes: open one when there are none, otherwise hide/show them all.
 local function toggle_floating()
   local window = active_window(check(rex.session.view {}))
@@ -228,15 +317,17 @@ local lock = enter("locked")
 everywhere("ctrl+g", lock)
 bind("locked/ctrl+g", "client.mode.exit_all")
 bind("locked/ctrl+;", enter_mode.tmux)
+local forwarded = {}
 for _, binding in ipairs(rex.bindings()) do
-  if not binding.mode and binding.key ~= "ctrl+g" and binding.key ~= "ctrl+;" then
+  if not binding.mode and binding.key ~= "ctrl+g" and binding.key ~= "ctrl+;" and not forwarded[binding.key] then
+    forwarded[binding.key] = true
     bind("locked/" .. binding.key, "pane.send_key", { key = binding.key })
   end
 end
 
 bind({ "pane/d", "tmux/s", "tmux/shift+'" }, finish("pane.split", { direction = "down" }))
 bind({ "pane/r", "tmux/v", "tmux/shift+5" }, finish("pane.split", { direction = "right" }))
-bind("pane/n", finish("pane.split", { direction = "auto" }))
+bind("pane/n", new_pane(true))
 bind({ "pane/f", "tmux/z" }, finish("pane.zoom"))
 bind("pane/e", action("zellij_toggle_embed", "Toggle pane embedded or floating", function(ctx)
   rex.client.queue("client.mode.exit_all")
@@ -266,7 +357,25 @@ bind("pane/w", action("zellij_finish_toggle_floating", "Toggle floating panes an
 end))
 bind("pane/c", finish("pane.rename"))
 bind("pane/z", finish("client.setting.interface.panes.headers"))
-bind({ "pane/x", "tmux/x" }, finish("pane.close"))
+-- CloseFocus: Rex keeps a session alive with no panes left, so closing the
+-- last pane of a tab closes the tab, and the last pane of the session closes
+-- the session, the way zellij exits.
+bind({ "pane/x", "tmux/x" }, action("zellij_close_focus", "Close pane, tab, or session", function(ctx)
+  rex.client.queue("client.mode.exit_all")
+  local view = check(rex.session.view {})
+  local window = active_window(view)
+  if not window then return end
+  local block_id = ctx.block_id or window.focused_block_id
+  local in_window = 0
+  for _, layer in ipairs(window.layers or {}) do in_window = in_window + #(layer.blocks or {}) end
+  if in_window > 1 then
+    rex.client.queue("pane.close")
+  elseif #(view.windows or {}) > 1 then
+    check(rex.session.close_window { window_id = window.window_id })
+  else
+    check(rex.call("session.destroy", { session_id = ctx.session_id or view.session_id }))
+  end
+end))
 bind({ "pane/p", "tmux/o" }, "pane.focus_next")
 
 for _, item in ipairs({ { "n", 1 }, { "p", -1 }, { "tab", 1 } }) do
