@@ -25,6 +25,8 @@ in
   #   OPENCODE_GO_API_KEY=...  (optional OpenCode Go provider)
   #   CLAUDE_CODE_OAUTH_TOKEN=...  (from `claude setup-token`; the main model's
   #     claude-subscription-directsdk provider passes it to the `claude` CLI)
+  #   COPILOT_GITHUB_TOKEN=ghu_...  (from `hermes auth add copilot`; the plugin's
+  #     401 refresh only re-exchanges env tokens, not device-login pool rows)
   # (OPENROUTER_API_KEY may remain for fallback use; the ChatGPT Codex OAuth
   # tokens for the openai-codex provider live in auth.json, not here.)
   # Secret rotations need a rebuild: the module copies environmentFiles into
