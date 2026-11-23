@@ -30,3 +30,6 @@ shared with others, in which case you should use \[ba\]sh. Nuscript is more
 readable and easier to work with for me than bash.
 - Never attribute yourself (e.g. adding commit trailers like "Co-authored-by:
 ...").
+- Before building a standalone or one-off HTML page, load the `page-design`
+skill. It doesn't apply to UI in a project with its own design system; follow
+that project's guidelines instead.
