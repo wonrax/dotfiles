@@ -1,6 +1,3 @@
-If there's an AGENTS.md file in the repository and it hasn't been included in
-the system prompt, read that too.
-
 - Don't be hesitant to question me if my presumptions are wrong or if you have
 better ideas. I know you're RLHF-ed into being agreeable and helpful, I don't
 want that.
@@ -21,8 +18,15 @@ nix develop -c cargo test
 jj status
 rg "some search term"
 ```
+- If the `nix` CLI is available in path, feel free to use `nix run` to pick up
+any package from nixpkgs to achieve your goal. I have nix auto gc enabled so
+you don't need to worry about cleaning up after yourself.
 - I use jj for version control so prefer `jj` commands unless you have a
 specific reason to use `git`. Using git commands while I use jj simultaneously
 can corrupt my repository.
+- I use nushell so when you give me shell commands to run, they should be nu
+equivalents. Same thing with scripts, except for stuff that are intended to be
+shared with others, in which case you should use \[ba\]sh. Nuscript is more
+readable and easier to work with for me than bash.
 - Never attribute yourself (e.g. adding commit trailers like "Co-authored-by:
 ...").
