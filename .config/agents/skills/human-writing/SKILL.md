@@ -1,6 +1,6 @@
 ---
 name: human-writing
-description: Style rules that keep agent-written prose from reading like a bot wrote it. Use BEFORE writing ANY text whose audience is other people rather than the current chat, including but not limited to PR/MR descriptions, commit messages, code review and issue comments, tickets, READMEs and docs, changelogs, release notes, Slack/chat/text messages, emails, and announcements. Also use when asked to rewrite or humanize text that sounds AI-generated. Covers audience assumptions, sentence style, formatting restraint, and word choice. Not for code comments (use slop-terminator) or replies to the current chat.
+description: Style rules that keep agent-written prose from reading like a bot wrote it. Use BEFORE writing ANY text whose audience is other people rather than the current chat, including but not limited to PR/MR descriptions, commit messages, code review and issue comments, tickets, READMEs and docs, changelogs, release notes, Slack/chat/text messages, emails, and announcements. Also use when asked to rewrite or humanize text that sounds AI-generated. Covers audience assumptions, sentence style, formatting restraint, and word choice. Not for replies to the current chat.
 ---
 
 # Human Writing
