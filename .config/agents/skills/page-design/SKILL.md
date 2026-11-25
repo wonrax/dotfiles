@@ -28,9 +28,10 @@ What good looks like: one quiet type family, soft shadow surfaces, small mono la
 
 ## Surfaces
 
-- **Raised surfaces use a shadow ring, never a solid border:** `box-shadow: 0 0 0 1px rgba(ink, .06), 0 1px 2px rgba(ink, .05), 0 8px 24px -8px rgba(ink, .10)`, radius 12-14px. In dark mode: `0 0 0 1px rgba(255,255,255,.07), 0 12px 32px -12px rgba(0,0,0,.6)`.
+- **Raised surfaces use a shadow ring, never a solid border:** `box-shadow: 0 0 0 1px rgba(ink, .06), 0 1px 2px rgba(ink, .05)`, radius 12-14px. In dark mode: `0 0 0 1px rgba(255,255,255,.07)`. No large blurred drop shadow.
   Why (inferred): bordering every block reads as a generic admin template and flattens hierarchy.
   <!-- 2026-11-23: "why do you always output such design slop" -->
+  <!-- 2026-11-25: dropped the `0 8px 24px -8px` layer (and its dark-mode twin): "it looks distracting" -->
 - **Only a genuinely separate object gets a card** (a diagram stage, side-by-side cards). Tables, lists, notes and question lists sit directly on the page background.
   Why (inferred): when everything is a card, nothing stands out.
   <!-- 2026-11-23: same correction -->
@@ -45,6 +46,9 @@ What good looks like: one quiet type family, soft shadow surfaces, small mono la
   - Serif (when the page is editorial or long-form reading): Crimson Pro, with Geist Mono for labels and code.
   Why (inferred): one family with tight headings reads crisp; a separate display face reads as decoration.
   <!-- 2026-11-23: "for serif use Crimson Pro, sans use inter or whatever the new cool kid" -->
+- **A Crimson Pro page sets `font-size-adjust: ex-height 0.53` on `body`,** so the serif and Geist Mono share one x-height and the type scale below applies unchanged. Never compensate by bumping the serif's font sizes.
+  Why: Crimson Pro's x-height is about 0.43em against roughly 0.53em for Geist, so at the same size it reads about 20% smaller than the sans and mono around it.
+  <!-- 2026-11-25: "why does the crimson pro font looks so small compared to other fonts" / "font-size-adjust so we keep a single type size scale" -->
 - **Every font size is in `rem`, never `px`, and running text is never below `1rem`.** Body `1rem/1.65` (16px by default). Prose in notes, cards and lists is also `1rem`. Tables `0.9375rem`, secondary lines under a table cell `0.875rem`. Only a genuinely dense page (a diagram-first page, a large data table) may drop the body to `0.9375rem`.
   Why: px ignores the reader's browser text-size setting, and sizes below 16px made a prose-heavy page "look really small and hard to read".
   <!-- 2026-11-23: "why they chose the body to be 15px. isn't the standard 16" / "the page text overall looks really small and hard to read" -->
