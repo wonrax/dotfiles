@@ -46,10 +46,17 @@ in
   # process directly and order the gateway after opnix so a stale .env can
   # never leave it tokenless. ("-" prefix: don't fail if the file is missing.)
   systemd.services.hermes-agent = {
+    # The module writes config.yaml and .env from an activation script, so
+    # config changes leave the unit untouched and the running gateway keeps
+    # the old values. Hash them into the unit instead. (mcpServers lands in
+    # settings.mcp_servers; SOUL.md and documents are read fresh per session;
+    # opnix restarts the unit itself when the secret env file rotates.)
     restartTriggers = [
       sessionResetPolicyPlugin
       claudeSubscriptionPlugin
       githubCopilotPlugin
+      (builtins.toJSON config.services.hermes-agent.settings)
+      (builtins.toJSON config.services.hermes-agent.environment)
     ];
     preStart = lib.mkAfter ''
       ln -sfn ${githubCopilotPlugin} ${config.services.hermes-agent.stateDir}/.hermes/plugins/github-copilot
