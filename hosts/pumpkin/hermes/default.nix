@@ -157,6 +157,9 @@ in
 
     settings = lib.recursiveUpdate common.settings {
       dashboard.public_url = dashboardUrl;
+      # Shared agent skills, copied into the store: the hermes system user
+      # can't see the home-manager ~/.agents link.
+      skills.external_dirs = [ "${../../../.config/agents/skills}" ];
       # Deliver cron output as-is, without the "Cronjob Response: <name>
       # (job_id: ...)" header and "To stop or manage this job" footer.
       cron.wrap_response = false;
