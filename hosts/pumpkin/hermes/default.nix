@@ -152,7 +152,10 @@ in
       TELEGRAM_HOME_CHANNEL_NAME = "Life";
     };
 
-    extraPackages = common.extraPackages ++ [ config.nix.package ];
+    extraPackages = common.extraPackages ++ [
+      config.nix.package
+      pkgs.chromium
+    ];
     mcpServers = common.mcpServers;
 
     workingDirectory = "/var/lib/hermes/workspace";
@@ -164,6 +167,16 @@ in
 
     settings = lib.recursiveUpdate common.settings {
       dashboard.public_url = dashboardUrl;
+      # NixOS can't run Hermes's dynamically-linked pm Chromium (exit 127 under
+      # stub-ld); point browser_exec at NixOS's pkgs.chromium instead.
+      browser.executable_path = "${pkgs.chromium}/bin/chromium";
+      # Hermes's media delivery denylist blocks /var/lib, which collides with
+      # this NixOS service's home/workspace under /var/lib/hermes and silently
+      # drops MEDIA: attachments. Allowlist workspace + scratch explicitly.
+      gateway.media_delivery_allow_dirs = [
+        "/var/lib/hermes/workspace"
+        "/var/lib/hermes/.hermes/cache/scratch"
+      ];
       # Shared agent skills, copied into the store: the hermes system user
       # can't see the home-manager ~/.agents link.
       skills.external_dirs = [ "${../../../.config/agents/skills}" ];
