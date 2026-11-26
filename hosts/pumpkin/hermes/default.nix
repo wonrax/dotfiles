@@ -106,6 +106,50 @@ in
     requires = [ "hermes-dashboard-auth.service" ];
   };
 
+  # Allow Hermes to trigger a NixOS switch strictly from GitHub's `main` branch
+  # without sudo or root access: nothing deploys until a PR is reviewed/merged.
+  systemd.services.pumpkin-deploy = {
+    description = "Deploy Pumpkin NixOS configuration from github:wonrax/dotfiles#pumpkin";
+    wants = [ "network-online.target" ];
+    after = [ "network-online.target" ];
+    restartIfChanged = false;
+    stopIfChanged = false;
+    path = [
+      config.nix.package
+      pkgs.git
+      pkgs.openssh
+    ];
+    serviceConfig = {
+      Type = "oneshot";
+      StateDirectory = "pumpkin-deploy";
+      StateDirectoryMode = "0755";
+    };
+    script = ''
+      set -euo pipefail
+      log="/var/lib/pumpkin-deploy/last.log"
+      {
+        echo "=== pumpkin-deploy started $(date -Is) ==="
+        ${config.system.build.nixos-rebuild}/bin/nixos-rebuild switch \
+          --flake github:wonrax/dotfiles#pumpkin \
+          --refresh
+        echo "=== pumpkin-deploy finished $(date -Is) ==="
+      } 2>&1 | tee "$log"
+    '';
+  };
+
+  security.polkit.extraConfig = ''
+    polkit.addRule(function(action, subject) {
+      if (
+        action.id == "org.freedesktop.systemd1.manage-units" &&
+        action.lookup("unit") == "pumpkin-deploy.service" &&
+        action.lookup("verb") == "start" &&
+        subject.user == "hermes"
+      ) {
+        return polkit.Result.YES;
+      }
+    });
+  '';
+
   networking.firewall.interfaces.tailscale0.allowedTCPPorts = [ 9119 ];
 
   # Pin the flake registry's `nixpkgs` to the system's nixpkgs so the agent's
