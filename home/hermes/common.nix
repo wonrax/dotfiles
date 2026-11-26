@@ -220,11 +220,6 @@ rec {
   ];
   inherit sessionResetPolicyPlugin claudeSubscriptionPlugin githubCopilotPlugin;
   mcpServers = {
-    affine = {
-      url = "https://a.wrx.sh/api/workspaces/dace8f22-701f-4bb6-8c78-cbcb6d73cc42/mcp";
-      headers.Authorization = "Bearer \${AFFINE_MCP_TOKEN}";
-    };
-
     ticktick = {
       url = "https://mcp.ticktick.com";
       headers.Authorization = "Bearer \${TICKTICK_MCP_TOKEN}";
@@ -272,8 +267,9 @@ rec {
       ]
       ++ builtins.attrNames mcpServers;
     };
-    # The module deep-merges config.yaml, so explicitly clear any OAuth
-    # mode left behind from an earlier TickTick configuration.
+    # The module deep-merges config.yaml, so explicitly clear removed MCPs
+    # and any OAuth mode left behind from an earlier TickTick configuration.
+    mcp_servers.affine = null;
     mcp_servers.ticktick.auth = null;
 
     # Copilot subscription through the github-copilot plugin. It authenticates

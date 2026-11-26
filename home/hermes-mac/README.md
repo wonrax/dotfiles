@@ -8,8 +8,8 @@ databases remain separate on the two machines.
 
 Both agents import `home/hermes/common.nix` for the model, web backend,
 MCP servers, enabled skills, toolsets, memory settings, daily session reset,
-and idle compaction. They also share `home/hermes/SOUL.md`; each host appends
-its own role. The Mac adds Cua computer use and the desktop launcher.
+and idle compaction. The Mac keeps its own `SOUL.md` role file and adds Cua
+computer use and the desktop launcher.
 
 The shared skill policy disables unselected skills in the pinned upstream
 bundled and optional catalogs, plus retired bundled skills retained in the
