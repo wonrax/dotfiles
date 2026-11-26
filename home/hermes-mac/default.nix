@@ -37,9 +37,7 @@ let
       };
     }
   );
-  soul = pkgs.writeText "hermes-mac-SOUL.md" (
-    builtins.readFile ../hermes/SOUL.md + "\n" + builtins.readFile ./SOUL.md
-  );
+  soul = ./SOUL.md;
   cli = pkgs.writeShellScriptBin "hermes" ''
     export HERMES_HOME=${lib.escapeShellArg hermesHome}
     export HERMES_CUA_DRIVER_CMD=${lib.escapeShellArg driver}

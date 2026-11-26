@@ -175,16 +175,6 @@ in
       "/var/lib/hermes/mac-node.env"
     ];
 
-    # SOUL.md (agent identity) must live in $HERMES_HOME — `documents` installs
-    # into the workspace, where the identity loader never looks. Re-read at
-    # every session start, so no restart needed; the agent's own edits are
-    # clobbered on deploy (intentional — nix is the source of truth). Replaces
-    # the hand-rolled activation script we carried before upstream grew this
-    # option.
-    hermesHomeFiles."SOUL.md" = pkgs.writeText "hermes-pumpkin-SOUL.md" (
-      builtins.readFile ../../../home/hermes/SOUL.md + "\n" + builtins.readFile ./SOUL.md
-    );
-
     # Home channel = where cron results and cross-platform messages land.
     # /sethome persists these same vars into $HERMES_HOME/.env, but nix
     # regenerates that file on every deploy — declare them here instead.
